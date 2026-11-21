@@ -1,4 +1,4 @@
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
 import {
   PreloadAllModules,
@@ -9,6 +9,7 @@ import {
 } from '@angular/router';
 
 import { routes } from './app.routes';
+import { demoDataInterceptor } from './shared/demo-data.interceptor';
 import { PageTitleStrategy } from './shared/page-titles';
 
 export const appConfig: ApplicationConfig = {
@@ -19,7 +20,7 @@ export const appConfig: ApplicationConfig = {
       withPreloading(PreloadAllModules),
       withInMemoryScrolling({ scrollPositionRestoration: 'enabled', anchorScrolling: 'enabled' }),
     ),
-    provideHttpClient(),
+    provideHttpClient(withInterceptors([demoDataInterceptor])),
     { provide: TitleStrategy, useClass: PageTitleStrategy },
   ],
 };
