@@ -47,7 +47,7 @@
 .table-wrap.table-wrap--compact {
   width: 100%;
   margin: 0;
-  padding: 0 0 0.5rem;
+  padding: 0 0 1.5rem;
 }
 
 .table-wrap.table-wrap--compact table {
@@ -97,7 +97,8 @@
   gap: 1.25rem;
 }
 
-.event-card {
+.event-card,
+.weather-report {
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -166,6 +167,63 @@
   font-weight: 600;
 }
 
+/* METAR and TAF lookup */
+.weather-form {
+  display: flex;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.weather-form__field {
+  flex: 1 1 18rem;
+  max-width: 28rem;
+}
+
+.weather-form .weather-form__button {
+  height: 58px;
+  margin: 0;
+}
+
+.weather-reports {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.25rem;
+  margin-top: 1rem;
+}
+
+.weather-report {
+  padding: 1rem 1.1rem;
+}
+
+.weather-report h3 {
+  margin: 0 0 0.6rem;
+  color: var(--c-slate-900);
+  font-size: 1.15rem;
+}
+
+.weather-report__icao {
+  color: var(--c-ph-red);
+  font-size: 0.95rem;
+}
+
+.weather-report__text {
+  margin: 0;
+  padding: 0.75rem 0.85rem;
+  border-radius: 8px;
+  background: var(--c-tint-1);
+  color: var(--c-slate-800);
+  font-family: Consolas, 'Courier New', monospace;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.home-section .weather-report__none {
+  margin: 0;
+}
+
 /* IVAO logos */
 .home-network {
   padding: 1.5rem;
@@ -196,6 +254,15 @@
   box-shadow: 0 1px 6px rgba(15, 23, 42, 0.12);
 }
 
+/* Both plates share one fixed width so they match. */
+.home-network__ivao,
+.home-network__ph {
+  justify-content: center;
+  box-sizing: border-box;
+  width: 150px;
+  max-width: 100%;
+}
+
 .home-network__ph {
   padding: 0 0.5rem;
 }
@@ -208,9 +275,9 @@
 
 .home-network__ph img {
   display: block;
-  height: 120px;
-  width: auto;
-  margin: -18px 0;
+  width: 100%;
+  height: auto;
+  margin: -13px 0;
 }
 
 .home-network__plus {
@@ -222,6 +289,10 @@
 @media (max-width: 900px) {
   .event-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .weather-reports {
+    grid-template-columns: 1fr;
   }
 }
 

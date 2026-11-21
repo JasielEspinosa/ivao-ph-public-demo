@@ -377,6 +377,7 @@ export class AdminAuthService {
       '',
       '/home',
       '/members',
+      '/documents',
       '/privacy-policy',
       '/login',
       '/forgot-password',

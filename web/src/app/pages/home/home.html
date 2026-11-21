@@ -18,16 +18,8 @@
 
       <dl class="home-facts">
         <div>
-          <dt>Founded</dt>
-          <dd>2026</dd>
-        </div>
-        <div>
           <dt>Airspace</dt>
           <dd>Manila FIR (RPHI)</dd>
-        </div>
-        <div>
-          <dt>Network</dt>
-          <dd>IVAO</dd>
         </div>
       </dl>
     </section>
@@ -54,37 +46,160 @@
     <section class="home-section" aria-labelledby="online-pilots-title">
       <div class="home-section__header">
         <h2 id="online-pilots-title">Online Pilots</h2>
-        <span class="home-sample-tag">Sample data</span>
       </div>
+      <p>Pilots online now on a flight plan to or from the Philippines.</p>
 
-      <div class="table-wrap table-wrap--admin table-wrap--compact">
+      <p class="status-box error" role="alert" *ngIf="pilotsError()">{{ pilotsError() }}</p>
+      <p *ngIf="pilotsLoaded() && !pilotsError() && pilots().length === 0">No pilots are online right now.</p>
+
+      <div class="table-wrap table-wrap--admin table-wrap--compact" *ngIf="pilots().length > 0">
         <table>
           <thead>
             <tr>
               <th data-disable-resize>Callsign</th>
-              <th data-disable-resize>Pilot</th>
               <th data-disable-resize>Aircraft</th>
               <th data-disable-resize>From</th>
               <th data-disable-resize>To</th>
               <th data-disable-resize>Altitude</th>
+              <th data-disable-resize>Is Member</th>
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let pilot of onlinePilots">
+            <tr *ngFor="let pilot of pilots()">
               <td>{{ pilot.callsign }}</td>
-              <td>{{ pilot.name }}</td>
-              <td>{{ pilot.aircraft }}</td>
-              <td>{{ pilot.departure }}</td>
-              <td>{{ pilot.arrival }}</td>
-              <td>{{ pilot.altitude }}</td>
+              <td>{{ pilot.aircraft || '-' }}</td>
+              <td>{{ pilot.departure || '-' }}</td>
+              <td>{{ pilot.arrival || '-' }}</td>
+              <td>{{ formatAltitude(pilot) }}</td>
+              <td></td>
             </tr>
           </tbody>
         </table>
       </div>
-      <p class="home-note">
-        This list shows sample pilots. For real traffic, open
+      <p class="home-note" *ngIf="pilotsUpdatedAt() as updatedAt">
+        Last updated {{ updatedAt | date: 'HH:mm' : 'UTC' }}Z, refreshed every minute. For the full picture, open
         <a href="https://webeye.ivao.aero/" target="_blank" rel="noopener noreferrer">Live Traffic</a>.
       </p>
+    </section>
+
+    <section class="home-section" aria-labelledby="online-atc-title">
+      <div class="home-section__header">
+        <h2 id="online-atc-title">Online Air Traffic Controllers</h2>
+      </div>
+      <p>Controllers online now in the Philippines and the areas around it.</p>
+
+      <p class="status-box error" role="alert" *ngIf="atcError()">{{ atcError() }}</p>
+      <p *ngIf="atcLoaded() && !atcError() && atcGroups().length === 0">No controllers are online right now.</p>
+
+      <div *ngFor="let group of atcGroups()">
+        <h3>{{ group.country }}</h3>
+        <div class="table-wrap table-wrap--admin table-wrap--compact">
+          <table>
+            <thead>
+              <tr>
+                <th data-disable-resize>Callsign</th>
+                <th data-disable-resize>Position</th>
+                <th data-disable-resize>Frequency</th>
+                <th data-disable-resize>Rating</th>
+                <th data-disable-resize>Online</th>
+                <th data-disable-resize>Is Member</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let atc of group.controllers">
+                <td>{{ atc.callsign }}</td>
+                <td>{{ atc.position || '-' }}</td>
+                <td>{{ atc.frequency !== null ? (atc.frequency | number: '1.3-3') : '-' }}</td>
+                <td>{{ atc.rating }}</td>
+                <td>{{ formatOnlineTime(atc.onlineSeconds) }}</td>
+                <td></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <p class="home-note" *ngIf="atcUpdatedAt() as updatedAt">
+        Last updated {{ updatedAt | date: 'HH:mm' : 'UTC' }}Z, refreshed every minute.
+      </p>
+    </section>
+
+    <section class="home-section" aria-labelledby="weather-title">
+      <div class="home-section__header">
+        <h2 id="weather-title">METAR &amp; TAF</h2>
+      </div>
+
+      <form class="universal-form weather-form" novalidate (submit)="$event.preventDefault(); fetchWeather()">
+        <label class="uf-field weather-form__field">
+          <span>Type in the airport ICAO code</span>
+          <input
+            type="text"
+            list="weather-airports"
+            maxlength="4"
+            placeholder=" "
+            autocomplete="off"
+            autocapitalize="characters"
+            autocorrect="off"
+            spellcheck="false"
+            data-lpignore="true"
+            data-1p-ignore="true"
+            [value]="weatherIcao()"
+            (input)="onWeatherIcaoInput($any($event.target))"
+          />
+          <datalist id="weather-airports">
+            <option *ngFor="let airport of airports" [value]="airport.icao">{{ airport.name }}</option>
+          </datalist>
+        </label>
+        <button type="submit" class="universal-submit-btn weather-form__button" [disabled]="weatherLoading()">
+          Get weather
+        </button>
+      </form>
+
+      <div class="weather-status" aria-live="polite">
+        <p class="status-box" *ngIf="weatherLoading()">Loading the weather...</p>
+        <p class="status-box error" *ngIf="weatherError()">{{ weatherError() }}</p>
+      </div>
+
+      <div class="weather-reports" *ngIf="weather() as report">
+        <article class="weather-report">
+          <h3>
+            METAR <span class="weather-report__icao">{{ report.icao }}</span>
+          </h3>
+          <pre class="weather-report__text" *ngIf="report.metar; else noMetar">{{ report.metar }}</pre>
+          <ng-template #noMetar>
+            <p class="weather-report__none">
+              No METAR is available for {{ report.icao }}.
+              <ng-container *ngIf="!report.nearestMetar">No nearby airport with a METAR was found.</ng-container>
+            </p>
+            <ng-container *ngIf="report.nearestMetar as near">
+              <p class="home-note">
+                Nearest airport with a METAR: <strong>{{ near.icao }}</strong> ({{ near.name }}),
+                {{ near.distanceKm }} km {{ near.direction }} of {{ report.icao }}.
+              </p>
+              <pre class="weather-report__text">{{ near.report }}</pre>
+            </ng-container>
+          </ng-template>
+        </article>
+        <article class="weather-report">
+          <h3>
+            TAF <span class="weather-report__icao">{{ report.icao }}</span>
+          </h3>
+          <pre class="weather-report__text" *ngIf="report.taf; else noTaf">{{ report.taf }}</pre>
+          <ng-template #noTaf>
+            <p class="weather-report__none">
+              No TAF is available for {{ report.icao }}.
+              <ng-container *ngIf="!report.nearestTaf">No nearby airport with a TAF was found.</ng-container>
+            </p>
+            <ng-container *ngIf="report.nearestTaf as near">
+              <p class="home-note">
+                Nearest airport with a TAF: <strong>{{ near.icao }}</strong> ({{ near.name }}), {{ near.distanceKm }} km
+                {{ near.direction }} of {{ report.icao }}.
+              </p>
+              <pre class="weather-report__text">{{ near.report }}</pre>
+            </ng-container>
+          </ng-template>
+        </article>
+      </div>
     </section>
 
     <section class="home-section home-network">
