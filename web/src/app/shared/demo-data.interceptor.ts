@@ -21,6 +21,7 @@ const DEMO_RESPONSES: Record<string, string> = {
 const IVAO_WHAZZUP_API = 'https://api.ivao.aero/v2/tracker/whazzup';
 const METAR_API = 'https://metar.vatsim.net';
 const ICAO_PATTERN = /^[A-Z]{4}$/;
+const TAF_DEMO_NOTE = 'TAF is not available in the public demo.';
 /** The feed is ~800 KB and refreshes about every 15 seconds; Home asks for pilots and ATC together. */
 const WHAZZUP_TTL_MS = 30 * 1000;
 const PHILIPPINE_PREFIX = 'RP';
@@ -242,8 +243,9 @@ export const demoDataInterceptor: HttpInterceptorFn = (req, next) => {
         event instanceof HttpResponse
           ? new HttpResponse({
               status: 200,
-              // No live TAF in the demo (see the top of this file), and no nearby-airport search.
-              body: { icao, metar: parseMetar(event.body), taf: null, nearestMetar: null, nearestTaf: null },
+              // No live TAF in the demo (see the top of this file), so the TAF box says so instead of
+              // claiming the airport has none. No nearby-airport search either.
+              body: { icao, metar: parseMetar(event.body), taf: TAF_DEMO_NOTE, nearestMetar: null, nearestTaf: null },
             })
           : event,
       ),
