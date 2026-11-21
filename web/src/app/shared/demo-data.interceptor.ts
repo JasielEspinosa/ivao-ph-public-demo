@@ -1,7 +1,8 @@
 import { HttpErrorResponse, HttpEvent, HttpHeaders, HttpInterceptorFn, HttpResponse } from '@angular/common/http';
-import { Observable, catchError, map, shareReplay, throwError } from 'rxjs';
+import { Observable, catchError, filter, map, of, shareReplay, switchMap, throwError } from 'rxjs';
 
 import { environment } from '../../environments/environment';
+import { AirportPosition, PHILIPPINE_AIRPORTS } from './demo-airport-positions';
 
 /**
  * Public demo only: GitHub Pages has no backend, so the API calls listed here are answered
@@ -11,7 +12,8 @@ import { environment } from '../../environments/environment';
  *  - `/pilots/online` and `/atc/online`: the live IVAO feed, read straight from the browser (the
  *    feed allows cross-origin requests) and reshaped the way the real backend does.
  *  - `/weather/:icao`: the live METAR from VATSIM's public METAR service (it allows cross-origin
- *    requests). There is no live TAF: no free TAF service allows requests from a browser, and the
+ *    requests), with the nearest airport's METAR when the airport has none. There is no live
+ *    TAF: no free TAF service allows requests from a browser, and the
  *    real backend's source (aviationweather.gov) does not.
  */
 const DEMO_RESPONSES: Record<string, string> = {
@@ -172,6 +174,64 @@ function parseMetar(body: unknown): string | null {
   return metar === '' ? null : metar;
 }
 
+const EARTH_RADIUS_KM = 6371;
+const COMPASS = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+const toRadians = (degrees: number): number => (degrees * Math.PI) / 180;
+
+/** Great-circle distance in km (haversine), as in the backend's WeatherService. */
+function distanceBetween(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const dLat = toRadians(lat2 - lat1);
+  const dLon = toRadians(lon2 - lon1);
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRadians(lat1)) * Math.cos(toRadians(lat2)) * Math.sin(dLon / 2) ** 2;
+  return 2 * EARTH_RADIUS_KM * Math.asin(Math.sqrt(a));
+}
+
+/** 8-point compass direction of the initial bearing from point 1 to point 2. */
+function directionBetween(lat1: number, lon1: number, lat2: number, lon2: number): string {
+  const dLon = toRadians(lon2 - lon1);
+  const y = Math.sin(dLon) * Math.cos(toRadians(lat2));
+  const x =
+    Math.cos(toRadians(lat1)) * Math.sin(toRadians(lat2)) -
+    Math.sin(toRadians(lat1)) * Math.cos(toRadians(lat2)) * Math.cos(dLon);
+  const bearing = (Math.atan2(y, x) * 180) / Math.PI;
+  return COMPASS[Math.round((((bearing % 360) + 360) % 360) / 45) % 8];
+}
+
+/**
+ * The closest Philippine airport that has a METAR, from the service's "all RP*" answer (one report per line).
+ * Needs the position of the airport asked for, so an airport that is not in the Philippine list gets no suggestion.
+ */
+function findNearestMetar(icao: string, allMetars: string) {
+  const origin = PHILIPPINE_AIRPORTS.find((airport) => airport.icao === icao);
+  if (!origin) {
+    return null;
+  }
+
+  let best: { airport: AirportPosition; report: string; distanceKm: number } | null = null;
+  for (const line of allMetars.split('\n')) {
+    const report = line.trim();
+    const airport = PHILIPPINE_AIRPORTS.find((candidate) => candidate.icao === report.slice(0, 4));
+    if (!airport || airport.icao === icao) {
+      continue;
+    }
+    const distanceKm = distanceBetween(origin.lat, origin.lon, airport.lat, airport.lon);
+    if (best === null || distanceKm < best.distanceKm) {
+      best = { airport, report, distanceKm };
+    }
+  }
+  if (best === null) {
+    return null;
+  }
+
+  return {
+    icao: best.airport.icao,
+    name: best.airport.name,
+    distanceKm: Math.round(best.distanceKm),
+    direction: directionBetween(origin.lat, origin.lon, best.airport.lat, best.airport.lon),
+    report: best.report,
+  };
+}
+
 let cachedFeed: { at: number; feed$: Observable<Whazzup> } | null = null;
 
 /** One shared download of the feed per WHAZZUP_TTL_MS; a failed download is not kept. */
@@ -238,17 +298,35 @@ export const demoDataInterceptor: HttpInterceptorFn = (req, next) => {
           }),
       );
     }
-    return next(req.clone({ url: `${METAR_API}/${icao}`, headers: new HttpHeaders(), responseType: 'text' })).pipe(
-      map((event) =>
-        event instanceof HttpResponse
-          ? new HttpResponse({
-              status: 200,
+    const getText = (url: string) =>
+      next(req.clone({ url, headers: new HttpHeaders(), responseType: 'text' })).pipe(
+        filter((event): event is HttpResponse<string> => event instanceof HttpResponse),
+        map((event) => event.body ?? ''),
+      );
+
+    return getText(`${METAR_API}/${icao}`).pipe(
+      switchMap((body) => {
+        const metar = parseMetar(body);
+        // Like the backend, look for the closest airport with a METAR only when this one has none.
+        const nearest$ =
+          metar === null
+            ? getText(`${METAR_API}/?id=${PHILIPPINE_PREFIX}`).pipe(
+                map((all) => findNearestMetar(icao, all)),
+                catchError(() => of(null)),
+              )
+            : of(null);
+        return nearest$.pipe(
+          map(
+            (nearestMetar) =>
               // No live TAF in the demo (see the top of this file), so the TAF box says so instead of
-              // claiming the airport has none. No nearby-airport search either.
-              body: { icao, metar: parseMetar(event.body), taf: TAF_DEMO_NOTE, nearestMetar: null, nearestTaf: null },
-            })
-          : event,
-      ),
+              // claiming the airport has none.
+              new HttpResponse({
+                status: 200,
+                body: { icao, metar, taf: TAF_DEMO_NOTE, nearestMetar, nearestTaf: null },
+              }),
+          ),
+        );
+      }),
       catchError(() =>
         throwError(() => new HttpErrorResponse({ status: 503, statusText: 'Service Unavailable', url: METAR_API })),
       ),
