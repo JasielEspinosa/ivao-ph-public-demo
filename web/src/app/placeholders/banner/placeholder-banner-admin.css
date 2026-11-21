@@ -1,0 +1,119 @@
+/* Banner of the Manage Users / Manage User pages: a light strip with a color wash and artwork on the right. */
+.page-banner {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  box-sizing: border-box;
+  width: 100vw;
+  height: 125px;
+  padding: 1rem;
+  margin: 0 0 1.5rem calc(50% - 50vw);
+  overflow: hidden;
+}
+
+.page-banner-admin {
+  background-color: var(--c-tint-1);
+  border: 1px solid var(--c-line-soft);
+}
+
+.banner-content {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 1140px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.banner-title {
+  margin: 0;
+  font-size: 2.25rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  color: var(--c-brand-ink);
+  text-transform: uppercase;
+}
+
+.banner-description {
+  margin: 0;
+  font-family: 'Avenir', 'Avenir Next', 'Segoe UI', sans-serif;
+  letter-spacing: 0;
+  color: var(--c-banner-text);
+}
+
+.banner-back-link {
+  margin-bottom: 0.5rem;
+  z-index: 1;
+}
+
+.banner-back-link--left {
+  margin-bottom: 0;
+  position: absolute;
+  left: -4.5rem;
+  bottom: 3px;
+}
+
+/* Per-page color wash: two accent hues mixed into the surface color, so it follows Light/Dark. */
+.page-banner-admin--users,
+.page-banner-admin--user {
+  background-image:
+    radial-gradient(circle at 90% 15%, color-mix(in srgb, var(--banner-b) 34%, var(--c-surface)) 0, transparent 42%),
+    radial-gradient(circle at 62% 115%, color-mix(in srgb, var(--banner-a) 28%, var(--c-surface)) 0, transparent 48%),
+    linear-gradient(
+      100deg,
+      color-mix(in srgb, var(--banner-a) 6%, var(--c-surface)) 0%,
+      color-mix(in srgb, var(--banner-a) 15%, var(--c-surface)) 50%,
+      color-mix(in srgb, var(--banner-b) 24%, var(--c-surface)) 100%
+    );
+  border-color: color-mix(in srgb, var(--banner-a) 30%, var(--c-line-soft));
+}
+
+/* Transparent artwork on the right; it fades out to the left so the title stays clear. */
+.page-banner-admin--users::before,
+.page-banner-admin--user::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-position: right center;
+  background-repeat: no-repeat;
+  background-size: auto 100%;
+}
+
+.page-banner-admin--users {
+  --banner-a: var(--c-banner-users-a);
+  --banner-b: var(--c-banner-users-b);
+}
+
+.page-banner-admin--users::before {
+  background-image: url('../../../../public/images/banner-admin-users.webp');
+}
+
+.page-banner-admin--user {
+  --banner-a: var(--c-banner-user-a);
+  --banner-b: var(--c-banner-user-b);
+}
+
+.page-banner-admin--user::before {
+  background-image: url('../../../../public/images/banner-admin-user.webp');
+}
+
+@media (max-width: 1450px) {
+  .banner-back-link--left {
+    position: revert;
+    margin-bottom: 0.5rem;
+  }
+}
+
+@media (max-width: 700px) {
+  .banner-title {
+    font-size: 1.75rem;
+  }
+
+  .banner-back-link--left {
+    left: 0;
+    bottom: 0.75rem;
+  }
+}

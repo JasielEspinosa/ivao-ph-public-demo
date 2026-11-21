@@ -1,0 +1,348 @@
+<section class="page-shell data-manage-page data-manage-page--wide">
+  <div class="form-shell">
+    <app-placeholder-banner-data-management></app-placeholder-banner-data-management>
+
+    <div class="dashboard-header manage-toolbar">
+      <p>{{ page?.entry?.description }}</p>
+
+      <div class="manage-toolbar-actions">
+        <button type="button" class="universal-button universal-button--template" (click)="exportTemplate()">
+          Export Template
+        </button>
+        <button
+          type="button"
+          class="universal-button universal-button--template"
+          (click)="openImportTemplatePicker(templateFileInput)"
+        >
+          Import Template
+        </button>
+        <input
+          #templateFileInput
+          type="file"
+          class="visually-hidden-input"
+          accept=".xlsx,.xlsm,.csv"
+          (change)="onImportTemplateSelected($event)"
+        />
+        <button type="button" class="universal-button universal-button--primary" (click)="openAddModal()">
+          Add Member
+        </button>
+      </div>
+    </div>
+
+    <div
+      class="route-loading-overlay route-loading-overlay--inline"
+      *ngIf="isLoading"
+      role="status"
+      aria-live="polite"
+      [attr.aria-label]="messages.loading('Members')"
+    >
+      <div class="route-loading-spinner"></div>
+    </div>
+
+    <div *ngIf="errorMessage && !isModalOpen" class="status-box error">
+      {{ errorMessage }}
+    </div>
+
+    <div *ngIf="successMessage && !isModalOpen" class="status-box success">
+      {{ successMessage }}
+    </div>
+
+    <div class="table-wrap table-wrap--admin table-wrap--compact" *ngIf="!isLoading && !errorMessage">
+      <app-table-pagination [pager]="pager"></app-table-pagination>
+      <table>
+        <thead>
+          <tr>
+            <th *ngFor="let column of columns">
+              <button type="button" class="sort-header-button" (click)="toggleSort(column.key)">
+                {{ column.label }}
+                {{ getSortIndicator(column.key) }}
+              </button>
+            </th>
+            <th data-disable-resize></th>
+          </tr>
+
+          <tr class="column-filter-row">
+            <th *ngFor="let column of columns">
+              <input
+                type="text"
+                class="column-filter-input"
+                [value]="columnFilters[column.key]"
+                (input)="setColumnFilter(column.key, $any($event.target).value || '')"
+                placeholder="Filter"
+              />
+            </th>
+            <th>
+              <button
+                *ngIf="hasActiveFilters"
+                type="button"
+                class="universal-button universal-button--clear"
+                (click)="clearFilters()"
+              >
+                Clear
+              </button>
+            </th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let item of pager.slice(filteredMembers)">
+            <td *ngFor="let column of columns">{{ cellText(item, column.key) }}</td>
+            <td>
+              <button type="button" class="universal-button universal-button--edit" (click)="edit(item)">Edit</button>
+            </td>
+          </tr>
+
+          <tr *ngIf="filteredMembers.length === 0">
+            <td [attr.colspan]="columns.length + 1">{{ messages.noRecords('Members') }}</td>
+          </tr>
+        </tbody>
+      </table>
+      <app-table-pagination [pager]="pager"></app-table-pagination>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================
+     ADD / EDIT MODAL
+     ========================================================= -->
+
+<div *ngIf="isModalOpen" class="manage-modal-backdrop">
+  <div class="manage-modal-card members-modal" role="dialog" aria-modal="true" aria-label="Members Management">
+    <button type="button" class="universal-modal-close" aria-label="Close" [disabled]="isSaving" (click)="closeModal()">
+      &times;
+    </button>
+
+    <h3>
+      {{ isEditMode ? 'Edit Member' : 'Add Member' }}
+    </h3>
+
+    <form class="manage-form universal-form" [formGroup]="form" (ngSubmit)="save()">
+      <div class="manage-form-row members-row members-row--vid">
+        <div class="manage-modal-field">
+          <label class="uf-field" for="vid" [class.uf-invalid]="showInvalid('vid')">
+            <span>VID <span class="required-mark">*</span></span>
+            <input id="vid" type="text" inputmode="numeric" maxlength="10" formControlName="vid" placeholder=" " />
+          </label>
+          <small class="uf-error" *ngIf="showInvalid('vid')">
+            {{ form.controls.vid.hasError('required') ? VALIDATION_MESSAGES.required : vidMessage }}
+          </small>
+        </div>
+      </div>
+
+      <div class="manage-form-row members-row members-row--names">
+        <div class="manage-modal-field">
+          <label class="uf-field" for="last_name" [class.uf-invalid]="showInvalid('last_name')">
+            <span>Last Name <span class="required-mark">*</span></span>
+            <input id="last_name" type="text" formControlName="last_name" placeholder=" " />
+          </label>
+          <small class="uf-error" *ngIf="showInvalid('last_name')">
+            {{
+              form.controls.last_name.hasError('required')
+                ? VALIDATION_MESSAGES.required
+                : VALIDATION_MESSAGES.invalidName
+            }}
+          </small>
+        </div>
+
+        <div class="manage-modal-field">
+          <label class="uf-field" for="first_name" [class.uf-invalid]="showInvalid('first_name')">
+            <span>First Name <span class="required-mark">*</span></span>
+            <input id="first_name" type="text" formControlName="first_name" placeholder=" " />
+          </label>
+          <small class="uf-error" *ngIf="showInvalid('first_name')">
+            {{
+              form.controls.first_name.hasError('required')
+                ? VALIDATION_MESSAGES.required
+                : VALIDATION_MESSAGES.invalidName
+            }}
+          </small>
+        </div>
+
+        <div class="manage-modal-field">
+          <label class="uf-field" for="middle_name" [class.uf-invalid]="showInvalid('middle_name')">
+            <span>Middle Name</span>
+            <input id="middle_name" type="text" formControlName="middle_name" placeholder=" " />
+          </label>
+          <small class="uf-error" *ngIf="showInvalid('middle_name')">{{ VALIDATION_MESSAGES.invalidName }}</small>
+        </div>
+
+        <div class="manage-modal-field">
+          <label class="uf-field" for="suffix" [class.uf-invalid]="showInvalid('suffix')">
+            <span>Suffix</span>
+            <input id="suffix" type="text" formControlName="suffix" placeholder=" " />
+          </label>
+          <small class="uf-error" *ngIf="showInvalid('suffix')">{{ VALIDATION_MESSAGES.invalidSuffixShort }}</small>
+        </div>
+      </div>
+
+      <div class="manage-form-row members-row members-row--place">
+        <div class="manage-modal-field">
+          <label class="uf-field" for="country_id">
+            <span>Country</span>
+            <select id="country_id" formControlName="country_id">
+              <option [ngValue]="null">-</option>
+              <option *ngFor="let option of countryOptions" [ngValue]="option.id">{{ option.country_name }}</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="manage-modal-field">
+          <label class="uf-field" for="division" [class.uf-invalid]="showInvalid('division')">
+            <span>Division</span>
+            <input id="division" type="text" maxlength="10" formControlName="division" placeholder=" " />
+          </label>
+        </div>
+      </div>
+
+      <div class="manage-form-row members-row members-row--flags">
+        <div class="manage-toggle-row">
+          <label class="manage-active">
+            <span>Is Pilot</span>
+            <input type="checkbox" class="switch-input" role="switch" formControlName="is_pilot" />
+          </label>
+        </div>
+
+        <div class="manage-toggle-row">
+          <label class="manage-active">
+            <span>Is ATC</span>
+            <input type="checkbox" class="switch-input" role="switch" formControlName="is_atc" />
+          </label>
+        </div>
+
+        <div class="manage-toggle-row">
+          <label class="manage-active">
+            <span>Is Staff</span>
+            <input type="checkbox" class="switch-input" role="switch" formControlName="is_staff" />
+          </label>
+        </div>
+      </div>
+
+      <div class="manage-form-row manage-form-row--stack" *ngIf="form.controls.is_staff.value">
+        <div class="manage-modal-field">
+          <label class="uf-field" for="role_description" [class.uf-invalid]="showInvalid('role_description')">
+            <span>Role Description</span>
+            <input
+              id="role_description"
+              type="text"
+              maxlength="255"
+              formControlName="role_description"
+              placeholder=" "
+            />
+          </label>
+        </div>
+      </div>
+
+      <div class="manage-toggle-row">
+        <label class="manage-active">
+          <span>Enable this Member</span>
+          <input type="checkbox" class="switch-input" role="switch" formControlName="is_active" />
+        </label>
+      </div>
+
+      <div *ngIf="errorMessage" class="status-box error manage-modal-message">
+        {{ errorMessage }}
+      </div>
+
+      <div class="manage-modal-actions">
+        <button
+          type="button"
+          class="universal-button universal-button--cancel"
+          [disabled]="isSaving"
+          (click)="closeModal()"
+        >
+          Cancel
+        </button>
+
+        <div class="manage-modal-actions-right">
+          <button
+            type="button"
+            class="universal-button universal-button--danger"
+            *ngIf="isEditMode"
+            [disabled]="isSaving"
+            (click)="deleteMember()"
+          >
+            Delete
+          </button>
+
+          <button type="submit" class="universal-button universal-button--save" [disabled]="isSaving">
+            {{ isSaving ? 'Saving...' : isEditMode ? 'Update' : 'Add' }}
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div
+  *ngIf="isExportOptionsModalOpen"
+  class="template-modal-backdrop"
+  role="dialog"
+  aria-modal="true"
+  aria-label="Export template options"
+>
+  <div class="template-modal-card template-modal-card--export">
+    <button type="button" class="universal-modal-close" aria-label="Close" (click)="closeExportOptionsModal()">
+      &times;
+    </button>
+    <h3>Export Template</h3>
+    <p>{{ messages.exportChoose }}</p>
+    <div class="template-modal-actions template-modal-actions--horizontal">
+      <button type="button" class="universal-button universal-button--primary" (click)="downloadTemplateFromServer()">
+        Export Data from Server
+      </button>
+      <button type="button" class="universal-button universal-button--template" (click)="downloadTemplateFromPage()">
+        Export Data from Page
+      </button>
+    </div>
+  </div>
+</div>
+
+<div
+  *ngIf="pendingImportFile"
+  class="template-modal-backdrop"
+  role="dialog"
+  aria-modal="true"
+  aria-label="Confirm import"
+>
+  <div class="template-modal-card template-modal-card--export">
+    <h3>Import Template</h3>
+    <p>{{ messages.confirmImportReplace('members', pendingImportFile.name) }}</p>
+    <div class="template-modal-actions template-modal-actions--confirm">
+      <button type="button" class="universal-button universal-button--cancel" (click)="cancelImportConfirm()">
+        Cancel
+      </button>
+      <button type="button" class="universal-button universal-button--danger" (click)="confirmImportTemplate()">
+        Override
+      </button>
+    </div>
+  </div>
+</div>
+
+<div
+  *ngIf="isTemplateUploading"
+  class="template-modal-backdrop"
+  role="dialog"
+  aria-modal="true"
+  aria-label="Uploading template"
+>
+  <div class="template-modal-card">
+    <h3>Uploading</h3>
+    <p>{{ messages.uploadingTemplate }}</p>
+  </div>
+</div>
+
+<div
+  *ngIf="isTemplateUpdatedModalOpen"
+  class="template-modal-backdrop"
+  role="dialog"
+  aria-modal="true"
+  aria-label="Template updated"
+>
+  <div class="template-modal-card">
+    <h3>Template updated</h3>
+    <p>{{ messages.templateUpdated }}</p>
+    <button type="button" class="template-modal-button template-modal-button--ok" (click)="closeTemplateUpdatedModal()">
+      Ok
+    </button>
+  </div>
+</div>

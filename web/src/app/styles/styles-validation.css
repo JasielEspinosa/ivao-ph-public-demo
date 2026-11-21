@@ -1,0 +1,176 @@
+:root {
+  --validation-error-color: #c91636;
+  --validation-error-font-size: 12px;
+  --validation-error-font-weight: 500;
+  --validation-error-line-height: 1.2;
+  --validation-error-ring: var(--c-danger-tint);
+}
+
+.universal-form {
+  --uf-error: var(--validation-error-color);
+}
+
+.required-mark {
+  color: var(--validation-error-color, #c91636);
+}
+
+.uf-error,
+.inline-field-error,
+.field-error {
+  color: var(--validation-error-color);
+  font-size: var(--validation-error-font-size);
+  font-weight: var(--validation-error-font-weight);
+  line-height: var(--validation-error-line-height);
+}
+
+.form-feedback {
+  margin-top: 1rem;
+  padding: 0.8rem 1rem;
+  border-radius: 5px;
+  background: var(--c-danger-tint);
+  color: var(--uf-error);
+  font-size: 0.86rem;
+}
+
+.form-feedback--success {
+  background: var(--c-success-tint);
+  color: var(--c-success-ink);
+}
+
+.inline-field-error,
+.field-error {
+  display: block;
+  margin: 0;
+}
+
+.inline-field-error {
+  grid-column: 2;
+}
+
+.universal-form .uf-field.uf-invalid > span {
+  top: calc(var(--uf-control-height) / 2) !important;
+  transform: translateY(-50%) !important;
+  color: var(--uf-error) !important;
+}
+
+.universal-form .uf-field.uf-invalid:has(> input:not(:placeholder-shown)) > span,
+.universal-form .uf-field.uf-invalid:has(> select.ng-dirty) > span,
+.universal-form .uf-field.uf-invalid:has(> select.ng-valid) > span,
+.universal-form .uf-field.uf-invalid:has(> input:focus) > span,
+.universal-form .uf-field.uf-invalid:has(> select:focus) > span,
+.universal-form .uf-field.uf-invalid:has(> textarea:focus) > span {
+  top: 0.42rem !important;
+  transform: none !important;
+}
+
+.universal-form .uf-field.uf-invalid:has(> input[type='date']) > span,
+.universal-form .uf-field.uf-invalid:has(> input[type='month']) > span {
+  top: 0.42rem !important;
+  transform: none !important;
+}
+
+/* Keep the label centered on an empty required select even though it gets ng-dirty/ng-invalid on blur. */
+.universal-form .uf-field.uf-invalid:has(> select.is-placeholder:not(:focus)) > span {
+  top: calc(var(--uf-control-height) / 2) !important;
+  transform: translateY(-50%) !important;
+}
+
+.universal-form .uf-field.uf-invalid > input,
+.universal-form .uf-field.uf-invalid > select,
+.universal-form .uf-field.uf-invalid > textarea {
+  border-color: var(--uf-error) !important;
+}
+
+.universal-form .uf-field.uf-invalid > input::placeholder,
+.universal-form .uf-field.uf-invalid > textarea::placeholder {
+  color: var(--uf-error) !important;
+  opacity: 1;
+}
+
+.universal-form .uf-error {
+  margin-top: 0.25rem;
+  color: var(--uf-error);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.universal-form .uf-error.choice-field-error {
+  margin-top: 0.75rem;
+}
+
+/* Error directly under a radio/checkbox group (no choice-field-error class): an input's message sits ~7px lower
+   because the inline <input> leaves a baseline gap, so match that offset to line the messages up. */
+.universal-form .choice-group + .uf-error {
+  margin-top: 0.75rem;
+}
+
+/* Label + boxed radios on one line: sit the message at the same height as under a regular input field
+   (measured in the browser). */
+.universal-form .choice-field--split > .uf-error.choice-field-error {
+  margin-top: 0.275rem;
+}
+
+.universal-form .uf-error--compact {
+  margin-top: 0.25rem !important;
+}
+
+.universal-form .uf-error--field-offset {
+  margin-top: 0.35rem;
+}
+
+.universal-form .assessment-row .uf-error {
+  margin-top: -0.25rem;
+}
+
+.validation-help {
+  color: var(--validation-error-color, #c91636);
+}
+
+.validation-invalid-card {
+  border-color: var(--validation-error-color, #c91636);
+  background: var(--validation-error-ring, rgba(201, 22, 54, 0.06));
+}
+
+.validation-invalid-row {
+  padding-right: 0.6rem;
+  padding-left: 0.6rem;
+  border: 1px solid var(--validation-error-color, #c91636);
+  border-radius: 5px;
+  background: var(--validation-error-ring, rgba(201, 22, 54, 0.06));
+}
+
+.universal-form .universal-checkbox-card.uf-invalid {
+  border-color: var(--validation-error-color, #c91636);
+  background: var(--validation-error-ring, rgba(201, 22, 54, 0.06));
+}
+
+.manage-user-form .inline-field.uf-invalid input {
+  border-color: var(--validation-error-color) !important;
+}
+
+.manage-user-form .inline-field.uf-invalid input::placeholder {
+  color: var(--validation-error-color) !important;
+  opacity: 1;
+}
+
+.universal-form .content-row-full .uf-field.uf-invalid textarea {
+  border-color: var(--uf-error) !important;
+}
+
+.universal-form .content-row-full .uf-field.uf-invalid > span {
+  color: var(--uf-error);
+}
+
+.universal-form .content-row-full .uf-field .uf-error {
+  display: block;
+}
+
+.content-page .uf-field.uf-invalid input,
+.content-page .uf-field.uf-invalid select,
+.content-page .uf-field.uf-invalid textarea {
+  border-color: var(--uf-error) !important;
+}
+
+.content-page .uf-field .uf-error {
+  margin-top: 0;
+}

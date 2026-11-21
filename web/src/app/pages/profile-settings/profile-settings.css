@@ -1,0 +1,167 @@
+/* Profile header: avatar, name, email and role. */
+.profile-hero {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  margin-bottom: 1.25rem;
+  padding: 1.25rem 1.5rem;
+  border: 1px solid var(--c-slate-200);
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--c-tint-1) 0%, var(--c-surface) 70%);
+}
+
+.profile-avatar {
+  flex: 0 0 76px;
+  width: 76px;
+  height: 76px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--c-brand-2);
+  color: #ffffff;
+  font-size: 1.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  box-shadow:
+    0 0 0 4px var(--c-surface),
+    0 0 0 5px var(--c-line);
+}
+
+.profile-hero__details {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.profile-hero__name {
+  margin: 0;
+  color: var(--c-slate-900);
+  font-size: 1.35rem;
+  overflow-wrap: anywhere;
+}
+
+.profile-hero__email {
+  margin: 0.15rem 0 0.5rem;
+  color: var(--c-slate-500);
+  overflow-wrap: anywhere;
+}
+
+.profile-role-badge {
+  display: inline-block;
+  padding: 0.15rem 0.7rem;
+  border-radius: 999px;
+  background: var(--c-badge-bg);
+  color: var(--c-badge-ink);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+/* Section cards. */
+.profile-form {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.profile-card {
+  padding: 1.25rem 1.5rem;
+  border: 1px solid var(--c-slate-200);
+  border-radius: 14px;
+  background: var(--c-surface);
+}
+
+.profile-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.profile-card__title {
+  margin: 0;
+  color: var(--c-slate-900);
+  font-size: 1.05rem;
+}
+
+.profile-card__hint {
+  margin: 0.1rem 0 0.75rem;
+  color: var(--c-slate-500);
+  font-size: 0.9rem;
+}
+
+.profile-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.profile-grid + .profile-grid {
+  margin-top: 1rem;
+}
+
+.profile-grid--two {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.profile-grid--three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+/* Suffix is half the width of the other name columns. */
+.profile-grid--name {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(0, 0.5fr);
+}
+
+/* Read-only look until Modify is clicked. */
+.profile-card input:disabled {
+  border-color: var(--c-slate-200);
+  background: var(--c-slate-50);
+  color: var(--c-slate-700);
+  cursor: default;
+}
+
+.profile-password-summary {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.35rem 1rem;
+}
+
+.profile-password-summary .profile-card__hint {
+  margin: 0;
+}
+
+.profile-password-dots {
+  color: var(--c-slate-700);
+  font-size: 1.3rem;
+  letter-spacing: 0.15em;
+}
+
+.profile-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+@media (max-width: 760px) {
+  .profile-hero {
+    flex-wrap: wrap;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .profile-hero__details {
+    flex-basis: 100%;
+  }
+
+  .profile-grid--two,
+  .profile-grid--three,
+  .profile-grid--name {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-actions {
+    flex-direction: column-reverse;
+  }
+
+  .profile-actions .universal-button {
+    width: 100%;
+  }
+}

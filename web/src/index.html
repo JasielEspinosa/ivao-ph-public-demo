@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>IVAO Philippines</title>
+    <base href="/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/png" href="images/ivao-ph.png" />
+    <link rel="stylesheet" href="media/fonts/fonts.css" data-beasties-skip />
+    <script>
+      // Early paint for the dark theme (no light flash). ThemeService stays the authority once the app starts.
+      // Keep the storage keys in sync with environment.sessionStorageKey and theme.service.ts.
+      (function () {
+        try {
+          var path = location.pathname.replace(/\/+$/, '');
+          if (/\/(forgot-password|set-password)$/.test(path)) {
+            return;
+          }
+          var theme = null;
+          var session = JSON.parse(localStorage.getItem('ivao_admin_session_v1') || 'null');
+          if (session && session.user) {
+            theme = session.user.ui_theme;
+            if (!theme) {
+              var cached = JSON.parse(localStorage.getItem('ivao_ui_theme_v1') || 'null');
+              theme = cached && cached.email === session.user.login_email ? cached.theme : 'light';
+            }
+          } else {
+            theme = localStorage.getItem('ivao_public_theme_v1');
+          }
+          if (theme === 'dark' || (theme === 'system' && matchMedia('(prefers-color-scheme: dark)').matches)) {
+            var root = document.documentElement;
+            root.setAttribute('data-theme', 'dark');
+            root.setAttribute('data-bs-theme', 'dark');
+            root.style.colorScheme = 'dark';
+          }
+        } catch (e) {}
+      })();
+    </script>
+  </head>
+
+  <body>
+    <app-root></app-root>
+  </body>
+</html>

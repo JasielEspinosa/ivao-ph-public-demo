@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img" aria-label="A radar screen at night">
+  <defs>
+    <linearGradient id="night" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#050b1f" />
+      <stop offset="1" stop-color="#0b2257" />
+    </linearGradient>
+    <radialGradient id="scope" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#0f3b2e" />
+      <stop offset="1" stop-color="#06201a" />
+    </radialGradient>
+    <linearGradient id="sweep" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#46f0a6" stop-opacity="0" />
+      <stop offset="1" stop-color="#46f0a6" stop-opacity="0.55" />
+    </linearGradient>
+  </defs>
+  <rect width="640" height="360" fill="url(#night)" />
+  <g fill="#ffffff">
+    <circle cx="40" cy="36" r="1.6" /><circle cx="96" cy="70" r="1.2" /><circle cx="150" cy="24" r="1.8" />
+    <circle cx="560" cy="40" r="1.6" /><circle cx="600" cy="92" r="1.2" /><circle cx="520" cy="110" r="1.4" />
+    <circle cx="30" cy="150" r="1.2" /><circle cx="610" cy="200" r="1.6" /><circle cx="70" cy="260" r="1.4" />
+  </g>
+  <circle cx="320" cy="170" r="140" fill="url(#scope)" stroke="#46f0a6" stroke-width="3" />
+  <g fill="none" stroke="#46f0a6" stroke-opacity="0.45" stroke-width="1.5">
+    <circle cx="320" cy="170" r="105" />
+    <circle cx="320" cy="170" r="70" />
+    <circle cx="320" cy="170" r="35" />
+    <path d="M180 170 H460 M320 30 V310" />
+    <path d="M221 71 L419 269 M419 71 L221 269" stroke-opacity="0.25" />
+  </g>
+  <path d="M320 170 L320 30 A140 140 0 0 1 419 71 Z" fill="url(#sweep)" />
+  <path d="M320 170 L419 71" stroke="#46f0a6" stroke-width="2" />
+  <g fill="#9bffd0">
+    <rect x="384" y="104" width="8" height="8" /><rect x="262" y="132" width="8" height="8" />
+    <rect x="352" y="214" width="8" height="8" /><rect x="286" y="236" width="8" height="8" />
+  </g>
+  <g font-family="Arial, Helvetica, sans-serif" font-size="13" fill="#9bffd0">
+    <text x="396" y="112">PAL101</text>
+    <text x="274" y="128">CEB624</text>
+    <text x="364" y="226">APG887</text>
+  </g>
+  <text x="320" y="338" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" fill="#ffffff" letter-spacing="4">MANILA ACC &#183; RPHI</text>
+  <rect y="352" width="213" height="8" fill="#0038a8" />
+  <rect x="213" y="352" width="214" height="8" fill="#ce1126" />
+  <rect x="427" y="352" width="213" height="8" fill="#fcd116" />
+</svg>

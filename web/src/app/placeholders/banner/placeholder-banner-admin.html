@@ -1,0 +1,14 @@
+<section
+  class="page-banner page-banner-admin"
+  [ngClass]="art ? 'page-banner-admin--' + art : ''"
+  role="banner"
+  aria-label="Admin page banner"
+>
+  <div class="banner-content">
+    <a *ngIf="showBackLink" [routerLink]="backLinkRoute" class="secondary-link banner-back-link banner-back-link--left"
+      >← Back</a
+    >
+    <h1 class="banner-title">{{ title }}</h1>
+    <p *ngIf="subtitle" class="banner-description">{{ subtitle }}</p>
+  </div>
+</section>

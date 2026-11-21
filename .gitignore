@@ -1,0 +1,14 @@
+﻿# Dependencies
+web/node_modules/
+
+# Build output & caches
+web/.angular/cache/
+web/dist/
+
+# Generated per build by web/scripts/generate-version.mjs
+web/public/version.json
+web/src/environments/build-info.ts
+
+# Never commit secrets
+.env*
+*.local.env

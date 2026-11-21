@@ -1,0 +1,150 @@
+/* The IVAO Philippines page banner: logo on the left, the page title beside it, island artwork behind. */
+.page-banner {
+  position: relative;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  width: 100vw;
+  height: 125px;
+  padding: 0 1rem;
+  margin: 0 0 1.5rem calc(50% - 50vw);
+  overflow: hidden;
+  background-color: #0b3d91;
+  background-image: url('../../../../public/images/banner-ivao-ph.svg');
+  background-position: right center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+.banner-overlay {
+  position: absolute;
+  inset: 0;
+  /* Dark theme only: a dim layer over the artwork (transparent in light). */
+  background: var(--c-banner-photo-dim);
+}
+
+.banner-content {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  /* The standard page shell minus its side padding, so the logo lines up with the page content below. */
+  max-width: calc(var(--form-shell-width-standard, 1100px) - 3rem);
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+/* The logo sits on a white plate so its navy and red lettering stays readable on the artwork in both themes. */
+.banner-logo-plate {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  height: 96px;
+  padding: 0 0.5rem;
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow: 0 2px 10px rgba(0, 20, 70, 0.35);
+}
+
+.banner-logo {
+  display: block;
+  height: 112px;
+  width: auto;
+  margin: -8px 0;
+}
+
+.banner-text {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* Text on the artwork is literal white (it sits on a solid blue sky), with a soft shadow for the lighter areas. */
+.banner-title,
+.banner-secondary-title,
+.banner-subheading,
+.banner-description,
+.banner-back-link {
+  color: #ffffff;
+  letter-spacing: 0;
+  text-shadow: 0 1px 6px rgba(0, 20, 70, 0.55);
+}
+
+.banner-title {
+  margin: 0;
+  font-size: 2rem;
+  line-height: 1.15;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.banner-secondary-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.banner-subheading {
+  display: block;
+  font-family: 'Avenir', 'Avenir Next', 'Segoe UI', sans-serif;
+  font-size: 1.1rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.banner-description {
+  margin: 0;
+  font-family: 'Avenir', 'Avenir Next', 'Segoe UI', sans-serif;
+}
+
+.banner-back-link {
+  align-self: flex-start;
+  margin-bottom: 0.25rem;
+  font-size: 0.9rem;
+  text-decoration: none;
+  opacity: 0.95;
+}
+
+.banner-back-link:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 700px) {
+  .page-banner {
+    height: auto;
+    min-height: 100px;
+    padding: 0.5rem 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .banner-content {
+    gap: 0.75rem;
+  }
+
+  .banner-logo-plate {
+    height: 64px;
+    padding: 0 0.35rem;
+    border-radius: 10px;
+  }
+
+  .banner-logo {
+    height: 76px;
+    margin: -6px 0;
+  }
+
+  .banner-title {
+    font-size: 1.35rem;
+  }
+
+  .banner-subheading {
+    font-size: 0.85rem;
+  }
+
+  /* The plane and island sit under the text on a phone, so a blue wash keeps the white text readable. */
+  .banner-overlay {
+    background: linear-gradient(90deg, rgba(8, 40, 110, 0.55) 0%, rgba(8, 40, 110, 0.35) 60%, transparent 100%);
+  }
+}

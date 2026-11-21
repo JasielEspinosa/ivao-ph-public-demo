@@ -1,0 +1,56 @@
+/* Web fonts of the app: Avenir Next LT Pro (all text) and Dancing Script (typed signatures). Loaded by a <link> in index.html (not imported through styles.css) so the browser fetches
+   these files from this folder as-is: the Angular build would otherwise rewrite the font URLs to a flat /media folder.
+
+   Every weight the pages use has a real face, so no browser draws its own fake bold (Firefox's is much heavier and wider
+   than Chrome's):
+   400 Regular | 500, 600 and 700 Medium (the pages were designed with Chrome's thin fake bold of Regular, which reads as
+   Medium; Demi and Bold are visibly heavier) | 800 and 900 Bold.
+   To get a heavier bold later, change the Medium range and add a rule for AvenirNextLTPro-Demi.otf (600) or -Bold.otf (700). */
+
+@font-face {
+  font-family: 'Avenir';
+  src: url('AvenirNextLTPro-Regular.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Avenir';
+  src: url('AvenirNextLTPro-It.otf') format('opentype');
+  font-weight: normal;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Avenir';
+  src: url('AvenirNextLTPro-Medium.otf') format('opentype');
+  font-weight: 500 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Avenir';
+  src: url('AvenirNextLTPro-MediumIt.otf') format('opentype');
+  font-weight: 500 700;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Avenir';
+  src: url('AvenirNextLTPro-Bold.otf') format('opentype');
+  font-weight: 800 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Script font used only to render the "Type" signature onto a canvas (shared/signature-pad). */
+@font-face {
+  font-family: 'Signature Script';
+  src: url('DancingScript-SemiBold.woff2') format('woff2');
+  font-weight: 600;
+  font-display: swap;
+}

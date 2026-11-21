@@ -1,0 +1,301 @@
+<section class="page-shell data-manage-page">
+  <div class="form-shell">
+    <app-placeholder-banner-data-management> </app-placeholder-banner-data-management>
+
+    <div class="dashboard-header manage-toolbar">
+      <p>{{ page?.entry?.description }}</p>
+
+      <div class="manage-toolbar-actions">
+        <button type="button" class="universal-button universal-button--template" (click)="exportTemplate()">
+          Export Template
+        </button>
+        <button
+          type="button"
+          class="universal-button universal-button--template"
+          (click)="openImportTemplatePicker(templateFileInput)"
+        >
+          Import Template
+        </button>
+        <input
+          #templateFileInput
+          type="file"
+          class="visually-hidden-input"
+          accept=".xlsx,.xlsm,.csv"
+          (change)="onImportTemplateSelected($event)"
+        />
+        <button type="button" class="universal-button universal-button--primary" (click)="openAddModal()">
+          Add Country
+        </button>
+      </div>
+    </div>
+
+    <div
+      class="route-loading-overlay route-loading-overlay--inline"
+      *ngIf="isLoading"
+      role="status"
+      aria-live="polite"
+      [attr.aria-label]="messages.loading('Countries')"
+    >
+      <div class="route-loading-spinner"></div>
+    </div>
+
+    <div *ngIf="errorMessage && !isModalOpen" class="status-box error">
+      {{ errorMessage }}
+    </div>
+
+    <div *ngIf="successMessage && !isModalOpen" class="status-box success">
+      {{ successMessage }}
+    </div>
+
+    <div class="table-wrap table-wrap--admin table-wrap--compact" *ngIf="!isLoading && !errorMessage">
+      <app-table-pagination [pager]="pager"></app-table-pagination>
+      <table>
+        <thead>
+          <tr>
+            <th data-disable-resize data-fit-content>
+              <button type="button" class="sort-header-button" (click)="toggleSort('id')">
+                ID
+                {{ getSortIndicator('id') }}
+              </button>
+            </th>
+
+            <th>
+              <button type="button" class="sort-header-button" (click)="toggleSort('country_name')">
+                Country Name
+                {{ getSortIndicator('country_name') }}
+              </button>
+            </th>
+
+            <th>
+              <button type="button" class="sort-header-button" (click)="toggleSort('is_active')">
+                Active
+                {{ getSortIndicator('is_active') }}
+              </button>
+            </th>
+
+            <th data-disable-resize></th>
+          </tr>
+
+          <tr class="column-filter-row">
+            <th>
+              <input
+                type="text"
+                class="column-filter-input"
+                [value]="columnFilters.id"
+                (input)="setColumnFilter('id', $any($event.target).value || '')"
+                placeholder="Filter"
+              />
+            </th>
+
+            <th>
+              <input
+                type="text"
+                class="column-filter-input"
+                [value]="columnFilters.country_name"
+                (input)="setColumnFilter('country_name', $any($event.target).value || '')"
+                placeholder="Filter"
+              />
+            </th>
+
+            <th>
+              <input
+                type="text"
+                class="column-filter-input"
+                [value]="columnFilters.is_active"
+                (input)="setColumnFilter('is_active', $any($event.target).value || '')"
+                placeholder="Filter"
+              />
+            </th>
+
+            <th>
+              <button
+                *ngIf="columnFilters.id || columnFilters.country_name || columnFilters.is_active"
+                type="button"
+                class="universal-button universal-button--clear"
+                (click)="clearFilters()"
+              >
+                Clear
+              </button>
+            </th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let item of pager.slice(filteredCountries)">
+            <td>
+              {{ item.id }}
+            </td>
+
+            <td>
+              {{ item.country_name }}
+            </td>
+
+            <td>
+              {{ item.is_active ? 'Yes' : 'No' }}
+            </td>
+
+            <td>
+              <button type="button" class="universal-button universal-button--edit" (click)="edit(item)">Edit</button>
+            </td>
+          </tr>
+
+          <tr *ngIf="filteredCountries.length === 0">
+            <td colspan="4">{{ messages.noRecords('Countries') }}</td>
+          </tr>
+        </tbody>
+      </table>
+      <app-table-pagination [pager]="pager"></app-table-pagination>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================
+     ADD / EDIT MODAL
+     ========================================================= -->
+
+<div *ngIf="isModalOpen" class="manage-modal-backdrop">
+  <div class="manage-modal-card" role="dialog" aria-modal="true" aria-label="Countries Management">
+    <button type="button" class="universal-modal-close" aria-label="Close" [disabled]="isSaving" (click)="closeModal()">
+      &times;
+    </button>
+
+    <h3>
+      {{ isEditMode ? 'Edit Country' : 'Add Country' }}
+    </h3>
+
+    <form class="manage-form universal-form" [formGroup]="form" (ngSubmit)="save()">
+      <div class="manage-form-row">
+        <div class="manage-modal-field">
+          <label
+            class="uf-field"
+            for="country_name"
+            [class.uf-invalid]="form.controls.country_name.invalid && form.controls.country_name.touched"
+          >
+            <span>
+              Country Name
+              <span class="required-mark">*</span>
+            </span>
+
+            <input id="country_name" type="text" formControlName="country_name" placeholder=" " />
+          </label>
+
+          <small class="uf-error" *ngIf="form.controls.country_name.invalid && form.controls.country_name.touched">
+            {{ VALIDATION_MESSAGES.required }}
+          </small>
+        </div>
+
+        <div class="manage-toggle-row">
+          <label class="manage-active">
+            <span> Enable this Country </span>
+
+            <input type="checkbox" class="switch-input" role="switch" formControlName="is_active" />
+          </label>
+        </div>
+      </div>
+
+      <div *ngIf="errorMessage" class="status-box error manage-modal-message">
+        {{ errorMessage }}
+      </div>
+
+      <div class="manage-modal-actions">
+        <button
+          type="button"
+          class="universal-button universal-button--cancel"
+          [disabled]="isSaving"
+          (click)="closeModal()"
+        >
+          Cancel
+        </button>
+
+        <div class="manage-modal-actions-right">
+          <button
+            type="button"
+            class="universal-button universal-button--danger"
+            *ngIf="isEditMode"
+            [disabled]="isSaving"
+            (click)="deleteCountry()"
+          >
+            Delete
+          </button>
+
+          <button type="submit" class="universal-button universal-button--save" [disabled]="isSaving">
+            {{ isSaving ? 'Saving...' : isEditMode ? 'Update' : 'Add' }}
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+<div
+  *ngIf="isExportOptionsModalOpen"
+  class="template-modal-backdrop"
+  role="dialog"
+  aria-modal="true"
+  aria-label="Export template options"
+>
+  <div class="template-modal-card template-modal-card--export">
+    <button type="button" class="universal-modal-close" aria-label="Close" (click)="closeExportOptionsModal()">
+      &times;
+    </button>
+    <h3>Export Template</h3>
+    <p>{{ messages.exportChoose }}</p>
+    <div class="template-modal-actions template-modal-actions--horizontal">
+      <button type="button" class="universal-button universal-button--primary" (click)="downloadTemplateFromServer()">
+        Export Data from Server
+      </button>
+      <button type="button" class="universal-button universal-button--template" (click)="downloadTemplateFromPage()">
+        Export Data from Page
+      </button>
+    </div>
+  </div>
+</div>
+
+<div
+  *ngIf="pendingImportFile"
+  class="template-modal-backdrop"
+  role="dialog"
+  aria-modal="true"
+  aria-label="Confirm import"
+>
+  <div class="template-modal-card template-modal-card--export">
+    <h3>Import Template</h3>
+    <p>{{ messages.confirmImportReplace('countries', pendingImportFile.name) }}</p>
+    <div class="template-modal-actions template-modal-actions--confirm">
+      <button type="button" class="universal-button universal-button--cancel" (click)="cancelImportConfirm()">
+        Cancel
+      </button>
+      <button type="button" class="universal-button universal-button--danger" (click)="confirmImportTemplate()">
+        Override
+      </button>
+    </div>
+  </div>
+</div>
+
+<div
+  *ngIf="isTemplateUploading"
+  class="template-modal-backdrop"
+  role="dialog"
+  aria-modal="true"
+  aria-label="Uploading template"
+>
+  <div class="template-modal-card">
+    <h3>Uploading</h3>
+    <p>{{ messages.uploadingTemplate }}</p>
+  </div>
+</div>
+
+<div
+  *ngIf="isTemplateUpdatedModalOpen"
+  class="template-modal-backdrop"
+  role="dialog"
+  aria-modal="true"
+  aria-label="Template updated"
+>
+  <div class="template-modal-card">
+    <h3>Template updated</h3>
+    <p>{{ messages.templateUpdated }}</p>
+    <button type="button" class="template-modal-button template-modal-button--ok" (click)="closeTemplateUpdatedModal()">
+      Ok
+    </button>
+  </div>
+</div>

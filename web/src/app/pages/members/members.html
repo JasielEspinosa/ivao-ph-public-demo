@@ -1,0 +1,132 @@
+<section class="page-shell members-page">
+  <div class="form-shell">
+    <app-placeholder-banner title="Members" subheading="IVAO PHILIPPINES"></app-placeholder-banner>
+
+    <div class="dashboard-header members-toolbar">
+      <p>The pilots, air traffic controllers and staff of IVAO Philippines.</p>
+      <div class="menu-search">
+        <label class="menu-search__label" for="members-search">Search members</label>
+        <input
+          id="members-search"
+          type="search"
+          [value]="searchTerm()"
+          (input)="onSearch($any($event.target).value)"
+          placeholder="Search by VID, name, country or role"
+        />
+      </div>
+    </div>
+
+    <div
+      class="route-loading-overlay route-loading-overlay--inline"
+      *ngIf="isLoading()"
+      role="status"
+      aria-live="polite"
+      [attr.aria-label]="messages.loading('Members')"
+    >
+      <div class="route-loading-spinner"></div>
+    </div>
+
+    <div *ngIf="errorMessage()" class="status-box error">{{ errorMessage() }}</div>
+
+    <ng-container *ngIf="!isLoading() && !errorMessage()">
+      <p *ngIf="!hasAnyMembers()" class="members-empty">{{ messages.noRecords('Members') }}</p>
+
+      <ng-container *ngIf="hasAnyMembers()">
+        <!-- Pilots -->
+        <section class="members-section" aria-labelledby="pilots-title">
+          <h2 id="pilots-title">
+            Pilots <span class="members-count">{{ pilots().length }}</span>
+          </h2>
+          <div class="table-wrap table-wrap--admin table-wrap--compact">
+            <app-table-pagination [pager]="pilotsPager"></app-table-pagination>
+            <table>
+              <thead>
+                <tr>
+                  <th data-disable-resize>VID</th>
+                  <th data-disable-resize>Name</th>
+                  <th data-disable-resize>Country</th>
+                  <th data-disable-resize>Division</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let member of pilotsPager.slice(pilots())">
+                  <td>{{ member.vid }}</td>
+                  <td>{{ member.name }}</td>
+                  <td>{{ member.country || '-' }}</td>
+                  <td>{{ member.division || '-' }}</td>
+                </tr>
+                <tr *ngIf="pilots().length === 0">
+                  <td colspan="4">{{ messages.noRecords('Pilots') }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Air Traffic Controllers -->
+        <section class="members-section" aria-labelledby="atc-title">
+          <h2 id="atc-title">
+            Air Traffic Controllers <span class="members-count">{{ controllers().length }}</span>
+          </h2>
+          <div class="table-wrap table-wrap--admin table-wrap--compact">
+            <app-table-pagination [pager]="atcPager"></app-table-pagination>
+            <table>
+              <thead>
+                <tr>
+                  <th data-disable-resize>VID</th>
+                  <th data-disable-resize>Name</th>
+                  <th data-disable-resize>Country</th>
+                  <th data-disable-resize>Division</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let member of atcPager.slice(controllers())">
+                  <td>{{ member.vid }}</td>
+                  <td>{{ member.name }}</td>
+                  <td>{{ member.country || '-' }}</td>
+                  <td>{{ member.division || '-' }}</td>
+                </tr>
+                <tr *ngIf="controllers().length === 0">
+                  <td colspan="4">{{ messages.noRecords('Air Traffic Controllers') }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Staff -->
+        <section class="members-section" aria-labelledby="staff-title">
+          <h2 id="staff-title">
+            Staff <span class="members-count">{{ staff().length }}</span>
+          </h2>
+          <div class="table-wrap table-wrap--admin table-wrap--compact">
+            <app-table-pagination [pager]="staffPager"></app-table-pagination>
+            <table>
+              <thead>
+                <tr>
+                  <th data-disable-resize>VID</th>
+                  <th data-disable-resize>Name</th>
+                  <th data-disable-resize>Role</th>
+                  <th data-disable-resize>Country</th>
+                  <th data-disable-resize>Division</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let member of staffPager.slice(staff())">
+                  <td>{{ member.vid }}</td>
+                  <td>{{ member.name }}</td>
+                  <td>{{ member.role_description || '-' }}</td>
+                  <td>{{ member.country || '-' }}</td>
+                  <td>{{ member.division || '-' }}</td>
+                </tr>
+                <tr *ngIf="staff().length === 0">
+                  <td colspan="5">{{ messages.noRecords('Staff') }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </ng-container>
+    </ng-container>
+  </div>
+</section>

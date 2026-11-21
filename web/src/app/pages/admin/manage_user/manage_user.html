@@ -1,0 +1,400 @@
+<section class="home-shell">
+  <div class="form-shell">
+    <app-placeholder-banner-admin
+      art="user"
+      [title]="pageTitle"
+      subtitle=""
+      [showBackLink]="true"
+      backLinkRoute="/admin/manage_users"
+      backLinkText="← Back to Manage Users"
+    ></app-placeholder-banner-admin>
+
+    <div
+      class="route-loading-overlay route-loading-overlay--inline"
+      *ngIf="isLoading"
+      role="status"
+      aria-live="polite"
+      aria-label="Loading"
+    >
+      <div class="route-loading-spinner"></div>
+    </div>
+
+    <form
+      class="manage-user-form"
+      [formGroup]="form"
+      (ngSubmit)="save()"
+      *ngIf="!isLoading"
+      autocomplete="off"
+      data-lpignore="true"
+      data-1p-ignore="true"
+    >
+      <div class="form-row form-row-stack">
+        <label class="universal-input-field" [class.uf-invalid]="showLoginEmailFieldError()">
+          <span>Login Email <span class="required-mark">*</span></span>
+          <input
+            type="text"
+            formControlName="login_email"
+            autocomplete="off"
+            autocapitalize="off"
+            autocorrect="off"
+            spellcheck="false"
+            placeholder="Enter login email"
+            data-lpignore="true"
+            data-1p-ignore="true"
+          />
+          <div *ngIf="showLoginEmailRequiredError()" class="inline-field-error">{{ requiredFieldMessage }}</div>
+          <div *ngIf="showLoginEmailInvalidError()" class="inline-field-error">Use a valid email address.</div>
+        </label>
+
+        <label class="universal-password-field" [class.uf-invalid]="showLoginPasswordRequiredError()">
+          <span>Login Password <span class="required-mark" *ngIf="!isEditMode">*</span></span>
+          <div class="password-peek-field">
+            <div class="password-input-wrap">
+              <input
+                #loginPasswordInput
+                [type]="isPasswordPeekActive ? 'text' : 'password'"
+                formControlName="login_password"
+                [placeholder]="isEditMode ? 'Leave blank to keep current password' : ''"
+                autocomplete="new-password"
+                data-lpignore="true"
+                data-1p-ignore="true"
+              />
+              <button
+                type="button"
+                class="password-peek-button"
+                aria-label="Press and hold to show password"
+                [disabled]="form.controls.login_password.disabled"
+                (pointerdown)="activatePasswordPeek($event)"
+                (pointerup)="deactivatePasswordPeek()"
+                (pointerleave)="deactivatePasswordPeek()"
+                (pointercancel)="deactivatePasswordPeek()"
+                (lostpointercapture)="deactivatePasswordPeek()"
+                (blur)="deactivatePasswordPeek()"
+                (keydown)="onPasswordPeekKeydown($event)"
+                (keyup)="onPasswordPeekKeyup($event)"
+              >
+                <svg *ngIf="!isPasswordPeekActive" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path
+                    d="M2 12c2.2-3.8 5.5-6 10-6s7.8 2.2 10 6c-2.2 3.8-5.5 6-10 6s-7.8-2.2-10-6Zm10 3.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4Z"
+                  />
+                  <path d="M4 20 20 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+                </svg>
+                <svg *ngIf="isPasswordPeekActive" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path
+                    d="M2 12c2.2-3.8 5.5-6 10-6s7.8 2.2 10 6c-2.2 3.8-5.5 6-10 6s-7.8-2.2-10-6Zm10 3.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4Z"
+                  />
+                </svg>
+              </button>
+            </div>
+            <button
+              type="button"
+              class="universal-button universal-button--clear password-clear-button"
+              *ngIf="isEditMode && !isPasswordChangeGated && !isViewOnly"
+              [disabled]="isResettingPassword"
+              (click)="resetPassword()"
+            >
+              Clear Password
+            </button>
+            <button
+              type="button"
+              class="universal-button password-clear-button"
+              [ngClass]="isPasswordChangeEnabled ? 'universal-button--cancel' : 'universal-button--clear'"
+              *ngIf="isEditMode && isPasswordChangeGated"
+              (click)="isPasswordChangeEnabled ? cancelPasswordChange() : openChangePasswordModal()"
+            >
+              {{ isPasswordChangeEnabled ? 'Cancel' : 'Change Password' }}
+            </button>
+          </div>
+          <div *ngIf="showLoginPasswordRequiredError()" class="inline-field-error">{{ requiredFieldMessage }}</div>
+        </label>
+      </div>
+
+      <p *ngIf="showPasswordResetNotice" class="password-reset-notice" role="status">Password has been reset.</p>
+
+      <div class="section-divider user-name-section">
+        <div class="user-name-section__header">
+          <span class="choice-title">User's Name</span> <span class="universal-helper-text-gray">(optional)</span>
+        </div>
+
+        <div class="form-grid user-name-grid">
+          <label class="uf-field">
+            <span>Nickname</span>
+            <input
+              type="text"
+              formControlName="nickname"
+              placeholder=" "
+              autocomplete="off"
+              autocapitalize="off"
+              autocorrect="off"
+              spellcheck="false"
+              data-lpignore="true"
+              data-1p-ignore="true"
+            />
+          </label>
+
+          <label class="uf-field">
+            <span>First Name</span>
+            <input
+              type="text"
+              formControlName="first_name"
+              placeholder=" "
+              autocomplete="off"
+              autocapitalize="off"
+              autocorrect="off"
+              spellcheck="false"
+              data-lpignore="true"
+              data-1p-ignore="true"
+            />
+          </label>
+
+          <label class="uf-field">
+            <span>Middle Name</span>
+            <input
+              type="text"
+              formControlName="middle_name"
+              placeholder=" "
+              autocomplete="off"
+              autocapitalize="off"
+              autocorrect="off"
+              spellcheck="false"
+              data-lpignore="true"
+              data-1p-ignore="true"
+            />
+          </label>
+
+          <label class="uf-field">
+            <span>Last Name</span>
+            <input
+              type="text"
+              formControlName="last_name"
+              placeholder=" "
+              autocomplete="off"
+              autocapitalize="off"
+              autocorrect="off"
+              spellcheck="false"
+              data-lpignore="true"
+              data-1p-ignore="true"
+            />
+          </label>
+
+          <label class="uf-field" [class.uf-invalid]="showSuffixInvalidError()">
+            <span>Suffix</span>
+            <input
+              type="text"
+              formControlName="suffix"
+              placeholder=" "
+              autocomplete="off"
+              autocapitalize="off"
+              autocorrect="off"
+              spellcheck="false"
+              data-lpignore="true"
+              data-1p-ignore="true"
+              [pattern]="suffixPattern.source"
+            />
+            <div *ngIf="showSuffixInvalidError()" class="inline-field-error">{{ invalidSuffixMessage }}</div>
+          </label>
+        </div>
+      </div>
+
+      <div class="section-divider form-row form-row-stack">
+        <div class="inline-field choice-option">
+          <span class="permission-label choice-title">
+            <svg class="permission-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm7 8a7 7 0 0 0-14 0" />
+            </svg>
+            User Enabled
+          </span>
+          <input type="checkbox" class="switch-input" role="switch" formControlName="is_active" />
+        </div>
+
+        <div class="inline-field choice-option">
+          <span class="permission-label choice-title">
+            <svg class="permission-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="m12 3 7 3v5c0 4.6-3 8.3-7 10-4-1.7-7-5.4-7-10V6l7-3Zm-3 9 2 2 4-4" />
+            </svg>
+            Admin User
+          </span>
+          <input type="checkbox" class="switch-input" role="switch" formControlName="is_admin" />
+        </div>
+      </div>
+
+      <div class="section-divider replicate-role-section">
+        <div class="replicate-role-row">
+          <span class="permission-label replicate-role-label choice-title">
+            <svg class="permission-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M9 3h9v12H9zM6 6H3v15h12v-3" />
+            </svg>
+            Replicate Another User's Role
+          </span>
+
+          <div class="replicate-role-search">
+            <input
+              type="text"
+              [value]="replicateSearchTerm"
+              [disabled]="isViewOnly"
+              placeholder="Search user by email or name..."
+              autocomplete="off"
+              autocapitalize="off"
+              autocorrect="off"
+              spellcheck="false"
+              data-lpignore="true"
+              data-1p-ignore="true"
+              (input)="onReplicateSearchInput($any($event.target).value)"
+              (focus)="onReplicateSearchFocus()"
+              (blur)="onReplicateSearchBlur()"
+            />
+            <ul class="replicate-role-results" *ngIf="showReplicateResults && replicateFilteredUsers.length">
+              <li *ngFor="let candidate of replicateFilteredUsers">
+                <button type="button" (mousedown)="selectReplicateUser(candidate)">
+                  <span class="replicate-role-results__email">{{ candidate.login_email }}</span>
+                  <span class="replicate-role-results__name" *ngIf="buildReplicateUserName(candidate)">{{
+                    buildReplicateUserName(candidate)
+                  }}</span>
+                </button>
+              </li>
+            </ul>
+          </div>
+
+          <button
+            type="button"
+            class="universal-button universal-button--save replicate-role-button"
+            [disabled]="!selectedReplicateUser || isViewOnly"
+            (click)="replicateRole()"
+          >
+            Replicate Role
+          </button>
+        </div>
+
+        <p class="form-feedback form-feedback--success replicate-role-message" *ngIf="replicateMessage" role="status">
+          {{ replicateMessage }}
+        </p>
+      </div>
+
+      <div *ngIf="feedbackMessage" class="status-box error" role="alert">{{ feedbackMessage }}</div>
+
+      <div class="section-divider">
+        <div class="button-row" style="margin-top: 0">
+          <button type="button" class="universal-button universal-button--cancel" (click)="cancel()">
+            {{ isViewOnly ? 'Back' : 'Cancel' }}
+          </button>
+          <div class="button-row-right">
+            <button
+              type="button"
+              class="universal-button universal-button--danger"
+              *ngIf="canShowDeleteButton()"
+              (click)="deleteUser()"
+              [disabled]="isSaving"
+            >
+              Delete User
+            </button>
+            <button
+              type="submit"
+              class="universal-button universal-button--save"
+              *ngIf="!isViewOnly"
+              [disabled]="isSaving"
+            >
+              {{ isSaving ? 'Saving...' : 'Save' }}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-divider">
+        <div class="inline-field choice-option">
+          <span class="permission-label choice-title">
+            <svg class="permission-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M5 4h14v5H5zM5 11h14v5H5zM5 18h14v2H5zM8 6h.01M8 13h.01M8 19h.01" />
+            </svg>
+            Access All Data Management
+          </span>
+          <input type="checkbox" class="switch-input" role="switch" formControlName="manage_all_data" />
+        </div>
+      </div>
+
+      <div class="section-divider">
+        <p class="permission-heading choice-title">
+          <svg class="permission-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M5 4h14v5H5zM5 11h14v5H5zM5 18h14v2H5zM8 6h.01M8 13h.01M8 19h.01m9-12 3 3-3 3m3-3h-6" />
+          </svg>
+          Individual Access to Data Management Pages
+        </p>
+        <div class="checkbox-field checkbox-field--select-all choice-option">
+          <input
+            type="checkbox"
+            [checked]="isAllManagePagesSelected()"
+            (change)="onSelectAllManagePages($any($event.target).checked)"
+            [disabled]="form.controls.manage_all_data.value || isViewOnly"
+          />
+          <span>Select All</span>
+        </div>
+
+        <div class="data-pages-grid data-pages-grid--three-col">
+          <div *ngFor="let pageRecord of availableDataManagementPages" class="checkbox-field choice-option">
+            <input
+              type="checkbox"
+              [checked]="isManageCodeChecked(pageRecord.code)"
+              (change)="onManageCodeToggle(pageRecord.code, $any($event.target).checked)"
+              [disabled]="form.controls.manage_all_data.value || isViewOnly"
+            />
+            <span>{{ pageRecord.name }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="feedbackMessage" class="status-box error" role="alert">{{ feedbackMessage }}</div>
+
+      <div class="button-row">
+        <button type="button" class="universal-button universal-button--cancel" (click)="cancel()">
+          {{ isViewOnly ? 'Back' : 'Cancel' }}
+        </button>
+        <div class="button-row-right">
+          <button
+            type="button"
+            class="universal-button universal-button--danger"
+            *ngIf="canShowDeleteButton()"
+            (click)="deleteUser()"
+            [disabled]="isSaving"
+          >
+            Delete User
+          </button>
+          <button
+            type="submit"
+            class="universal-button universal-button--save"
+            *ngIf="!isViewOnly"
+            [disabled]="isSaving"
+          >
+            {{ isSaving ? 'Saving...' : 'Save' }}
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</section>
+
+<div
+  *ngIf="isChangePasswordModalOpen"
+  class="template-modal-backdrop"
+  role="dialog"
+  aria-modal="true"
+  aria-label="Change Administrator password"
+  (keydown.escape)="closeChangePasswordModal()"
+>
+  <div class="template-modal-card template-modal-card--export">
+    <button type="button" class="universal-modal-close" aria-label="Close" (click)="closeChangePasswordModal()">
+      &times;
+    </button>
+    <h3>Change Password</h3>
+    <p>
+      Only the Administrator account can change its own password. Other Admin Users cannot change the Administrator's
+      password. Do you want to continue?
+    </p>
+    <div class="template-modal-actions template-modal-actions--confirm">
+      <button type="button" class="universal-button universal-button--cancel" (click)="closeChangePasswordModal()">
+        Cancel
+      </button>
+      <button type="button" class="universal-button universal-button--save" (click)="confirmChangePassword()">
+        Continue
+      </button>
+    </div>
+  </div>
+</div>

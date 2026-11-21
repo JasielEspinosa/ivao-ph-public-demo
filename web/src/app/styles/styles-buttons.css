@@ -1,0 +1,315 @@
+.universal-button {
+  border-radius: 3px;
+  font-family: 'Avenir', 'Avenir Next', 'Segoe UI', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    color 0.2s ease;
+}
+
+.universal-button,
+.universal-button--edit,
+.universal-button--clear,
+.universal-button--cancel,
+.universal-button--save,
+.universal-button--danger {
+  padding: 0.68rem 1.35rem;
+}
+
+.universal-button,
+.universal-button--edit,
+.universal-button--clear,
+.universal-button--cancel,
+.universal-button--save,
+.universal-button--danger {
+  border: 1px solid transparent;
+}
+
+.universal-button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 0.2rem rgba(104, 145, 188, 0.35);
+}
+
+.universal-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.universal-button--primary {
+  border-color: var(--c-brand);
+  background: var(--c-brand);
+  color: #ffffff;
+}
+
+.universal-button--primary:hover:not(:disabled) {
+  background: var(--c-brand-hover);
+  border-color: var(--c-brand-hover);
+}
+
+.universal-button--add {
+  border-color: var(--c-brand);
+  background: var(--c-brand);
+  color: #ffffff;
+}
+
+.universal-button--add:hover:not(:disabled) {
+  border-color: #5d86b2;
+  background: #5d86b2;
+}
+
+.universal-button--remove {
+  border-color: var(--c-danger);
+  background: var(--c-surface);
+  color: var(--c-danger);
+}
+
+.universal-button--remove:hover:not(:disabled) {
+  background: #b91c1c;
+  color: #ffffff;
+}
+
+.universal-button--template {
+  border-color: #15803d;
+  background: #15803d;
+  color: #ffffff;
+}
+
+.universal-button--template:hover:not(:disabled) {
+  background: #166534;
+  border-color: #166534;
+}
+
+.universal-button--warning {
+  border-color: var(--c-warning);
+  background: var(--c-surface);
+  color: var(--c-warning);
+}
+
+.universal-button--warning:hover:not(:disabled) {
+  background: #b45309;
+  color: #ffffff;
+}
+
+.universal-button--edit,
+.universal-button--clear {
+  border: 1px solid var(--c-brand);
+  background: var(--c-surface);
+  color: var(--c-brand-ink);
+}
+
+.universal-button--edit:hover:not(:disabled),
+.universal-button--clear:hover:not(:disabled) {
+  background: var(--c-brand);
+  border-color: var(--c-brand);
+  color: #ffffff;
+}
+
+.universal-button--cancel,
+.universal-button--save,
+.universal-button--danger {
+  min-width: 105px;
+}
+
+.universal-button--cancel {
+  border-color: var(--c-btn-neutral-line);
+  background: var(--c-surface);
+  color: var(--c-btn-neutral-ink);
+}
+
+.universal-button--cancel:hover:not(:disabled) {
+  background: var(--c-slate-100);
+}
+
+.universal-button--save {
+  border-color: var(--c-brand);
+  background: var(--c-brand);
+  color: #ffffff;
+}
+
+.universal-button--save:hover:not(:disabled) {
+  background: var(--c-brand-hover);
+  border-color: var(--c-brand-hover);
+}
+
+.universal-button--danger {
+  border-color: var(--c-danger);
+  background: var(--c-surface);
+  color: var(--c-danger);
+}
+
+.universal-button--danger:hover:not(:disabled) {
+  background: #b42318;
+  border-color: var(--c-danger);
+  color: #ffffff;
+}
+
+.universal-submit-btn,
+.search-filter-button,
+.export-filter-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.68rem 1.35rem;
+  border: 1px solid var(--c-brand);
+  border-radius: 3px;
+  background: var(--c-brand);
+  color: #ffffff;
+  font-family: 'Avenir', 'Avenir Next', 'Segoe UI', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    color 0.2s ease;
+}
+
+.search-filter-button,
+.export-filter-button {
+  gap: 0;
+}
+
+.export-filter-button {
+  border-color: #15803d;
+  background: #15803d;
+}
+
+.universal-submit-btn:hover:not(:disabled),
+.search-filter-button:hover:not(:disabled) {
+  background: var(--c-brand-hover);
+  border-color: var(--c-brand-hover);
+}
+
+.export-filter-button:hover:not(:disabled) {
+  background: #166534;
+  border-color: #166534;
+}
+
+.universal-submit-btn:focus-visible,
+.search-filter-button:focus-visible,
+.export-filter-button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 0.2rem rgba(104, 145, 188, 0.35);
+}
+
+.universal-submit-btn:disabled,
+.search-filter-button:disabled,
+.export-filter-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.universal-submit-btn {
+  min-width: 120px;
+  margin-block: 1rem;
+  border-color: var(--c-brand-2);
+  background: var(--c-brand-2);
+}
+
+.universal-submit-btn:hover:not(:disabled) {
+  background: #5d86b2;
+  border-color: #5d86b2;
+}
+
+.universal-button--back {
+  border-color: var(--c-btn-neutral-line);
+  background: var(--c-surface);
+  color: var(--c-btn-neutral-ink);
+}
+
+.universal-button--back:hover:not(:disabled) {
+  border-color: #6b7280;
+  background: #6b7280;
+  color: #ffffff;
+}
+
+.universal-submit-btn {
+  line-height: 1;
+}
+
+.universal-submit-btn .p-button-icon-right::before {
+  content: '\2192';
+  font-size: 1.05rem;
+  line-height: 1;
+}
+
+.form-intro-btn,
+.wai-start-btn {
+  flex: 0 0 auto;
+  min-width: 145px;
+  padding: 0.9rem 1.9rem;
+  border: 2px solid var(--c-surface);
+  border-radius: 6px;
+  background: rgba(0, 58, 112, 0.82);
+  color: #ffffff;
+  font-size: 1rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.form-intro-btn:hover,
+.wai-start-btn:hover {
+  background: var(--c-brand);
+  transform: translateY(-1px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.18);
+}
+
+.form-intro-btn:active,
+.wai-start-btn:active {
+  transform: translateY(0);
+}
+
+.sort-header-button {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+
+.sort-header-button:hover {
+  color: var(--c-link-hover);
+}
+
+.universal-file-input::file-selector-button,
+.universal-file-input::-webkit-file-upload-button {
+  margin-right: 0.8rem;
+  border: 1px solid var(--c-brand-2);
+  border-radius: 3px;
+  background: var(--c-brand-2);
+  color: #ffffff;
+  padding: 0.45rem 0.85rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.universal-file-input:hover::file-selector-button,
+.universal-file-input:hover::-webkit-file-upload-button {
+  background: #5d86b2;
+  border-color: #5d86b2;
+}

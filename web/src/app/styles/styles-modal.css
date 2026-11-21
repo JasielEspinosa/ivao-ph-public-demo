@@ -1,0 +1,44 @@
+.universal-modal-close {
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--c-slate-500);
+  font-size: 1.7rem;
+  font-family: inherit !important;
+  font-weight: 400;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.manage-modal-card,
+.template-modal-card {
+  position: relative;
+}
+
+.manage-modal-card > .universal-modal-close,
+.template-modal-card > .universal-modal-close {
+  position: absolute;
+  top: 0.55rem;
+  right: 0.55rem;
+}
+
+.universal-modal-close:hover:not(:disabled) {
+  background: var(--c-slate-100);
+  color: var(--c-slate-900);
+}
+
+.universal-modal-close:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

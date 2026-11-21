@@ -1,0 +1,227 @@
+/*
+ * Color tokens for the light and dark themes.
+ *
+ * Light values are the colors the app has always used (public form pages and login always use these).
+ * Dark values apply only on logged-in pages: ThemeService sets data-theme="dark" on <html> there.
+ * Take colors from these tokens instead of writing a hex value; add a token here when a new color is needed.
+ */
+:root {
+  /* Surfaces */
+  --c-page: #ffffff;
+  --c-surface: #ffffff;
+  --c-surface-glass: rgba(255, 255, 255, 0.95);
+  --c-overlay: rgb(255 255 255 / 55%);
+  --c-tint-1: #f8fbff;
+  --c-tint-2: #eef4ff;
+
+  /* Neutral scale: 50 is the lightest tint, 900 is the main text color. In dark mode the scale is inverted. */
+  --c-slate-50: #f8fafc;
+  --c-slate-100: #f1f5f9;
+  --c-slate-200: #e2e8f0;
+  --c-slate-300: #cbd5e1;
+  --c-slate-400: #94a3b8;
+  --c-slate-500: #64748b;
+  --c-slate-600: #475569;
+  --c-slate-700: #334155;
+  --c-slate-800: #1e293b;
+  --c-slate-900: #0f172a;
+
+  /* Form fields (blue-gray palette) */
+  --c-ink: #1f3656;
+  --c-ink-2: #47658f;
+  --c-line: #bfd0e7;
+  --c-line-soft: #d2deec;
+  --c-disabled-bg: #eef0f3;
+  --c-disabled-line: #d5d9df;
+  --c-disabled-ink: #7b8490;
+  --c-line-faint: #dbe4ee;
+  --c-line-mid: #c8d2df;
+  --c-silver: #aab2bd;
+  --c-line-focus: #8eb2d8;
+  --c-form-text: #2c3345;
+  --c-brand-2-ink: #004987;
+  --c-accent-blue: #1e5aa8;
+
+  /* Brand */
+  --c-brand: #003b70;
+  --c-brand-hover: #002d56;
+  --c-brand-2: #004987;
+  --c-brand-ink: #003b70;
+  --c-link: #2563eb;
+  --c-link-hover: #1d4ed8;
+  --c-btn-neutral-ink: #333333;
+  --c-btn-neutral-line: #b7b7b7;
+  --c-banner-ink: #002c4b;
+  --c-banner-text: #27272a;
+  /* The photo banner artwork stays light in both themes, so its text keeps the dark values. */
+  --c-banner-photo-ink: #002c4b;
+  --c-banner-photo-text: #27272a;
+  --c-banner-photo-link: #1d4ed8;
+  --c-banner-photo-dim: transparent;
+
+  /* Philippine flag colors: the accent stripe of the site header and footer, and the artwork palette of the banner */
+  --c-ph-blue: #0038a8;
+  --c-ph-red: #ce1126;
+  --c-ph-gold: #fcd116;
+
+  /* Admin banner accents (blue shades per page; the banner mixes them into --c-surface, so they follow the theme) */
+  --c-banner-users-a: #1565c0;
+  --c-banner-users-b: #42a5f5;
+  --c-banner-user-a: #2f6fe0;
+  --c-banner-user-b: #38bdf8;
+
+  /* Theme picker previews (Profile Settings): fixed in both themes, they show what each choice looks like */
+  --c-preview-light-bg: #f1f5f9;
+  --c-preview-light-bar: #ffffff;
+  --c-preview-light-line: #cbd5e1;
+  --c-preview-dark-bg: #0d1321;
+  --c-preview-dark-bar: #151c2c;
+  --c-preview-dark-line: #3d4a63;
+  --c-preview-sun: #f59e0b;
+  --c-preview-moon: #818cf8;
+  --c-preview-sun-soft: #fbbf24;
+  --c-preview-moon-deep: #3730a3;
+
+  /* Status */
+  --c-notice-bg: #eff6ff;
+  --c-notice-line: #bfdbfe;
+  --c-notice-ink: #1e3a8a;
+  --c-badge-bg: #dbeafe;
+  --c-badge-ink: #1e40af;
+  --c-danger: #b91c1c;
+  --c-danger-tint: #fef2f2;
+  --c-danger-ink: #912018;
+  --c-success-ink: #166534;
+  --c-success-tint: #dcfce7;
+  --c-success: #15803d;
+  --c-success-line: #86efac;
+  --c-success-wash: #f0fdf4;
+  --c-warning-tint: #fef3c7;
+  --c-warning-line: #fcd34d;
+  --c-warning-wash: #fffbeb;
+  --c-danger-bright: #dc2626;
+  --c-success-bright: #16a34a;
+  --c-warning: #b45309;
+}
+
+html[data-theme='dark'] {
+  --c-page: #0d1321;
+  --c-surface: #151c2c;
+  --c-surface-glass: rgba(21, 28, 44, 0.95);
+  --c-overlay: rgb(13 19 33 / 55%);
+  --c-tint-1: #18223a;
+  --c-tint-2: #1c2a47;
+
+  --c-slate-50: #1c2538;
+  --c-slate-100: #232e44;
+  --c-slate-200: #2f3b52;
+  --c-slate-300: #3d4a63;
+  --c-slate-400: #7b8aa3;
+  --c-slate-500: #94a3b8;
+  --c-slate-600: #a8b5c9;
+  --c-slate-700: #c3cddc;
+  --c-slate-800: #dbe2ec;
+  --c-slate-900: #eef2f7;
+
+  --c-ink: #dbe6f5;
+  --c-ink-2: #9fb6d6;
+  --c-line: #3a4d6b;
+  --c-line-soft: #2c3a52;
+  --c-disabled-bg: #1d2535;
+  --c-disabled-line: #2c3548;
+  --c-disabled-ink: #7d8aa1;
+  --c-line-faint: #2a3650;
+  --c-line-mid: #34435c;
+  --c-silver: #7b8494;
+  --c-line-focus: #5b82b0;
+  --c-form-text: #dbe2ec;
+  --c-brand-2-ink: #8ab8ec;
+  --c-accent-blue: #7fb0f0;
+
+  --c-brand: #1f5fa3;
+  --c-brand-hover: #174c85;
+  --c-brand-2: #2467ad;
+  --c-brand-ink: #8ab8ec;
+  --c-link: #6ea8ff;
+  --c-link-hover: #9ec5ff;
+  --c-btn-neutral-ink: #dbe2ec;
+  --c-btn-neutral-line: #4a566c;
+  --c-banner-ink: #e3eefa;
+  --c-banner-text: #cbd5e1;
+  /* The photo banner gets a dark overlay in the dark theme, so its text turns light. The dim is a fade from the surface color on the left (desktop and phone). */
+  --c-banner-photo-dim: linear-gradient(
+    90deg,
+    var(--c-surface) 0%,
+    color-mix(in srgb, var(--c-surface) 55%, transparent) 25%,
+    transparent 55%
+  );
+  --c-banner-photo-ink: #e3eefa;
+  --c-banner-photo-text: #cbd5e1;
+  --c-banner-photo-link: #8ab8ec;
+
+  --c-banner-users-a: #4a8ff0;
+  --c-banner-users-b: #5bb4f5;
+  --c-banner-user-a: #5b8def;
+  --c-banner-user-b: #4cc3f7;
+
+  --c-notice-bg: #14233f;
+  --c-notice-line: #2a4a7a;
+  --c-notice-ink: #bcd3ff;
+  --c-badge-bg: #1e3a6e;
+  --c-badge-ink: #bcd3ff;
+  --c-danger: #f87171;
+  --c-danger-tint: #3a1a20;
+  --c-danger-ink: #fca5a5;
+  --c-success-ink: #86efac;
+  --c-success-tint: #123524;
+  --c-success: #4ade80;
+  --c-success-line: #1f6b44;
+  --c-success-wash: #0f2a1e;
+  --c-warning-tint: #3a2d0f;
+  --c-warning-line: #8a6a1a;
+  --c-warning-wash: #2b230f;
+  --c-danger-bright: #f87171;
+  --c-success-bright: #4ade80;
+  --c-warning: #fbbf24;
+
+  /* Existing shared tokens */
+  --validation-error-color: #ff6b81;
+  --validation-error-ring: rgba(255, 107, 129, 0.12);
+
+  /* Bootstrap's own body colors follow the page */
+  --bs-body-bg: var(--c-page);
+  --bs-body-color: var(--c-slate-900);
+}
+
+html[data-theme='dark'] body {
+  background-color: var(--c-page);
+  color: var(--c-slate-900);
+}
+
+/*
+ * Firefox draws dark text on a light background about 5% heavier than Chrome (its Windows text renderer applies a stronger
+ * contrast; same font file, same widths, measured on Avenir Medium). No font or text-rendering setting changes this, so in
+ * Firefox only, the dark text colors of the light theme are mixed 5% toward white to cancel it. Chrome and the dark theme
+ * keep the original values. The comment after each value is the original color.
+ */
+@supports (-moz-appearance: none) {
+  :root:not([data-theme='dark']) {
+    --c-slate-500: #6c7b91; /* #64748b */
+    --c-slate-600: #505e70; /* #475569 */
+    --c-slate-700: #3d4a5e; /* #334155 */
+    --c-slate-800: #293445; /* #1e293b */
+    --c-slate-900: #1b2335; /* #0f172a */
+    --c-ink: #2a405e; /* #1f3656 */
+    --c-ink-2: #506d95; /* #47658f */
+    --c-form-text: #373d4e; /* #2c3345 */
+    --c-brand-ink: #0d4577; /* #003b70 */
+    --c-brand-2-ink: #0d528d; /* #004987 */
+    --c-accent-blue: #2962ac; /* #1e5aa8 */
+    --c-link: #306bec; /* #2563eb */
+    --c-link-hover: #2857da; /* #1d4ed8 */
+    --c-btn-neutral-ink: #3d3d3d; /* #333333 */
+    --c-banner-ink: #0d3754; /* #002c4b */
+    --c-banner-text: #323235; /* #27272a */
+    --bs-body-color: #2c3034; /* #212529 */
+  }
+}

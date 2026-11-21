@@ -1,0 +1,119 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2000 125" preserveAspectRatio="xMaxYMid slice" role="img" aria-label="A Philippine island with an Airbus A320 flying past">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0a3a96" />
+      <stop offset="0.55" stop-color="#2d7fdc" />
+      <stop offset="0.8" stop-color="#8fd0ff" />
+      <stop offset="1" stop-color="#c9ecff" />
+    </linearGradient>
+    <linearGradient id="sea" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2a83d8" />
+      <stop offset="1" stop-color="#0a3a8a" />
+    </linearGradient>
+    <linearGradient id="leftWash" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#062a78" stop-opacity="0.7" />
+      <stop offset="0.5" stop-color="#062a78" stop-opacity="0.25" />
+      <stop offset="1" stop-color="#062a78" stop-opacity="0" />
+    </linearGradient>
+    <radialGradient id="sunGlow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#fff3b8" stop-opacity="0.95" />
+      <stop offset="1" stop-color="#fff3b8" stop-opacity="0" />
+    </radialGradient>
+    <linearGradient id="trail" x1="1" y1="0" x2="0" y2="0">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.9" />
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0" />
+    </linearGradient>
+  </defs>
+
+  <!-- sky and sea -->
+  <rect width="2000" height="125" fill="url(#sky)" />
+  <rect width="1200" height="125" fill="url(#leftWash)" />
+  <circle cx="1560" cy="46" r="62" fill="url(#sunGlow)" />
+  <circle cx="1560" cy="46" r="21" fill="#fcd116" />
+  <rect y="96" width="2000" height="29" fill="url(#sea)" />
+  <g fill="#ffffff" opacity="0.3">
+    <rect x="1420" y="101" width="160" height="2" rx="1" />
+    <rect x="1460" y="108" width="100" height="2" rx="1" />
+    <rect x="1900" y="104" width="70" height="2" rx="1" />
+    <rect x="1080" y="110" width="110" height="2" rx="1" />
+    <rect x="780" y="104" width="90" height="2" rx="1" />
+    <rect x="300" y="108" width="120" height="2" rx="1" />
+  </g>
+
+  <!-- clouds (kept clear of the title area) -->
+  <g fill="#ffffff" opacity="0.8">
+    <ellipse cx="1180" cy="30" rx="44" ry="8" />
+    <ellipse cx="1210" cy="24" rx="28" ry="7" />
+    <ellipse cx="1890" cy="26" rx="40" ry="7" />
+    <ellipse cx="1920" cy="21" rx="24" ry="6" />
+    <ellipse cx="150" cy="22" rx="50" ry="8" />
+    <ellipse cx="190" cy="16" rx="30" ry="6" />
+  </g>
+
+  <!-- distant islands -->
+  <path d="M1190 96 C1210 82 1250 76 1290 82 C1318 78 1346 86 1362 96 Z" fill="#2f8a73" opacity="0.85" />
+  <path d="M1900 96 C1912 88 1936 86 1956 90 C1968 90 1980 94 1986 96 Z" fill="#2f8a73" opacity="0.8" />
+
+  <!-- main island: shallow water, sand, hills, palms -->
+  <ellipse cx="1700" cy="98" rx="190" ry="9" fill="#5fe0d8" opacity="0.5" />
+  <ellipse cx="1700" cy="96" rx="158" ry="5" fill="#f2dfa5" />
+  <path d="M1548 96 C1566 74 1604 62 1642 66 C1670 44 1724 40 1756 62 C1790 64 1822 80 1846 96 Z" fill="#1f9e4a" />
+  <path d="M1600 96 C1620 78 1650 72 1678 76 C1706 58 1748 62 1770 80 C1790 84 1808 90 1822 96 Z" fill="#148a3b" />
+  <path d="M1650 96 C1672 84 1704 80 1730 86 C1744 88 1756 92 1764 96 Z" fill="#0f6e2f" />
+  <g stroke="#6b4a2a" stroke-width="2" stroke-linecap="round" fill="none">
+    <path d="M1626 94 C1628 84 1626 76 1622 70" />
+    <path d="M1704 94 C1702 82 1704 74 1708 66" />
+    <path d="M1796 94 C1794 86 1796 80 1800 74" />
+  </g>
+  <g fill="#0f7a34">
+    <path d="M1622 70 C1612 64 1604 66 1598 72 C1608 68 1614 70 1622 70 Z" />
+    <path d="M1622 70 C1632 62 1642 64 1648 70 C1638 67 1630 68 1622 70 Z" />
+    <path d="M1622 70 C1620 60 1626 56 1632 56 C1628 62 1626 66 1622 70 Z" />
+    <path d="M1708 66 C1698 60 1690 62 1684 68 C1694 64 1700 66 1708 66 Z" />
+    <path d="M1708 66 C1718 58 1728 60 1734 66 C1724 63 1716 64 1708 66 Z" />
+    <path d="M1708 66 C1706 56 1712 52 1718 52 C1714 58 1712 62 1708 66 Z" />
+    <path d="M1800 74 C1792 69 1786 70 1780 75 C1788 72 1794 73 1800 74 Z" />
+    <path d="M1800 74 C1808 67 1816 69 1820 74 C1812 72 1806 72 1800 74 Z" />
+    <path d="M1800 74 C1798 66 1803 63 1808 63 C1805 68 1803 71 1800 74 Z" />
+  </g>
+  <path d="M1548 96 C1570 100 1640 102 1700 102 C1770 102 1830 100 1846 96" fill="none" stroke="#ffffff" stroke-width="2" opacity="0.7" />
+
+  <!-- contrail in the flag colors -->
+  <g stroke-linecap="round" stroke-width="2.4" fill="none">
+    <path d="M1396 46 C1360 47 1330 47 1292 46" stroke="#0038a8" opacity="0.85" />
+    <path d="M1396 51 C1360 52 1330 52 1292 51" stroke="#ce1126" opacity="0.85" />
+    <path d="M1396 56 C1360 57 1330 57 1292 56" stroke="#fcd116" opacity="0.85" />
+  </g>
+  <rect x="1292" y="44" width="108" height="14" fill="url(#trail)" opacity="0.25" />
+
+  <!-- Airbus A320 in a blue / white / red livery, climbing to the right -->
+  <g transform="translate(1396 28) rotate(-5)">
+    <!-- tail fin and stabilizer -->
+    <path d="M6 12 L-8 -10 L8 -10 L28 11 Z" fill="#0033a0" />
+    <path d="M-2 -2 C4 -4 10 -2 13 3 C7 4 1 3 -2 -2 Z" fill="#ce1126" />
+    <circle cx="9" cy="-3" r="3" fill="#ffffff" />
+    <path d="M6 17 L-6 23 L10 23 L26 18 Z" fill="#c4cfe3" />
+    <!-- fuselage -->
+    <path d="M0 18 C0 10 6 8 14 8 L94 8 C104 8 112 12 116 17 C112 23 104 27 94 27 L14 27 C6 27 0 25 0 18 Z" fill="#ffffff" />
+    <path d="M2 22 L114 22 C110 26 102 27 94 27 L14 27 C6 27 2 25 2 22 Z" fill="#d6deee" />
+    <path d="M6 21 L112 21" stroke="#0033a0" stroke-width="1.6" fill="none" />
+    <!-- cockpit and windows -->
+    <path d="M98 11 C104 11 110 13 113 16 L98 16 Z" fill="#1d2a44" />
+    <g fill="#1d2a44">
+      <circle cx="24" cy="15" r="1.1" /><circle cx="31" cy="15" r="1.1" /><circle cx="38" cy="15" r="1.1" />
+      <circle cx="45" cy="15" r="1.1" /><circle cx="52" cy="15" r="1.1" /><circle cx="59" cy="15" r="1.1" />
+      <circle cx="66" cy="15" r="1.1" /><circle cx="73" cy="15" r="1.1" /><circle cx="80" cy="15" r="1.1" />
+      <circle cx="87" cy="15" r="1.1" />
+    </g>
+    <!-- wing with sharklet and engine -->
+    <path d="M52 22 L84 41 L74 41 L40 24 Z" fill="#b9c5dc" />
+    <path d="M84 41 L87 36 L86 42 Z" fill="#ce1126" />
+    <ellipse cx="68" cy="31" rx="9" ry="4" fill="#ffffff" stroke="#8d9bb8" stroke-width="0.8" />
+    <ellipse cx="60" cy="31" rx="2.2" ry="3.4" fill="#0033a0" />
+  </g>
+
+  <!-- the flag colors along the bottom edge -->
+  <rect y="121" width="667" height="4" fill="#0038a8" />
+  <rect x="667" y="121" width="666" height="4" fill="#ce1126" />
+  <rect x="1333" y="121" width="667" height="4" fill="#fcd116" />
+</svg>

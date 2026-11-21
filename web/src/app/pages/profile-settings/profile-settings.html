@@ -1,0 +1,403 @@
+<section class="home-shell">
+  <div class="form-shell">
+    <app-placeholder-banner
+      title="Profile Settings"
+      [showBackLink]="true"
+      backLinkRoute="/home"
+    ></app-placeholder-banner>
+
+    <div *ngIf="successMessage" class="status-box success" role="status">{{ successMessage }}</div>
+
+    <div class="profile-hero">
+      <div class="profile-avatar" aria-hidden="true">{{ initials }}</div>
+      <div class="profile-hero__details">
+        <h2 class="profile-hero__name">{{ fullName }}</h2>
+        <p class="profile-hero__email">{{ loginEmail }}</p>
+        <span class="profile-role-badge">{{ roleLabel }}</span>
+      </div>
+    </div>
+
+    <form
+      class="profile-form"
+      [formGroup]="form"
+      (ngSubmit)="save()"
+      autocomplete="off"
+      data-lpignore="true"
+      data-1p-ignore="true"
+    >
+      <section class="profile-card">
+        <div class="profile-card__header">
+          <div>
+            <h3 class="profile-card__title">Personal Information</h3>
+            <p class="profile-card__hint">How your name appears across the system.</p>
+          </div>
+          <button
+            *ngIf="!isEditing"
+            type="button"
+            class="universal-button universal-button--edit"
+            (click)="startEditing()"
+          >
+            Modify
+          </button>
+        </div>
+
+        <div class="profile-grid profile-grid--two">
+          <label class="universal-input-field">
+            <span>Nickname</span>
+            <input type="text" formControlName="nickname" autocomplete="off" spellcheck="false" />
+          </label>
+
+          <label class="universal-input-field">
+            <span>Login Email</span>
+            <input type="text" [value]="loginEmail" disabled />
+          </label>
+        </div>
+
+        <div class="profile-grid profile-grid--name">
+          <label class="universal-input-field">
+            <span>First Name</span>
+            <input type="text" formControlName="first_name" autocomplete="off" spellcheck="false" />
+          </label>
+
+          <label class="universal-input-field">
+            <span>Middle Name</span>
+            <input type="text" formControlName="middle_name" autocomplete="off" spellcheck="false" />
+          </label>
+
+          <label class="universal-input-field">
+            <span>Last Name</span>
+            <input type="text" formControlName="last_name" autocomplete="off" spellcheck="false" />
+          </label>
+
+          <label class="universal-input-field" [class.uf-invalid]="showSuffixError()">
+            <span>Suffix</span>
+            <input type="text" formControlName="suffix" autocomplete="off" spellcheck="false" />
+            <span *ngIf="showSuffixError()" class="inline-field-error">{{ invalidSuffixMessage }}</span>
+          </label>
+        </div>
+      </section>
+
+      <section class="profile-card">
+        <h3 class="profile-card__title">Appearance</h3>
+        <p class="profile-card__hint">Choose how the system looks while you are signed in.</p>
+
+        <div class="theme-choice-group" role="radiogroup" aria-label="Theme">
+          <label class="theme-choice" *ngFor="let option of themeOptions">
+            <input
+              type="radio"
+              class="theme-choice__input"
+              name="ui_theme"
+              [value]="option.value"
+              [checked]="themePreference === option.value"
+              [disabled]="isThemeSaving"
+              (change)="selectTheme(option.value)"
+            />
+
+            <span class="theme-choice__preview" aria-hidden="true">
+              <svg viewBox="0 0 120 76" focusable="false" [ngSwitch]="option.value">
+                <ng-container *ngSwitchCase="'light'">
+                  <rect width="120" height="76" class="theme-choice__bg-light" />
+                  <rect width="120" height="14" class="theme-choice__bar-light" />
+                  <circle cx="9" cy="7" r="2.5" class="theme-choice__accent" />
+                  <rect x="14" y="24" width="52" height="6" rx="3" class="theme-choice__line-light" />
+                  <rect x="14" y="36" width="76" height="6" rx="3" class="theme-choice__line-light" />
+                  <rect x="14" y="52" width="28" height="10" rx="5" class="theme-choice__accent" />
+                  <circle cx="98" cy="26" r="7" class="theme-choice__sun" />
+                </ng-container>
+                <ng-container *ngSwitchCase="'dark'">
+                  <rect width="120" height="76" class="theme-choice__bg-dark" />
+                  <rect width="120" height="14" class="theme-choice__bar-dark" />
+                  <circle cx="9" cy="7" r="2.5" class="theme-choice__accent" />
+                  <rect x="14" y="24" width="52" height="6" rx="3" class="theme-choice__line-dark" />
+                  <rect x="14" y="36" width="76" height="6" rx="3" class="theme-choice__line-dark" />
+                  <rect x="14" y="52" width="28" height="10" rx="5" class="theme-choice__accent" />
+                  <path d="M104 20a8 8 0 1 0 0 12 6.5 6.5 0 0 1 0-12z" class="theme-choice__moon" />
+                </ng-container>
+                <ng-container *ngSwitchDefault>
+                  <defs>
+                    <clipPath id="theme-choice-left">
+                      <rect width="60" height="76" />
+                    </clipPath>
+                    <clipPath id="theme-choice-right">
+                      <rect x="60" width="60" height="76" />
+                    </clipPath>
+                  </defs>
+                  <g clip-path="url(#theme-choice-left)">
+                    <rect width="120" height="76" class="theme-choice__bg-light" />
+                    <rect width="120" height="14" class="theme-choice__bar-light" />
+                    <rect x="14" y="24" width="52" height="6" rx="3" class="theme-choice__line-light" />
+                    <rect x="14" y="36" width="76" height="6" rx="3" class="theme-choice__line-light" />
+                  </g>
+                  <g clip-path="url(#theme-choice-right)">
+                    <rect width="120" height="76" class="theme-choice__bg-dark" />
+                    <rect width="120" height="14" class="theme-choice__bar-dark" />
+                    <rect x="14" y="24" width="52" height="6" rx="3" class="theme-choice__line-dark" />
+                    <rect x="14" y="36" width="76" height="6" rx="3" class="theme-choice__line-dark" />
+                  </g>
+                  <circle cx="9" cy="7" r="2.5" class="theme-choice__accent" />
+                  <rect x="14" y="52" width="28" height="10" rx="5" class="theme-choice__accent" />
+                </ng-container>
+              </svg>
+            </span>
+
+            <span class="theme-choice__caption">
+              <span class="theme-choice__icon theme-choice__icon--{{ option.value }}" aria-hidden="true">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  focusable="false"
+                  [ngSwitch]="option.value"
+                >
+                  <ng-container *ngSwitchCase="'light'">
+                    <circle cx="12" cy="12" r="4" />
+                    <path
+                      d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"
+                    />
+                  </ng-container>
+                  <path *ngSwitchCase="'dark'" d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" />
+                  <ng-container *ngSwitchDefault>
+                    <rect x="2.5" y="4" width="19" height="13" rx="2" />
+                    <path d="M8 21h8M12 17v4" />
+                  </ng-container>
+                </svg>
+              </span>
+              <span class="theme-choice__text">
+                <span class="theme-choice__name">{{ option.label }}</span>
+                <span class="theme-choice__desc">{{ option.description }}</span>
+              </span>
+            </span>
+
+            <span class="theme-choice__check" aria-hidden="true">
+              <svg
+                viewBox="0 0 24 24"
+                width="14"
+                height="14"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="3"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                focusable="false"
+              >
+                <path d="M5 12.5l4.5 4.5L19 7.5" />
+              </svg>
+            </span>
+          </label>
+        </div>
+        <span *ngIf="themeError" class="inline-field-error">{{ themeError }}</span>
+      </section>
+
+      <section class="profile-card">
+        <h3 class="profile-card__title">Login Password</h3>
+
+        <div *ngIf="!isEditing" class="profile-password-summary">
+          <span class="profile-password-dots" aria-hidden="true">••••••••••</span>
+          <span class="profile-card__hint">Click Modify to change your password.</span>
+        </div>
+
+        <ng-container *ngIf="isEditing">
+          <p class="profile-card__hint">
+            Leave these blank to keep your current password. A new password must be at least
+            {{ minPasswordLength }} characters.
+          </p>
+
+          <div class="profile-grid profile-grid--three">
+            <label
+              class="universal-password-field"
+              [class.uf-invalid]="showPasswordError('currentRequired', 'current_password')"
+            >
+              <span>Current Password</span>
+              <div class="password-peek-field">
+                <input
+                  [type]="visiblePasswords.current_password ? 'text' : 'password'"
+                  formControlName="current_password"
+                  autocomplete="current-password"
+                  data-lpignore="true"
+                  data-1p-ignore="true"
+                />
+                <button
+                  type="button"
+                  class="password-peek-button"
+                  [attr.aria-label]="
+                    visiblePasswords.current_password ? 'Hide current password' : 'Show current password'
+                  "
+                  [attr.aria-pressed]="visiblePasswords.current_password"
+                  (click)="togglePasswordVisibility('current_password')"
+                >
+                  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path
+                      d="M2 12c2.2-3.8 5.5-6 10-6s7.8 2.2 10 6c-2.2 3.8-5.5 6-10 6s-7.8-2.2-10-6Zm10 3.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4Z"
+                    />
+                    <path
+                      *ngIf="!visiblePasswords.current_password"
+                      d="M4 20 20 4"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                    />
+                  </svg>
+                </button>
+              </div>
+              <span *ngIf="showPasswordError('currentRequired', 'current_password')" class="inline-field-error">
+                Enter your current password to change it.
+              </span>
+            </label>
+
+            <label
+              class="universal-password-field"
+              [class.uf-invalid]="
+                showPasswordError('newRequired', 'new_password') || showPasswordError('newTooShort', 'new_password')
+              "
+            >
+              <span>New Password</span>
+              <div class="password-peek-field">
+                <input
+                  [type]="visiblePasswords.new_password ? 'text' : 'password'"
+                  formControlName="new_password"
+                  autocomplete="new-password"
+                  data-lpignore="true"
+                  data-1p-ignore="true"
+                />
+                <button
+                  type="button"
+                  class="password-peek-button"
+                  [attr.aria-label]="visiblePasswords.new_password ? 'Hide new password' : 'Show new password'"
+                  [attr.aria-pressed]="visiblePasswords.new_password"
+                  (click)="togglePasswordVisibility('new_password')"
+                >
+                  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path
+                      d="M2 12c2.2-3.8 5.5-6 10-6s7.8 2.2 10 6c-2.2 3.8-5.5 6-10 6s-7.8-2.2-10-6Zm10 3.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4Z"
+                    />
+                    <path
+                      *ngIf="!visiblePasswords.new_password"
+                      d="M4 20 20 4"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                    />
+                  </svg>
+                </button>
+              </div>
+              <span *ngIf="showPasswordError('newRequired', 'new_password')" class="inline-field-error">
+                Enter a new password.
+              </span>
+              <span
+                *ngIf="
+                  !showPasswordError('newRequired', 'new_password') && showPasswordError('newTooShort', 'new_password')
+                "
+                class="inline-field-error"
+              >
+                Password must be at least {{ minPasswordLength }} characters.
+              </span>
+            </label>
+
+            <label
+              class="universal-password-field"
+              [class.uf-invalid]="
+                showPasswordError('confirmRequired', 'confirm_password') ||
+                showPasswordError('mismatch', 'confirm_password')
+              "
+            >
+              <span>Re-type New Password</span>
+              <div class="password-peek-field">
+                <input
+                  [type]="visiblePasswords.confirm_password ? 'text' : 'password'"
+                  formControlName="confirm_password"
+                  autocomplete="new-password"
+                  data-lpignore="true"
+                  data-1p-ignore="true"
+                />
+                <button
+                  type="button"
+                  class="password-peek-button"
+                  [attr.aria-label]="
+                    visiblePasswords.confirm_password ? 'Hide re-typed password' : 'Show re-typed password'
+                  "
+                  [attr.aria-pressed]="visiblePasswords.confirm_password"
+                  (click)="togglePasswordVisibility('confirm_password')"
+                >
+                  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path
+                      d="M2 12c2.2-3.8 5.5-6 10-6s7.8 2.2 10 6c-2.2 3.8-5.5 6-10 6s-7.8-2.2-10-6Zm10 3.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4Z"
+                    />
+                    <path
+                      *ngIf="!visiblePasswords.confirm_password"
+                      d="M4 20 20 4"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                    />
+                  </svg>
+                </button>
+              </div>
+              <span *ngIf="showPasswordError('confirmRequired', 'confirm_password')" class="inline-field-error">
+                Re-type your new password.
+              </span>
+              <span
+                *ngIf="
+                  !showPasswordError('confirmRequired', 'confirm_password') &&
+                  showPasswordError('mismatch', 'confirm_password')
+                "
+                class="inline-field-error"
+              >
+                Passwords do not match.
+              </span>
+            </label>
+          </div>
+        </ng-container>
+      </section>
+
+      <div *ngIf="isEditing && errorMessage" class="status-box error" role="alert">{{ errorMessage }}</div>
+
+      <div *ngIf="isEditing" class="profile-actions">
+        <button
+          type="button"
+          class="universal-button universal-button--cancel"
+          [disabled]="isSaving"
+          (click)="cancelEditing()"
+        >
+          Cancel
+        </button>
+        <button type="submit" class="universal-button universal-button--save" [disabled]="isSaving">
+          {{ isSaving ? 'Saving...' : 'Save' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</section>
+
+<div
+  *ngIf="isChangePasswordModalOpen"
+  class="template-modal-backdrop"
+  role="dialog"
+  aria-modal="true"
+  aria-label="Change Administrator password"
+  (keydown.escape)="closeChangePasswordModal()"
+>
+  <div class="template-modal-card template-modal-card--export">
+    <button type="button" class="universal-modal-close" aria-label="Close" (click)="closeChangePasswordModal()">
+      &times;
+    </button>
+    <h3>Change Password</h3>
+    <p>
+      Only the Administrator account can change its own password. Other Admin Users cannot change the Administrator's
+      password. Do you want to continue?
+    </p>
+    <div class="template-modal-actions template-modal-actions--confirm">
+      <button type="button" class="universal-button universal-button--cancel" (click)="closeChangePasswordModal()">
+        Cancel
+      </button>
+      <button type="button" class="universal-button universal-button--save" (click)="confirmChangePassword()">
+        Continue
+      </button>
+    </div>
+  </div>
+</div>

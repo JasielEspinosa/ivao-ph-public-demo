@@ -1,0 +1,274 @@
+.manage-form {
+  display: grid;
+  gap: 1rem;
+}
+
+.manage-form-row {
+  display: grid;
+  align-items: stretch;
+  gap: 0.85rem;
+  width: 100%;
+}
+
+.manage-form-row--stack {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.75rem;
+}
+
+.manage-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-weight: 600;
+  color: var(--c-slate-700);
+}
+
+.manage-form input[type='checkbox']:not(.switch-input) {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--c-link);
+  cursor: pointer;
+}
+
+.manage-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.48);
+}
+
+.manage-modal-card {
+  position: relative;
+  width: min(720px, 100%);
+  box-sizing: border-box;
+  padding: 1.5rem;
+  border-radius: 8px;
+  background: var(--c-surface);
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.28);
+}
+
+.manage-modal-card h3 {
+  margin: 0 0 1.4rem;
+  color: var(--c-brand-ink);
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.manage-modal-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  width: 100%;
+}
+
+.manage-modal-field .uf-field {
+  position: relative;
+  display: block;
+  width: 100%;
+  margin: 0;
+}
+
+.manage-toggle-row {
+  display: flex;
+  width: 100%;
+}
+
+.manage-form .manage-active {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.65rem;
+  width: fit-content;
+  min-height: 46px;
+  margin: 0;
+  color: var(--c-ink);
+  font-family: 'Avenir', 'Avenir Next', 'Segoe UI', sans-serif;
+  font-size: 1.01rem;
+  font-weight: 400;
+  line-height: 1.1;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.manage-form .manage-active input[type='checkbox']:not(.switch-input) {
+  position: static !important;
+  flex: 0 0 18px;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  padding: 0;
+  transform: none !important;
+  cursor: pointer;
+}
+
+.manage-form .manage-active span {
+  margin: 0;
+  font: inherit;
+}
+
+.manage-modal-message {
+  margin-top: 1rem;
+}
+
+.manage-modal-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.manage-modal-actions-right {
+  display: flex;
+  gap: 0.75rem;
+  margin-left: auto;
+}
+
+@media (max-width: 700px) {
+  .manage-modal-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .manage-modal-actions-right {
+    width: 100%;
+    flex-direction: column-reverse;
+    align-items: stretch;
+    margin-left: 0;
+  }
+}
+
+.template-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1050;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgb(15 23 42 / 55%);
+}
+
+.template-modal-card {
+  width: min(100%, 34rem);
+  padding: 1.5rem;
+  border: 1px solid var(--c-line-soft);
+  border-radius: 8px;
+  background: var(--c-surface);
+  box-shadow: 0 1rem 3rem rgb(15 23 42 / 22%);
+}
+
+.template-modal-card--export {
+  width: min(100%, 33rem);
+  padding: 1.125rem;
+}
+
+.template-modal-card--export h3 {
+  margin: 0 0 0.75rem;
+  color: var(--c-ink);
+  font-size: 1.75rem;
+  line-height: 1.2;
+}
+
+.template-modal-card--export p {
+  margin: 0 0 1.125rem;
+  color: var(--c-slate-600);
+  font-size: 1.05rem;
+}
+
+.template-modal-card h3 {
+  margin: 0 0 0.75rem;
+}
+
+.template-modal-card p {
+  margin: 0 0 1rem;
+}
+
+.template-modal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.template-modal-actions--horizontal {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.template-modal-actions--horizontal .universal-button {
+  min-width: 0;
+  padding-inline: 0.75rem;
+  white-space: nowrap;
+}
+
+.template-modal-button {
+  border: 0;
+  border-radius: 7px;
+  padding: 0.65rem 1rem;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.template-modal-actions--horizontal .template-modal-button {
+  min-width: 0;
+  padding-inline: 0.5rem;
+}
+
+.template-modal-button--server {
+  background: #214bdc;
+}
+.template-modal-button--page {
+  background: #15843c;
+}
+.template-modal-button--ok {
+  display: block;
+  min-width: 10rem;
+  margin: 0 auto;
+  background: #16803c;
+}
+
+.template-modal-actions--confirm {
+  justify-content: space-between;
+}
+
+.template-modal-actions--confirm .universal-button--danger {
+  background: #b42318;
+  color: #ffffff;
+}
+
+.template-modal-actions--confirm .universal-button--danger:hover:not(:disabled) {
+  background: var(--c-danger-ink);
+  border-color: var(--c-danger-ink);
+}
+
+/* Read-only details of the edited record (Manage Forms, Organizations). */
+.manage-details {
+  display: grid;
+  gap: 0.6rem;
+  margin: 0 0 1.25rem;
+}
+
+.manage-details__row {
+  display: grid;
+  grid-template-columns: 7rem minmax(0, 1fr);
+  gap: 0.5rem;
+}
+
+.manage-details dt {
+  color: var(--c-slate-700);
+  font-weight: 700;
+}
+
+.manage-details dd {
+  margin: 0;
+  color: var(--c-slate-900);
+  overflow-wrap: anywhere;
+}

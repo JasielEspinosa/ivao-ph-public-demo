@@ -1,0 +1,108 @@
+<section class="home-shell">
+  <div class="route-loading-overlay" *ngIf="isCheckingSession" role="status" aria-live="polite" aria-label="Loading">
+    <div class="route-loading-spinner"></div>
+  </div>
+
+  <div class="route-loading-overlay" *ngIf="isLoading" role="status" aria-live="polite" aria-label="Logging in">
+    <div class="route-loading-spinner"></div>
+  </div>
+
+  <div class="form-shell login-shell" *ngIf="!isCheckingSession">
+    <app-placeholder-banner subheading="WELCOME TO" title="IVAO Philippines"></app-placeholder-banner>
+
+    <div class="dashboard-header">
+      <h2>Log In</h2>
+    </div>
+
+    <form class="login-form" [formGroup]="form" (ngSubmit)="submit()">
+      <label
+        class="universal-input-field"
+        [class.uf-invalid]="form.controls.login_email.touched && form.controls.login_email.hasError('required')"
+      >
+        <span>Email Address</span>
+        <input type="text" formControlName="login_email" placeholder="Enter login email" />
+        <small
+          class="feedback error"
+          *ngIf="form.controls.login_email.touched && form.controls.login_email.hasError('required')"
+        >
+          Email Address is required.
+        </small>
+        <small
+          class="feedback error"
+          *ngIf="
+            form.controls.login_email.touched &&
+            !form.controls.login_email.hasError('required') &&
+            form.controls.login_email.hasError('email')
+          "
+        >
+          Enter a valid email address.
+        </small>
+      </label>
+
+      <label
+        class="universal-password-field"
+        [class.uf-invalid]="form.controls.login_password.touched && form.controls.login_password.hasError('required')"
+      >
+        <span>Password</span>
+        <div class="password-peek-field">
+          <input
+            [type]="isPasswordPeekActive ? 'text' : 'password'"
+            formControlName="login_password"
+            placeholder="Enter login password"
+          />
+          <button
+            type="button"
+            class="password-peek-button"
+            aria-label="Press and hold to show password"
+            (pointerdown)="activatePasswordPeek($event)"
+            (pointerup)="deactivatePasswordPeek()"
+            (pointerleave)="deactivatePasswordPeek()"
+            (pointercancel)="deactivatePasswordPeek()"
+            (lostpointercapture)="deactivatePasswordPeek()"
+            (blur)="deactivatePasswordPeek()"
+            (keydown)="onPasswordPeekKeydown($event)"
+            (keyup)="onPasswordPeekKeyup($event)"
+          >
+            <svg *ngIf="!isPasswordPeekActive" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path
+                d="M2 12c2.2-3.8 5.5-6 10-6s7.8 2.2 10 6c-2.2 3.8-5.5 6-10 6s-7.8-2.2-10-6Zm10 3.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4Z"
+              />
+              <path d="M4 20 20 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+            </svg>
+            <svg *ngIf="isPasswordPeekActive" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path
+                d="M2 12c2.2-3.8 5.5-6 10-6s7.8 2.2 10 6c-2.2 3.8-5.5 6-10 6s-7.8-2.2-10-6Zm10 3.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4Z"
+              />
+            </svg>
+          </button>
+        </div>
+        <small
+          class="feedback error"
+          *ngIf="form.controls.login_password.touched && form.controls.login_password.hasError('required')"
+        >
+          Password is required.
+        </small>
+      </label>
+
+      <button type="submit" class="login-submit-button" [disabled]="isLoading" style="margin-top: 2rem">
+        {{ isLoading ? 'Logging in...' : 'Login' }}
+      </button>
+
+      <p class="forgot-password-link" *ngIf="forgotPasswordEnabled">
+        <a routerLink="/forgot-password" [queryParams]="{ email: form.controls.login_email.value }">Forgot password?</a>
+      </p>
+
+      <div class="uf-feedback">
+        <p
+          class="feedback"
+          [class.success]="isSuccess"
+          [class.error]="!isSuccess"
+          *ngIf="feedbackMessage"
+          style="margin: 0.75rem 0 0 0"
+        >
+          {{ feedbackMessage }}
+        </p>
+      </div>
+    </form>
+  </div>
+</section>

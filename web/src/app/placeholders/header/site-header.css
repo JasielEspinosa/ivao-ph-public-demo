@@ -1,0 +1,272 @@
+:host {
+  display: block;
+  /* Above the banner, so the open menus are not covered by it */
+  position: relative;
+  z-index: 20;
+}
+
+.site-header {
+  position: relative;
+  width: 100%;
+  background: var(--c-surface);
+  border-bottom: 1px solid var(--c-line-soft);
+  box-shadow: 0 1px 6px rgba(15, 23, 42, 0.06);
+}
+
+/* Philippine flag stripe along the top edge */
+.site-header::before {
+  content: '';
+  display: block;
+  height: 4px;
+  background: linear-gradient(
+    90deg,
+    var(--c-ph-blue) 0 33.34%,
+    var(--c-ph-red) 33.34% 66.67%,
+    var(--c-ph-gold) 66.67% 100%
+  );
+}
+
+/* Same width and side padding as the standard page shell, so the logo lines up with the page content below. */
+.site-header__inner {
+  width: min(100%, var(--form-shell-width-standard, 1100px));
+  margin: 0 auto;
+  padding: 0.35rem 1.5rem;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* The logo sits on a white plate so its navy and red lettering stays readable in the dark theme too. */
+.site-logo {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  height: 52px;
+  padding: 0 0.25rem;
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+.site-logo__img {
+  display: block;
+  height: 64px;
+  width: auto;
+  margin: -6px 0;
+}
+
+.site-nav {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.15rem;
+  font-family: 'Avenir', inherit, sans-serif;
+}
+
+.site-nav__link {
+  position: relative;
+  padding: 0.55rem 0.75rem;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--c-slate-700);
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.site-nav__link:hover,
+.site-nav__link:focus-visible {
+  background: var(--c-tint-2);
+  color: var(--c-brand-ink);
+  outline: none;
+}
+
+.site-nav__link--active {
+  color: var(--c-brand-ink);
+}
+
+.site-nav__link--active::after {
+  content: '';
+  position: absolute;
+  left: 0.75rem;
+  right: 0.75rem;
+  bottom: 0.15rem;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--c-ph-gold);
+}
+
+.site-actions {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.site-login {
+  padding: 0.5rem 1.1rem;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.site-user {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  max-width: 14rem;
+  padding: 0.45rem 0.75rem;
+  border: 1px solid var(--c-line-soft);
+  border-radius: 8px;
+  background: var(--c-surface);
+  color: var(--c-brand-ink);
+  font-family: 'Avenir', 'Avenir Next', 'Segoe UI', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.site-user:hover,
+.site-user:focus-visible {
+  background: var(--c-tint-2);
+  outline: none;
+}
+
+.site-user__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.site-caret {
+  font-size: 0.75rem;
+}
+
+.site-dropdown {
+  position: relative;
+}
+
+.site-dropdown__menu {
+  position: absolute;
+  top: calc(100% + 0.35rem);
+  left: 0;
+  z-index: 30;
+  min-width: 13rem;
+  padding: 0.35rem;
+  border: 1px solid var(--c-line-soft);
+  border-radius: 10px;
+  background: var(--c-surface);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.16);
+  display: flex;
+  flex-direction: column;
+}
+
+.site-dropdown__menu--right {
+  left: auto;
+  right: 0;
+}
+
+.site-dropdown__item {
+  padding: 0.6rem 0.8rem;
+  border-radius: 7px;
+  color: var(--c-slate-800);
+  font-family: 'Avenir', 'Avenir Next', 'Segoe UI', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.site-dropdown__item:hover,
+.site-dropdown__item:focus-visible {
+  background: var(--c-tint-2);
+  color: var(--c-brand-ink);
+  outline: none;
+}
+
+.site-menu-button {
+  display: none;
+  margin-left: auto;
+  padding: 0.4rem;
+  border: 1px solid var(--c-line-soft);
+  border-radius: 8px;
+  background: var(--c-surface);
+  color: var(--c-brand-ink);
+  cursor: pointer;
+}
+
+/* Phone and small tablet: the menu collapses behind a button and opens as a panel under the bar. */
+@media (max-width: 900px) {
+  .site-header__inner {
+    padding-inline: 1rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .site-menu-button {
+    display: inline-flex;
+    order: 2;
+  }
+
+  .site-actions {
+    order: 3;
+  }
+
+  .site-logo {
+    margin-right: auto;
+  }
+
+  .site-menu-button {
+    margin-left: 0;
+  }
+
+  .site-nav {
+    order: 4;
+    flex: 1 0 100%;
+    display: none;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    padding-top: 0.25rem;
+    border-top: 1px solid var(--c-line-soft);
+  }
+
+  .site-nav--open {
+    display: flex;
+  }
+
+  .site-nav__link {
+    padding: 0.75rem 0.5rem;
+    text-align: left;
+    border-radius: 0;
+  }
+
+  .site-nav__link--active::after {
+    left: 0.5rem;
+    right: auto;
+    width: 2rem;
+    bottom: 0.3rem;
+  }
+
+  .site-dropdown__menu {
+    position: static;
+    min-width: 0;
+    margin: 0 0 0.25rem 0.75rem;
+    box-shadow: none;
+  }
+
+  .site-actions .site-dropdown__menu {
+    position: absolute;
+  }
+}
+
+@media (max-width: 420px) {
+  .site-user {
+    max-width: 8.5rem;
+  }
+}

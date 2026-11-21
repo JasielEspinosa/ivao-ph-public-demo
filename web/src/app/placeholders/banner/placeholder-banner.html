@@ -1,0 +1,17 @@
+<section class="page-banner" role="banner" aria-label="Page banner">
+  <div class="banner-overlay"></div>
+
+  <div class="banner-content">
+    <span class="banner-logo-plate">
+      <img class="banner-logo" src="images/ivao-ph.png" alt="IVAO Philippines" />
+    </span>
+
+    <div class="banner-text">
+      <a *ngIf="showBackLink" [routerLink]="backLinkRoute" class="banner-back-link">{{ backLinkText }}</a>
+      <span *ngIf="subheading" class="banner-subheading">{{ subheading }}</span>
+      <h1 class="banner-title">{{ displayTitle }}</h1>
+      <h2 *ngIf="secondTitle" class="banner-secondary-title">{{ secondTitle }}</h2>
+      <p *ngIf="subtitle" class="banner-description">{{ subtitle }}</p>
+    </div>
+  </div>
+</section>

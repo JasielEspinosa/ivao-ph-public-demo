@@ -1,0 +1,292 @@
+/* Universal form field design inspired by the PrimeNG Step-1 layout. */
+.universal-form {
+  --uf-border: var(--c-line);
+  --uf-border-focus: #6f8fb8;
+  --uf-label: var(--c-ink-2);
+  --uf-text: var(--c-ink);
+}
+
+.universal-form .uf-field {
+  position: relative;
+  --uf-control-height: 58px;
+}
+
+.universal-form .uf-field > span {
+  position: absolute;
+  left: 0.85rem;
+  top: calc(var(--uf-control-height) / 2);
+  transform: translateY(-50%);
+  z-index: 1;
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1;
+  font-weight: 500;
+  color: var(--uf-label);
+  pointer-events: none;
+  transition:
+    top 0.18s ease,
+    transform 0.18s ease,
+    font-size 0.18s ease,
+    color 0.18s ease;
+}
+
+.universal-form .uf-field > input,
+.universal-form .uf-field > select {
+  width: 100%;
+  height: var(--uf-control-height);
+  padding: 1.55rem 0.85rem 0.45rem;
+  border: 1px solid var(--uf-border);
+  border-radius: 6px;
+  background: var(--c-surface);
+  color: var(--uf-text);
+  font-size: 1.01rem;
+  line-height: 1.1;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+  box-shadow:
+    0 0 #0000,
+    0 0 #0000,
+    0 1px 2px 0 rgba(18, 18, 23, 0.05);
+}
+
+.universal-form .uf-field > input:focus,
+.universal-form .uf-field > select:focus {
+  outline: none;
+  border-color: var(--uf-border-focus);
+  box-shadow: 0 0 0 2px rgba(111, 143, 184, 0.15);
+}
+
+.universal-form .uf-field > input:disabled,
+.universal-form .uf-field > select:disabled {
+  border-color: var(--c-disabled-line);
+  background: var(--c-disabled-bg);
+  color: var(--c-disabled-ink);
+  box-shadow: none;
+  cursor: not-allowed;
+  opacity: 1;
+}
+
+.universal-form .uf-field:has(> input:disabled) > span,
+.universal-form .uf-field:has(> select:disabled) > span {
+  color: var(--c-disabled-ink);
+}
+
+.universal-form .uf-field:has(> input:focus) > span,
+.universal-form .uf-field:has(> input:not(:placeholder-shown)) > span,
+.universal-form .uf-field:has(> select:focus) > span,
+.universal-form .uf-field:has(> select.ng-dirty) > span,
+.universal-form .uf-field:has(> select.ng-valid) > span {
+  top: 0.42rem;
+  transform: none;
+  font-size: 0.82rem;
+}
+
+/* Peso field (.uf-field--peso): a decorative ₱ in front of the value, not part of it. It shows once the label has
+   floated up (focused or filled) so it never sits on top of the label. */
+.universal-form .uf-field--peso > input {
+  padding-left: 1.9rem;
+}
+
+.universal-form .uf-field--peso::before {
+  content: '\20B1';
+  position: absolute;
+  left: 0.85rem;
+  top: calc(1.55rem + 1px);
+  z-index: 1;
+  font-size: 1.01rem;
+  line-height: 1.1;
+  color: var(--uf-text);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.18s ease;
+}
+
+.universal-form .uf-field--peso:has(> input:focus)::before,
+.universal-form .uf-field--peso:has(> input:not(:placeholder-shown))::before {
+  opacity: 1;
+}
+
+.universal-form .uf-field:has(> select.is-placeholder) > span {
+  top: calc(var(--uf-control-height) / 2);
+  transform: translateY(-50%);
+  font-size: 1rem;
+}
+
+.universal-form .uf-field:has(> select:not(.is-placeholder)) > span {
+  top: 0.42rem;
+  transform: none;
+  font-size: 0.82rem;
+}
+
+/* Native date, month and time inputs do not reliably support :placeholder-shown, so always float labels. */
+.universal-form .uf-field:has(> input[type='date']) > span,
+.universal-form .uf-field:has(> input[type='month']) > span,
+.universal-form .uf-field:has(> input[type='time']) > span {
+  top: 0.42rem;
+  transform: none;
+  font-size: 0.82rem;
+}
+
+/* The floating label pushes the value down, so lift the native calendar/clock icon back to the vertical centre. */
+.universal-form .uf-field > input[type='date']::-webkit-calendar-picker-indicator,
+.universal-form .uf-field > input[type='month']::-webkit-calendar-picker-indicator,
+.universal-form .uf-field > input[type='time']::-webkit-calendar-picker-indicator,
+.universal-form .uf-field > input[type='datetime-local']::-webkit-calendar-picker-indicator {
+  transform: translateY(-0.55rem);
+  cursor: pointer;
+}
+
+/* Dropdowns and date/time pickers read as clickable; disabled ones keep not-allowed. */
+select:not(:disabled),
+input[type='date']:not(:disabled):not(:read-only),
+input[type='time']:not(:disabled):not(:read-only),
+input[type='datetime-local']:not(:disabled):not(:read-only),
+input[type='month']:not(:disabled):not(:read-only) {
+  cursor: pointer;
+}
+
+.universal-form .uf-select > select,
+.universal-form .uf-field > select {
+  appearance: none;
+  padding-right: 2.6rem;
+  /* Thin rounded chevron instead of a solid triangle. */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1.25 1.25 6 6l4.75-4.75' fill='none' stroke='%23000' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-position: calc(100% - 1.2rem) calc(50% + 2px);
+  background-size: 12px 8px;
+  background-repeat: no-repeat;
+}
+
+.universal-form .uf-feedback {
+  display: flex;
+  align-items: flex-end;
+}
+
+.universal-form .privacy-note {
+  color: var(--c-slate-500);
+}
+
+.universal-input-field,
+.universal-password-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  font-weight: 600;
+  color: var(--c-slate-700);
+  margin-top: 0.15rem;
+}
+
+.universal-input-field input,
+.universal-password-field input {
+  width: 100%;
+  height: 44px;
+  border: 1px solid var(--c-slate-300);
+  border-radius: 8px;
+  padding: 0 0.75rem;
+  background: var(--c-surface);
+  color: var(--c-ink);
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.universal-input-field input:focus,
+.universal-password-field input:focus {
+  outline: none;
+  border-color: #6f8fb8;
+  box-shadow: 0 0 0 2px rgba(111, 143, 184, 0.15);
+}
+
+.universal-input-field input:disabled,
+.universal-password-field input:disabled {
+  border-color: var(--c-disabled-line);
+  background: var(--c-disabled-bg);
+  color: var(--c-disabled-ink);
+  box-shadow: none;
+  cursor: not-allowed;
+  opacity: 1;
+}
+
+.universal-password-field input:disabled ~ .password-peek-button {
+  color: #a3abb5;
+  cursor: not-allowed;
+}
+
+.universal-input-field.uf-invalid input,
+.universal-password-field.uf-invalid input,
+.universal-input-field.uf-invalid input::placeholder,
+.universal-password-field.uf-invalid input::placeholder {
+  border-color: #d93025;
+  color: #d93025;
+  opacity: 1;
+}
+
+.universal-password-field .password-peek-field {
+  position: relative;
+}
+
+.universal-password-field .password-peek-field input,
+.universal-password-field .password-input-wrap input {
+  width: 100%;
+  padding-right: 2.8rem;
+}
+
+.universal-password-field .password-peek-button {
+  position: absolute;
+  right: 0.35rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2rem;
+  height: 2rem;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--c-ink-2);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.universal-password-field .password-peek-button:hover,
+.universal-password-field .password-peek-button:active {
+  background: rgba(111, 143, 184, 0.14);
+}
+
+.universal-password-field .password-peek-button:focus-visible {
+  outline: 2px solid #6f8fb8;
+  outline-offset: 1px;
+}
+
+.universal-password-field .password-peek-button svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
+
+/* Shared row layout and action styles used by parking-voucher-like form pages. */
+.form-shell {
+  width: min(100%, 1100px);
+}
+
+.universal-form .form-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.universal-form .content-row {
+  display: grid;
+  gap: 1rem;
+  align-items: start;
+}
+
+.uf-field--prc > input {
+  width: calc(7ch + 1.7rem + 2px);
+  max-width: 100%;
+}
+
+.universal-form .full-width {
+  width: 100%;
+}

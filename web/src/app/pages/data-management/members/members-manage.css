@@ -1,0 +1,34 @@
+/* Member form: column layouts only; spacing, buttons and fields come from the shared data-manage styles. */
+.members-modal {
+  width: min(760px, 100%);
+}
+
+.members-row--vid {
+  grid-template-columns: minmax(0, 12rem);
+}
+
+/* Suffix is half the width of the other name columns. */
+.members-row--names {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 0.5fr);
+}
+
+.members-row--place {
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+}
+
+.members-row--flags {
+  grid-template-columns: repeat(3, max-content);
+  gap: 1.5rem;
+}
+
+@media (max-width: 700px) {
+  .members-row--names,
+  .members-row--place {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .members-row--flags {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.25rem;
+  }
+}

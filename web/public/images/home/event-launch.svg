@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img" aria-label="An airliner crossing a sunrise over the sea">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0b3d91" />
+      <stop offset="0.45" stop-color="#e0568a" />
+      <stop offset="0.75" stop-color="#ffb347" />
+      <stop offset="1" stop-color="#ffe29a" />
+    </linearGradient>
+    <linearGradient id="sea" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1c5fb8" />
+      <stop offset="1" stop-color="#0a2f6e" />
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#fff6c8" stop-opacity="0.95" />
+      <stop offset="1" stop-color="#fff6c8" stop-opacity="0" />
+    </radialGradient>
+  </defs>
+  <rect width="640" height="360" fill="url(#sky)" />
+  <circle cx="440" cy="228" r="150" fill="url(#glow)" />
+  <circle cx="440" cy="228" r="52" fill="#fcd116" />
+  <rect y="228" width="640" height="132" fill="url(#sea)" />
+  <g fill="#ffffff" opacity="0.35">
+    <rect x="360" y="240" width="160" height="3" rx="1.5" />
+    <rect x="390" y="252" width="100" height="3" rx="1.5" />
+    <rect x="410" y="266" width="60" height="3" rx="1.5" />
+    <rect x="60" y="290" width="120" height="3" rx="1.5" />
+    <rect x="120" y="310" width="80" height="3" rx="1.5" />
+  </g>
+  <g fill="#ffffff" opacity="0.7">
+    <ellipse cx="110" cy="92" rx="52" ry="12" />
+    <ellipse cx="150" cy="82" rx="34" ry="10" />
+    <ellipse cx="540" cy="70" rx="44" ry="10" />
+  </g>
+  <!-- contrail in the flag colors -->
+  <g stroke-linecap="round" stroke-width="5" fill="none" opacity="0.9">
+    <path d="M40 142 C140 150 220 150 300 138" stroke="#0038a8" />
+    <path d="M40 154 C140 162 220 162 300 150" stroke="#ce1126" />
+    <path d="M40 166 C140 174 220 174 300 162" stroke="#fcd116" />
+  </g>
+  <!-- airliner, climbing to the right -->
+  <g transform="translate(300 118) rotate(-7)">
+    <path d="M0 22 C0 8 10 2 26 2 L150 2 C176 2 196 10 206 22 C196 34 176 38 150 38 L26 38 C10 38 0 34 0 22 Z" fill="#ffffff" />
+    <path d="M4 28 L206 28 L204 36 L10 36 Z" fill="#dfe6f2" />
+    <path d="M0 22 L-34 -14 L-14 -14 L26 12 Z" fill="#0038a8" />
+    <path d="M70 26 L128 84 L100 84 L40 30 Z" fill="#c9d3e6" />
+    <ellipse cx="94" cy="44" rx="18" ry="9" fill="#9aa8c4" />
+    <path d="M172 14 C186 14 196 18 202 22 L172 22 Z" fill="#1d2a44" />
+    <g fill="#1d2a44">
+      <circle cx="40" cy="18" r="2.2" /><circle cx="52" cy="18" r="2.2" /><circle cx="64" cy="18" r="2.2" />
+      <circle cx="76" cy="18" r="2.2" /><circle cx="88" cy="18" r="2.2" /><circle cx="100" cy="18" r="2.2" />
+      <circle cx="112" cy="18" r="2.2" /><circle cx="124" cy="18" r="2.2" /><circle cx="136" cy="18" r="2.2" />
+    </g>
+  </g>
+  <rect y="352" width="213" height="8" fill="#0038a8" />
+  <rect x="213" y="352" width="214" height="8" fill="#ce1126" />
+  <rect x="427" y="352" width="213" height="8" fill="#fcd116" />
+</svg>

@@ -1,0 +1,806 @@
+/* Shared radio, checkbox, and choice-field styles for all pages. */
+.choice-shell {
+  margin-bottom: 1.25rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--c-slate-200);
+  border-radius: 16px;
+  background: linear-gradient(135deg, var(--c-tint-1) 0%, var(--c-tint-2) 100%);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
+}
+
+.choice-group {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: var(--form-gap-option, 0.75rem);
+  flex-wrap: wrap;
+}
+
+.choice-group--inline {
+  justify-content: flex-start;
+  padding: 0;
+  width: stretch;
+  gap: 1.5rem;
+}
+
+.choice-group--inline-compact {
+  gap: 0.8rem;
+}
+
+/* Rating answers (1-5 / N/A, 0-10): the options are spread evenly across the full row (no boxed/bordered look), and
+   the label text stays on one line; options that no longer fit a row wrap as a whole to the next one. */
+.choice-group--rating .choice-option {
+  flex: 1 1 0;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+.choice-group--boxed {
+  background: var(--c-surface);
+}
+
+.choice-group--boxed .choice-option {
+  display: inline-flex;
+  align-items: center;
+  background: var(--c-surface);
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--c-slate-700);
+  min-width: 80px;
+}
+
+.choice-group--boxed .choice-option--compact {
+  height: 58px;
+  justify-content: center;
+}
+
+.choice-group--boxed .choice-option input {
+  margin: 0;
+  accent-color: var(--c-link);
+}
+
+.choice-group--vertical {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--form-gap-option, 0.75rem);
+}
+
+.choice-option {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  cursor: pointer;
+  font-weight: 400;
+  color: var(--c-ink);
+  min-width: auto;
+  position: static;
+}
+
+/* Every radio / checkbox row in a form is at least 1.5rem tall (the height a bare-text label already gets), so options
+   in a vertical list or checkbox grid sit the same distance apart whether or not the text is wrapped in a <span>. */
+.universal-form .choice-group .choice-option,
+.universal-form .checkbox-grid .choice-option {
+  min-height: 1.5rem;
+}
+
+.choice-option--horizontal {
+  flex-direction: column;
+}
+
+.choice-option--compact {
+  height: auto;
+  padding: 0;
+  justify-content: center;
+}
+
+.choice-option input {
+  display: block;
+  margin: 0;
+  padding: 0;
+  flex: 0 0 18px;
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  min-height: 18px;
+  transform: none;
+  cursor: pointer;
+}
+
+.choice-option input[type='radio'],
+.choice-option input[type='checkbox'] {
+  accent-color: var(--c-link);
+}
+
+.choice-option > span {
+  display: block;
+  flex: 0 1 auto;
+  min-width: 0;
+  width: auto;
+  margin: 0;
+  padding: 0;
+  color: var(--c-ink);
+  font-family: 'Avenir', 'Avenir Next', 'Segoe UI', sans-serif;
+  font-size: 1.01rem;
+  font-weight: 400;
+  line-height: 1.1;
+  transform: none;
+}
+
+/* Toggle switch: put class="switch-input" on an <input type="checkbox"> to render it as a slider. */
+input[type='checkbox'].switch-input,
+.choice-option input[type='checkbox'].switch-input {
+  appearance: none;
+  -webkit-appearance: none;
+  position: relative;
+  flex: 0 0 40px;
+  width: 40px;
+  height: 22px;
+  min-width: 40px;
+  min-height: 22px;
+  margin: 0;
+  padding: 0;
+  border-radius: 999px;
+  background: var(--c-slate-300);
+  cursor: pointer;
+  transition: background-color 0.18s ease;
+}
+
+input[type='checkbox'].switch-input::before {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+  transition: transform 0.18s ease;
+}
+
+input[type='checkbox'].switch-input:checked {
+  background: var(--c-link);
+}
+
+input[type='checkbox'].switch-input:checked::before {
+  transform: translateX(18px);
+}
+
+input[type='checkbox'].switch-input:focus-visible {
+  outline: 2px solid var(--c-link);
+  outline-offset: 2px;
+}
+
+input[type='checkbox'].switch-input:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.choice-invalid {
+  padding: 0.5rem;
+  border: 1px solid var(--validation-error-color, #c91636);
+  border-radius: 5px;
+}
+
+.choice-group .choice-option input[type='radio'] {
+  flex: 0 0 18px;
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  min-height: 18px;
+}
+
+.choice-field-error {
+  margin-top: 0.25rem;
+  color: var(--validation-error-color, #c91636);
+  font-size: 0.875rem;
+}
+
+.form-check {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.55rem;
+  margin: 0;
+  padding: 0;
+}
+
+.form-check-input {
+  flex: 0 0 18px;
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  min-height: 18px;
+  margin: 0;
+  padding: 0;
+  cursor: pointer;
+  accent-color: var(--c-link);
+  border: 1px solid var(--c-slate-300);
+  border-radius: 4px;
+}
+
+/* Beats Bootstrap's `.form-check .form-check-input` float and -1.5em margin, which a bare class cannot. */
+.form-check .form-check-input {
+  float: none;
+  margin: 0;
+}
+
+.form-check-input:checked {
+  background-color: var(--c-link);
+  border-color: var(--c-link);
+}
+
+.form-check-input:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+}
+
+.form-check-label {
+  display: block;
+  flex: 0 1 auto;
+  min-width: 0;
+  width: auto;
+  margin: 0;
+  padding: 0;
+  color: var(--c-ink);
+  font-family: 'Avenir', 'Avenir Next', 'Segoe UI', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 400;
+  line-height: 1.4;
+  cursor: pointer;
+}
+
+.universal-check-option {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.55rem;
+  width: fit-content;
+  margin: 0;
+  padding: 0;
+}
+
+.universal-check-option .form-check-input {
+  flex: 0 0 18px;
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  min-height: 18px;
+}
+
+.universal-check-option .form-check-label {
+  flex: 0 1 auto;
+}
+
+.universal-check-option--wrap {
+  align-items: flex-start;
+  width: 100%;
+}
+
+.universal-check-option--wrap .form-check-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.choice-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.choice-field-label {
+  font-weight: 600;
+  color: var(--c-slate-700);
+}
+
+.choice-field--split {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  column-gap: 0.35rem;
+  row-gap: 0.35rem;
+  align-items: center;
+}
+
+.choice-field--split .choice-field-label {
+  margin-bottom: 0;
+}
+
+.choice-field--split .choice-group {
+  justify-self: start;
+}
+
+.choice-field--split.choice-field--fill .choice-group {
+  justify-self: stretch;
+  width: 100%;
+  padding: 0 1rem;
+  flex-wrap: nowrap;
+}
+
+.choice-field--split.choice-field--fill .choice-option {
+  min-width: 0;
+  justify-content: center;
+}
+
+.choice-field--split .choice-field-error {
+  grid-column: 2;
+  margin-top: 0;
+}
+
+/* Single-checkbox consent agreement: a bordered card combining the checkbox and its statement in one clickable
+   label, for "I agree" / "I have read and understood" gates. Pair with the global `.validation-invalid-card`
+   (styles-validation.css) for the invalid state and nest a `.required-mark` for an inline requirement note. */
+.consent-checkbox-card {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 0.75rem;
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: var(--form-gap-block, 1.25rem);
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--c-brand);
+  border-radius: 6px;
+  background: linear-gradient(180deg, var(--c-surface) 0%, var(--c-tint-1) 100%);
+  color: var(--c-slate-900);
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.5;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    color 0.2s ease;
+}
+
+.consent-checkbox-card:hover {
+  border-color: #5d86b2;
+  background: var(--c-tint-1);
+  box-shadow: 0 4px 12px rgba(0, 59, 112, 0.08);
+}
+
+.consent-checkbox-card > input[type='checkbox'] {
+  display: block;
+  flex: 0 0 18px;
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  min-height: 18px;
+  margin: 0.18rem 0 0;
+  padding: 0;
+  accent-color: var(--c-brand-ink);
+  cursor: pointer;
+}
+
+.consent-checkbox-card > span {
+  display: block;
+  flex: 1 1 auto;
+  margin: 0;
+  padding: 0;
+  text-align: left;
+}
+
+.consent-checkbox-card .required-mark {
+  margin-left: 0.2rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+/* Combined selector needed to beat the base rule's `border` shorthand: with equal specificity, the plain
+   `.validation-invalid-card` rule in styles-validation.css loses to it on source order alone. */
+.consent-checkbox-card.validation-invalid-card {
+  border-color: var(--validation-error-color, #c91636);
+  background: var(--validation-error-ring, #fff4f4);
+}
+
+.consent-checkbox-card.validation-invalid-card + .uf-error {
+  margin-top: 0.5rem;
+}
+
+.universal-checkbox-card {
+  margin-bottom: var(--form-gap-field, 1rem);
+  padding: 1rem;
+  border: 1px solid var(--c-line-soft);
+  border-radius: 6px;
+  background: var(--c-surface);
+}
+
+.universal-section.universal-checkbox-card {
+  border: 1px solid var(--c-line-soft);
+  border-radius: 6px;
+  background: var(--c-surface);
+}
+
+.universal-choice-shell {
+  margin: 0;
+  padding: 1rem 1.1rem;
+}
+
+.universal-check-option {
+  width: fit-content;
+}
+
+.universal-checkbox-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--form-gap-option, 0.75rem) var(--form-gap-field, 1rem);
+  margin-top: 0.7rem;
+}
+
+/* Sorted checkbox groups: order runs down each column (1st, then 2nd, ...), not across rows.
+   Set --checkbox-row-count to ceil(items / 3). */
+.checkbox-grid--column-flow {
+  grid-template-rows: repeat(var(--checkbox-row-count), auto);
+  grid-auto-flow: column;
+}
+
+.universal-form .checkbox-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--form-gap-option, 0.75rem) var(--form-gap-field, 1rem);
+  margin-top: 0.7rem;
+  align-items: start;
+}
+
+/* 2-column variant: set --checkbox-row-count to ceil(items / 2). */
+.universal-form .checkbox-grid--two-columns {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.universal-form .checkbox-grid .choice-option {
+  align-items: flex-start;
+  justify-content: flex-start;
+  min-width: 0;
+}
+
+.universal-form .checkbox-grid .choice-option > span {
+  flex: 1 1 auto;
+  min-width: 0;
+  line-height: 1.35;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.universal-form .checkbox-grid .choice-option > input[type='checkbox'] {
+  margin-top: 0.15rem;
+}
+
+.form-style-standard .choice-title {
+  font-size: 1rem !important;
+  font-weight: 700 !important;
+}
+
+.form-style-standard .choice-option-title,
+.form-style-standard .choice-option strong {
+  font-size: 1rem !important;
+  font-weight: 600 !important;
+}
+
+.form-style-standard .choice-option-description,
+.form-style-standard .choice-option small {
+  font-size: 0.92rem !important;
+  font-weight: 500 !important;
+  color: var(--c-ink-2) !important;
+}
+
+@media (max-width: 900px) {
+  .universal-checkbox-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .checkbox-grid--column-flow {
+    grid-template-rows: none;
+    grid-auto-flow: row;
+  }
+}
+
+@media (max-width: 760px) {
+  .universal-form .checkbox-grid--column-flow {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Label + options sit together, centered in the field (stacked layout below 900px keeps its left alignment).
+   Add `choice-field--align-left` when no field sits to the right of the options. */
+@media (min-width: 901px) {
+  .choice-field--split.choice-field--fill {
+    grid-template-columns: max-content max-content;
+    justify-content: center;
+  }
+
+  .choice-field--split.choice-field--fill .choice-group {
+    justify-self: start;
+    width: auto;
+  }
+
+  .choice-field--split.choice-field--fill .choice-field-error {
+    grid-column: 1 / -1;
+    text-align: center;
+  }
+
+  /* Nothing sits to the right of the options: align them (and their error) to the left instead. */
+  .choice-field--split.choice-field--fill.choice-field--align-left {
+    justify-content: start;
+  }
+
+  .choice-field--split.choice-field--fill.choice-field--align-left .choice-field-error {
+    text-align: left;
+  }
+}
+
+@media (max-width: 900px) {
+  .choice-field--split {
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+
+  .choice-field--split .choice-field-error {
+    grid-column: auto;
+  }
+}
+
+/* Numeric rating scale (ERAS evaluation, WAI PHC questionnaires): one row of round radio options that shrink to
+   fit, with what the two ends mean in .rating-scale-labels underneath. Default is 0-10 (11 options). */
+.rating-scale {
+  --rating-scale-count: 11;
+  display: grid;
+  grid-template-columns: repeat(var(--rating-scale-count), minmax(0, 1fr));
+  gap: 0.4rem;
+}
+
+.rating-scale--5 {
+  --rating-scale-count: 5;
+}
+
+.rating-scale--10 {
+  --rating-scale-count: 10;
+}
+
+.rating-scale .choice-option {
+  position: relative;
+  width: 100%;
+  max-width: 3rem;
+  aspect-ratio: 1;
+  justify-self: center;
+  justify-content: center;
+  box-sizing: border-box;
+  border: 1px solid var(--c-slate-300);
+  border-radius: 50%;
+  background: var(--c-surface);
+  font-weight: 600;
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease,
+    color 160ms ease;
+}
+
+.rating-scale .choice-option:has(input:checked) {
+  border-color: var(--c-link);
+  background: var(--c-notice-bg);
+  color: var(--c-link-hover);
+  box-shadow: 0 0 0 1px var(--c-link);
+}
+
+.rating-scale .choice-option:has(input:focus-visible) {
+  outline: 3px solid rgba(37, 99, 235, 0.2);
+  outline-offset: 2px;
+}
+
+.rating-scale .choice-option input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.rating-scale-labels {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 0.5rem;
+  color: var(--c-slate-500);
+  font-size: 0.9rem;
+}
+
+.rating-scale-labels span {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.rating-scale-labels span:last-child {
+  text-align: right;
+}
+
+@media (max-width: 520px) {
+  .rating-scale {
+    gap: 0.15rem;
+  }
+
+  .rating-scale .choice-option {
+    font-size: 0.8rem;
+  }
+
+  .rating-scale-labels {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .rating-scale-labels span:last-child {
+    text-align: left;
+  }
+}
+
+/* Theme picker: three large cards (Light, Dark, System) with a preview and an icon. */
+.theme-choice-group {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.theme-choice {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border: 2px solid var(--c-slate-200);
+  border-radius: 14px;
+  background: var(--c-surface);
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.15s ease;
+}
+
+.theme-choice:hover {
+  border-color: var(--c-line-focus);
+  transform: translateY(-2px);
+}
+
+.theme-choice:has(.theme-choice__input:checked) {
+  border-color: var(--c-brand);
+  box-shadow: 0 0 0 3px var(--c-tint-2);
+}
+
+.theme-choice:has(.theme-choice__input:focus-visible) {
+  outline: 3px solid var(--c-line-focus);
+  outline-offset: 2px;
+}
+
+.theme-choice:has(.theme-choice__input:disabled) {
+  opacity: 0.6;
+  cursor: progress;
+  transform: none;
+}
+
+.theme-choice__input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.theme-choice__preview {
+  display: flex;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 10px;
+  background: var(--c-slate-100);
+}
+
+.theme-choice__preview svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 120px;
+}
+
+.theme-choice__bg-light {
+  fill: var(--c-preview-light-bg);
+}
+.theme-choice__bar-light {
+  fill: var(--c-preview-light-bar);
+}
+.theme-choice__line-light {
+  fill: var(--c-preview-light-line);
+}
+.theme-choice__bg-dark {
+  fill: var(--c-preview-dark-bg);
+}
+.theme-choice__bar-dark {
+  fill: var(--c-preview-dark-bar);
+}
+.theme-choice__line-dark {
+  fill: var(--c-preview-dark-line);
+}
+.theme-choice__accent {
+  fill: var(--c-brand-2);
+}
+.theme-choice__sun {
+  fill: var(--c-preview-sun);
+}
+.theme-choice__moon {
+  fill: var(--c-preview-moon);
+}
+
+.theme-choice__caption {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.theme-choice__icon {
+  flex: 0 0 38px;
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: #ffffff;
+}
+
+.theme-choice__icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.theme-choice__icon--light {
+  background: linear-gradient(135deg, var(--c-preview-sun-soft), var(--c-preview-sun));
+}
+.theme-choice__icon--dark {
+  background: linear-gradient(135deg, var(--c-preview-moon), var(--c-preview-moon-deep));
+}
+.theme-choice__icon--system {
+  background: linear-gradient(135deg, var(--c-preview-sun) 50%, var(--c-preview-moon-deep) 50%);
+}
+
+.theme-choice__text {
+  display: grid;
+  min-width: 0;
+}
+
+.theme-choice__name {
+  color: var(--c-slate-900);
+  font-weight: 700;
+}
+
+.theme-choice__desc {
+  color: var(--c-slate-500);
+  font-size: 0.85rem;
+}
+
+.theme-choice__check {
+  position: absolute;
+  top: 1.1rem;
+  right: 1.1rem;
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--c-brand);
+  color: #ffffff;
+  opacity: 0;
+  transform: scale(0.6);
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s ease;
+}
+
+.theme-choice:has(.theme-choice__input:checked) .theme-choice__check {
+  opacity: 1;
+  transform: scale(1);
+}
+
+@media (max-width: 760px) {
+  .theme-choice-group {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,23 @@
+<section class="home-shell">
+  <div class="form-shell">
+    <app-placeholder-banner
+      title="Admin Settings"
+      subtitle=""
+      [showBackLink]="true"
+      backLinkRoute="/home"
+      backLinkText="← Back to Home"
+    ></app-placeholder-banner>
+
+    <div class="dashboard-header">
+      <p>Choose an admin settings page.</p>
+    </div>
+
+    <a *ngFor="let card of cards" [routerLink]="card.route" class="menu-card menu-card--row">
+      <div>
+        <span class="menu-title">{{ card.title }}</span>
+        <p class="menu-description">{{ card.description }}</p>
+      </div>
+      <span class="menu-link">Open page →</span>
+    </a>
+  </div>
+</section>

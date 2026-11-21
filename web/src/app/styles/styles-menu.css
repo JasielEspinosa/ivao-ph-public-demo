@@ -1,0 +1,197 @@
+.home-shell {
+  min-height: 100%;
+  box-sizing: border-box;
+  display: grid;
+  /* A fixed single track, so a wide table inside a page scrolls in its own box instead of widening the page. */
+  grid-template-columns: minmax(0, 1fr);
+  place-items: start center;
+  padding: 0 1.25rem 1.25rem;
+}
+
+/*
+ * Standard .form-shell widths for every page: standard 1100, medium 1375, wide 1650, full 100%, login 825.
+ * Pick the nearest tier; reference these tokens instead of hard-coding a shell width.
+ */
+:root {
+  --form-shell-width-standard: 1100px;
+  --form-shell-width-medium: 1375px;
+  --form-shell-width-wide: 1650px;
+  --form-shell-width-login: 825px;
+}
+
+.form-shell {
+  width: min(var(--form-shell-width-standard), 100%);
+  /* Explicit centering: `.page-shell` is a block, and its `place-items: center` only centers the shell in
+     browsers that support justify-self on block boxes (Chrome); Firefox ignores it and left-aligns the page. */
+  margin-inline: auto;
+  padding: 0 1.5rem 1.5rem;
+  box-sizing: border-box;
+}
+
+.form-shell.login-shell {
+  width: min(var(--form-shell-width-login), 100%);
+}
+
+/* Page wrapper of the Members page and the data management / admin list pages. */
+.page-shell {
+  min-height: 100%;
+  box-sizing: border-box;
+  padding: 0 2rem 2rem;
+  background: transparent;
+}
+
+/* Status line under a form (login, forgot password, set password, Manage User). */
+.feedback {
+  margin-top: 1rem;
+  font-weight: 600;
+}
+
+.feedback.success {
+  color: var(--c-success);
+}
+
+.feedback.error {
+  color: var(--c-danger-bright);
+}
+
+.dashboard-section {
+  margin-top: 1rem;
+  padding: 0.25rem 0;
+}
+
+.dashboard-header {
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.dashboard-header h2 {
+  margin: 0 0 0.25rem;
+  color: var(--c-slate-900);
+  font-size: 1.1rem;
+}
+
+.dashboard-header p {
+  margin: 0;
+  color: var(--c-slate-500);
+}
+
+.menu-search {
+  width: min(50%, 540px);
+}
+
+.menu-search__label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.menu-search input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.65rem 0.75rem;
+  color: var(--c-slate-900);
+  font: inherit;
+  border: 1px solid var(--c-slate-300);
+  border-radius: 4px;
+}
+
+.menu-search input:focus {
+  outline: 2px solid #93c5fd;
+  outline-offset: 1px;
+  border-color: var(--c-link);
+}
+
+@media (max-width: 640px) {
+  .dashboard-header {
+    align-items: stretch;
+  }
+
+  .menu-search {
+    width: 100%;
+  }
+}
+
+.menu-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.menu-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 0.25rem;
+  color: var(--c-slate-900);
+  text-decoration: none;
+  border-bottom: 1px solid var(--c-slate-200);
+  transition: color 0.2s ease;
+}
+
+.menu-card:hover {
+  color: var(--c-link-hover);
+}
+
+.menu-card--disabled,
+.menu-card--disabled:hover {
+  color: var(--c-slate-400);
+  cursor: not-allowed;
+}
+
+.menu-title {
+  font-weight: 700;
+  font-size: 1.02rem;
+}
+
+.menu-subtitle {
+  font-size: 1.02rem;
+  font-weight: 400;
+}
+
+.menu-description {
+  margin: 0.15rem 0 0;
+  color: var(--c-slate-500);
+  text-align: left;
+}
+
+.menu-link {
+  font-weight: 600;
+  color: var(--c-link);
+  white-space: nowrap;
+}
+
+.menu-card--disabled .menu-link {
+  color: var(--c-slate-400);
+}
+
+/* Menu pages: standard shell with one column, widening to the wide shell when the list switches to two columns (items fill row by row). */
+.home-shell .form-shell.menu-shell:has(.menu-columns--two) {
+  width: min(var(--form-shell-width-wide), 100%);
+}
+
+/* One column by default (the 1100px shell, same as home); appMenuColumns adds --two when the list would run past the bottom of the window (the 1650px shell). */
+.menu-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  column-gap: 6rem;
+}
+
+.menu-columns.menu-columns--two {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+/* Header and search bar span the shell, which is 1100 in one column and 1650 in two. */
+.menu-shell .dashboard-header {
+  width: 100%;
+}

@@ -1,0 +1,143 @@
+<section class="page-shell data-manage-page">
+  <div class="form-shell">
+    <app-placeholder-banner-admin
+      art="users"
+      title="Manage Users"
+      subtitle=""
+      [showBackLink]="true"
+      backLinkRoute="/admin-settings"
+      backLinkText="← Back to Admin Settings"
+    ></app-placeholder-banner-admin>
+
+    <div class="dashboard-header manage-toolbar">
+      <p>Manage the users who can sign in and which data management pages they can open.</p>
+      <button type="button" class="universal-button universal-button--primary" (click)="addUser()">Add User</button>
+    </div>
+
+    <div
+      class="route-loading-overlay route-loading-overlay--inline"
+      *ngIf="isLoading"
+      role="status"
+      aria-live="polite"
+      [attr.aria-label]="messages.loading('Users')"
+    >
+      <div class="route-loading-spinner"></div>
+    </div>
+    <div *ngIf="errorMessage" class="status-box error">{{ errorMessage }}</div>
+
+    <div class="table-wrap table-wrap--admin table-wrap--compact" *ngIf="!isLoading && !errorMessage">
+      <app-table-pagination [pager]="pager"></app-table-pagination>
+      <table>
+        <thead>
+          <tr>
+            <th>
+              <button type="button" class="sort-header-button" (click)="toggleSort('login_email')">
+                Login Email {{ getSortIndicator('login_email') }}
+              </button>
+            </th>
+            <th>
+              <button type="button" class="sort-header-button" (click)="toggleSort('name')">
+                Name {{ getSortIndicator('name') }}
+              </button>
+            </th>
+            <th>
+              <button type="button" class="sort-header-button" (click)="toggleSort('is_active')">
+                User Enabled {{ getSortIndicator('is_active') }}
+              </button>
+            </th>
+            <th>
+              <button type="button" class="sort-header-button" (click)="toggleSort('is_admin')">
+                Is Admin {{ getSortIndicator('is_admin') }}
+              </button>
+            </th>
+            <th>
+              <button type="button" class="sort-header-button" (click)="toggleSort('data_manage')">
+                Data Manage {{ getSortIndicator('data_manage') }}
+              </button>
+            </th>
+            <th data-disable-resize></th>
+          </tr>
+          <tr class="column-filter-row">
+            <th>
+              <input
+                type="text"
+                class="column-filter-input"
+                [value]="columnFilters.login_email"
+                (input)="setColumnFilter('login_email', $any($event.target).value || '')"
+                placeholder="Filter"
+              />
+            </th>
+            <th>
+              <input
+                type="text"
+                class="column-filter-input"
+                [value]="columnFilters.name"
+                (input)="setColumnFilter('name', $any($event.target).value || '')"
+                placeholder="Filter"
+              />
+            </th>
+            <th>
+              <input
+                type="text"
+                class="column-filter-input"
+                [value]="columnFilters.is_active"
+                (input)="setColumnFilter('is_active', $any($event.target).value || '')"
+                placeholder="Filter"
+              />
+            </th>
+            <th>
+              <input
+                type="text"
+                class="column-filter-input"
+                [value]="columnFilters.is_admin"
+                (input)="setColumnFilter('is_admin', $any($event.target).value || '')"
+                placeholder="Filter"
+              />
+            </th>
+            <th>
+              <input
+                type="text"
+                class="column-filter-input"
+                [value]="columnFilters.data_manage"
+                (input)="setColumnFilter('data_manage', $any($event.target).value || '')"
+                placeholder="Filter"
+              />
+            </th>
+            <th>
+              <button
+                *ngIf="hasActiveFilters"
+                type="button"
+                class="universal-button universal-button--clear"
+                (click)="clearFilters()"
+              >
+                Clear
+              </button>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let user of pager.slice(filteredUsers)">
+            <td>{{ user.login_email }}</td>
+            <td>{{ getDisplayName(user) }}</td>
+            <td>{{ user.is_active ? 'Enabled' : 'Disabled' }}</td>
+            <td>{{ user.is_admin ? 'Yes' : 'No' }}</td>
+            <td>{{ getDataManageValue(user) }}</td>
+            <td>
+              <button
+                type="button"
+                class="universal-button universal-button--edit"
+                (click)="editUser(user.login_email)"
+              >
+                {{ isViewOnly(user.login_email) ? 'View' : 'Edit' }}
+              </button>
+            </td>
+          </tr>
+          <tr *ngIf="filteredUsers.length === 0">
+            <td colspan="6">{{ messages.noRecords('Users') }}</td>
+          </tr>
+        </tbody>
+      </table>
+      <app-table-pagination [pager]="pager"></app-table-pagination>
+    </div>
+  </div>
+</section>

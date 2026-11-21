@@ -1,0 +1,67 @@
+<nav class="table-pagination" *ngIf="pager.total > 0" aria-label="Table pagination">
+  <label class="table-pagination__size">
+    <span>Rows per page</span>
+    <select (change)="onPageSizeChange($event)">
+      <option *ngFor="let size of pager.pageSizeOptions" [value]="size" [selected]="size === pager.pageSize">
+        {{ size }}
+      </option>
+    </select>
+  </label>
+
+  <span class="table-pagination__range" aria-live="polite">
+    {{ pager.rangeStart }}–{{ pager.rangeEnd }} of {{ pager.total }}
+  </span>
+
+  <div class="table-pagination__nav">
+    <button
+      type="button"
+      class="table-pagination__btn"
+      aria-label="First page"
+      [disabled]="pager.isFirst"
+      (click)="pager.goTo(0)"
+    >
+      &laquo;
+    </button>
+    <button
+      type="button"
+      class="table-pagination__btn"
+      aria-label="Previous page"
+      [disabled]="pager.isFirst"
+      (click)="pager.goTo(pager.page - 1)"
+    >
+      &lsaquo;
+    </button>
+    <ng-container *ngFor="let item of pager.pageItems">
+      <span *ngIf="item === null" class="table-pagination__gap" aria-hidden="true">…</span>
+      <button
+        *ngIf="item !== null"
+        type="button"
+        class="table-pagination__btn"
+        [class.table-pagination__btn--active]="item === pager.page"
+        [attr.aria-current]="item === pager.page ? 'page' : null"
+        [attr.aria-label]="'Page ' + (item + 1)"
+        (click)="pager.goTo(item)"
+      >
+        {{ item + 1 }}
+      </button>
+    </ng-container>
+    <button
+      type="button"
+      class="table-pagination__btn"
+      aria-label="Next page"
+      [disabled]="pager.isLast"
+      (click)="pager.goTo(pager.page + 1)"
+    >
+      &rsaquo;
+    </button>
+    <button
+      type="button"
+      class="table-pagination__btn"
+      aria-label="Last page"
+      [disabled]="pager.isLast"
+      (click)="pager.goTo(pager.pageCount - 1)"
+    >
+      &raquo;
+    </button>
+  </div>
+</nav>

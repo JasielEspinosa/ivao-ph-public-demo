@@ -1,0 +1,91 @@
+.data-manage-page {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 0 1.25rem 1.25rem;
+  box-sizing: border-box;
+}
+
+.data-manage-page .form-shell {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  width: 100%;
+  max-width: var(--form-shell-width-medium);
+  margin-inline: auto;
+  padding: 0 0.75rem 1.25rem;
+  box-sizing: border-box;
+  background: var(--c-surface-glass);
+  border-radius: 16px;
+}
+
+/* A data management page whose table has many columns (e.g. Members). */
+.data-manage-page--wide .form-shell {
+  max-width: var(--form-shell-width-wide);
+}
+
+/* A data management page that needs the whole screen width. */
+.data-manage-page--full .form-shell {
+  max-width: 100%;
+}
+
+.dashboard-header.manage-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin: 0 0 0.25rem 0.25rem;
+}
+
+.manage-toolbar {
+  justify-content: space-between;
+}
+
+.manage-toolbar p {
+  margin: 0;
+}
+
+.manage-toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+/* Standard data-manage table: cells never wrap, the actions column (last) hugs its button. */
+.data-manage-page .table-wrap.table-wrap--compact {
+  width: 100%;
+  margin-top: 1rem;
+}
+
+.data-manage-page .table-wrap.table-wrap--compact table {
+  width: 100%;
+}
+
+.data-manage-page .table-wrap.table-wrap--compact th:last-child,
+.data-manage-page .table-wrap.table-wrap--compact td:last-child {
+  width: 1%;
+  min-width: 88px;
+  text-align: center;
+}
+
+.status-box.success {
+  margin-bottom: 1rem;
+  background: var(--c-success-tint);
+  color: var(--c-success-ink);
+}
+
+@media (max-width: 700px) {
+  .manage-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .manage-toolbar-actions {
+    justify-content: stretch;
+  }
+
+  .universal-button {
+    width: 100%;
+  }
+}
