@@ -11,10 +11,14 @@ import { AirportPosition, PHILIPPINE_AIRPORTS } from './demo-airport-positions';
  *    relative to the page's base href).
  *  - `/pilots/online` and `/atc/online`: the live IVAO feed, read straight from the browser (the
  *    feed allows cross-origin requests) and reshaped the way the real backend does.
- *  - `/weather/:icao`: the live METAR from VATSIM's public METAR service (it allows cross-origin
- *    requests), with the nearest airport's METAR when the airport has none. There is no live
- *    TAF: no free TAF service allows requests from a browser, and the
- *    real backend's source (aviationweather.gov) does not.
+ *  - `/weather/:icao/metar`: the live METAR from VATSIM's public METAR service (it allows
+ *    cross-origin requests), with the nearest airport's METAR when the airport has none.
+ *  - `/weather/:icao/taf`: no live TAF: no free TAF service allows requests from a browser, and the
+ *    real backend's source (aviationweather.gov) does not, so the card says so.
+ *  - `/weather/:icao/model`: the live ECMWF model data from Open-Meteo (it allows cross-origin
+ *    requests), as the real backend does.
+ *  - `/weather/:icao/notam`: not available: the CAAP AIS service does not allow requests from a
+ *    browser, so the card says so.
  */
 const DEMO_RESPONSES: Record<string, string> = {
   '/members': 'demo/members.json',
@@ -23,7 +27,20 @@ const DEMO_RESPONSES: Record<string, string> = {
 const IVAO_WHAZZUP_API = 'https://api.ivao.aero/v2/tracker/whazzup';
 const METAR_API = 'https://metar.vatsim.net';
 const ICAO_PATTERN = /^[A-Z]{4}$/;
+const OPEN_METEO_ECMWF_API = 'https://api.open-meteo.com/v1/ecmwf';
+const MODEL_NAME = 'ECMWF IFS';
+const MODEL_VARIABLES = [
+  'temperature_2m',
+  'dew_point_2m',
+  'pressure_msl',
+  'wind_direction_10m',
+  'wind_speed_10m',
+  'wind_gusts_10m',
+  'cloud_cover',
+  'precipitation',
+] as const;
 const TAF_DEMO_NOTE = 'TAF is not available in the public demo.';
+const NOTAM_DEMO_NOTE = 'NOTAMs are not available in the public demo.';
 /** The feed is ~800 KB and refreshes about every 15 seconds; Home asks for pilots and ATC together. */
 const WHAZZUP_TTL_MS = 30 * 1000;
 const PHILIPPINE_PREFIX = 'RP';
@@ -232,6 +249,38 @@ function findNearestMetar(icao: string, allMetars: string) {
   };
 }
 
+/** Keeps the current UTC hour of Open-Meteo's answer (it starts at 00:00 UTC of today); same shape as the backend's. */
+function toModelForecast(body: unknown) {
+  const hourly = (body as { hourly?: { time?: string[] } & Record<string, (number | null)[] | undefined> } | null)
+    ?.hourly;
+  if (!hourly?.time?.length) {
+    return null;
+  }
+  const currentHour = new Date().toISOString().slice(0, 13);
+  const index = Math.max(
+    0,
+    hourly.time.findIndex((time) => time.slice(0, 13) >= currentHour),
+  );
+  const value = (name: (typeof MODEL_VARIABLES)[number]): number | null => hourly[name]?.[index] ?? null;
+  return {
+    model: MODEL_NAME,
+    hours: [
+      {
+        // Open-Meteo sends UTC times without a zone; the "Z" stops the browser reading them as local time.
+        time: `${hourly.time[index]}Z`,
+        tempC: value('temperature_2m'),
+        dewpointC: value('dew_point_2m'),
+        qnhHpa: value('pressure_msl'),
+        windDirection: value('wind_direction_10m'),
+        windKt: value('wind_speed_10m'),
+        gustKt: value('wind_gusts_10m'),
+        cloudCoverPct: value('cloud_cover'),
+        precipMm: value('precipitation'),
+      },
+    ],
+  };
+}
+
 let cachedFeed: { at: number; feed$: Observable<Whazzup> } | null = null;
 
 /** One shared download of the feed per WHAZZUP_TTL_MS; a failed download is not kept. */
@@ -287,8 +336,10 @@ export const demoDataInterceptor: HttpInterceptorFn = (req, next) => {
     );
   }
 
-  const icao = path?.startsWith('/weather/') ? decodeURIComponent(path.slice('/weather/'.length)).toUpperCase() : null;
-  if (icao !== null) {
+  const weather = path === null ? null : /^\/weather\/([^/]+)\/(metar|taf|model|notam)$/.exec(path);
+  if (weather !== null) {
+    const icao = decodeURIComponent(weather[1]).toUpperCase();
+    const part = weather[2];
     if (!ICAO_PATTERN.test(icao)) {
       return throwError(
         () =>
@@ -298,6 +349,39 @@ export const demoDataInterceptor: HttpInterceptorFn = (req, next) => {
           }),
       );
     }
+    const ok = (body: unknown) => of(new HttpResponse({ status: 200, body }));
+
+    if (part === 'taf') {
+      // No live TAF in the demo (see the top of this file), so the TAF box says so instead of
+      // claiming the airport has none.
+      return ok({ icao, report: TAF_DEMO_NOTE, nearest: null });
+    }
+
+    if (part === 'notam') {
+      return throwError(() => new HttpErrorResponse({ status: 400, error: { message: NOTAM_DEMO_NOTE } }));
+    }
+
+    if (part === 'model') {
+      const airport = PHILIPPINE_AIRPORTS.find((candidate) => candidate.icao === icao);
+      if (!airport) {
+        return ok({ icao, forecast: null });
+      }
+      const query = new URLSearchParams({
+        latitude: String(airport.lat),
+        longitude: String(airport.lon),
+        hourly: MODEL_VARIABLES.join(','),
+        wind_speed_unit: 'kn',
+        timezone: 'GMT',
+        forecast_days: '2',
+      });
+      return next(req.clone({ url: `${OPEN_METEO_ECMWF_API}?${query}`, headers: new HttpHeaders() })).pipe(
+        filter((event): event is HttpResponse<unknown> => event instanceof HttpResponse),
+        map((event) => new HttpResponse({ status: 200, body: { icao, forecast: toModelForecast(event.body) } })),
+        // Like the backend, a model problem gives "no forecast", not an error.
+        catchError(() => ok({ icao, forecast: null })),
+      );
+    }
+
     const getText = (url: string) =>
       next(req.clone({ url, headers: new HttpHeaders(), responseType: 'text' })).pipe(
         filter((event): event is HttpResponse<string> => event instanceof HttpResponse),
@@ -306,26 +390,16 @@ export const demoDataInterceptor: HttpInterceptorFn = (req, next) => {
 
     return getText(`${METAR_API}/${icao}`).pipe(
       switchMap((body) => {
-        const metar = parseMetar(body);
+        const report = parseMetar(body);
         // Like the backend, look for the closest airport with a METAR only when this one has none.
         const nearest$ =
-          metar === null
+          report === null
             ? getText(`${METAR_API}/?id=${PHILIPPINE_PREFIX}`).pipe(
                 map((all) => findNearestMetar(icao, all)),
                 catchError(() => of(null)),
               )
             : of(null);
-        return nearest$.pipe(
-          map(
-            (nearestMetar) =>
-              // No live TAF in the demo (see the top of this file), so the TAF box says so instead of
-              // claiming the airport has none.
-              new HttpResponse({
-                status: 200,
-                body: { icao, metar, taf: TAF_DEMO_NOTE, nearestMetar, nearestTaf: null },
-              }),
-          ),
-        );
+        return nearest$.pipe(map((nearest) => new HttpResponse({ status: 200, body: { icao, report, nearest } })));
       }),
       catchError(() =>
         throwError(() => new HttpErrorResponse({ status: 503, statusText: 'Service Unavailable', url: METAR_API })),
