@@ -4,7 +4,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 
 import { currentPage } from '../../shared/page-titles';
 
-/** The page banner: IVAO Philippines logo on the left, the page title beside it, Philippine island artwork behind. */
+/** The page banner: the page title on the left, Philippine island artwork behind. */
 @Component({
   selector: 'app-placeholder-banner',
   standalone: true,

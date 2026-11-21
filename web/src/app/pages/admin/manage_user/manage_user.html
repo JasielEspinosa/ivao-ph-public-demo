@@ -243,6 +243,10 @@
               (focus)="onReplicateSearchFocus()"
               (blur)="onReplicateSearchBlur()"
             />
+            <svg class="replicate-role-search__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <circle cx="11" cy="11" r="7" />
+              <path d="m20 20-4-4" />
+            </svg>
             <ul class="replicate-role-results" *ngIf="showReplicateResults && replicateFilteredUsers.length">
               <li *ngFor="let candidate of replicateFilteredUsers">
                 <button type="button" (mousedown)="selectReplicateUser(candidate)">

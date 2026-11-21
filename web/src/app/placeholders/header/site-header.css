@@ -1,6 +1,7 @@
 :host {
   display: block;
-  /* Above the banner, so the open menus are not covered by it */
+  /* Above the banner, so the open menus are not covered by it. While scrolled down the host keeps the full header
+     height (set from the component) and the compact bar inside it is fixed to the top of the window. */
   position: relative;
   z-index: 20;
 }
@@ -187,6 +188,100 @@
   background: var(--c-tint-2);
   color: var(--c-brand-ink);
   outline: none;
+}
+
+/* Compact mode, after the page is scrolled down: the bar is cut in the center. Only the logo (left) and the theme switch with
+   the menu dropdown (right) stay, floating over the page like in full screen mode. The center lets clicks through. */
+.site-header--compact {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  border-bottom: 0;
+  background: transparent;
+  box-shadow: none;
+  pointer-events: none;
+  animation: site-header-compact-in 0.18s ease-out;
+}
+
+@keyframes site-header-compact-in {
+  from {
+    opacity: 0;
+    transform: translateY(-0.5rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.site-header--compact::before {
+  display: none;
+}
+
+.site-header--compact .site-header__inner {
+  width: 100%;
+  padding: 0.6rem 0.9rem;
+  flex-wrap: nowrap;
+  justify-content: space-between;
+}
+
+.site-header--compact .site-logo,
+.site-header--compact .site-actions {
+  pointer-events: auto;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.22);
+}
+
+.site-header--compact .site-logo {
+  height: 36px;
+  margin-right: 0;
+  border-radius: 8px;
+}
+
+.site-header--compact .site-logo__img {
+  height: 44px;
+  margin: -4px 0;
+}
+
+.site-header--compact .site-actions {
+  margin-left: auto;
+  gap: 0.4rem;
+  padding: 0.25rem;
+  border: 1px solid var(--c-line-soft);
+  border-radius: 10px;
+  background: var(--c-surface);
+}
+
+.site-compact-toggle {
+  padding: 0.3rem 0.55rem;
+}
+
+.site-dropdown__menu--compact {
+  min-width: 14rem;
+  max-height: calc(100vh - 4rem);
+  overflow-y: auto;
+}
+
+.site-dropdown__item--active {
+  background: var(--c-tint-2);
+  color: var(--c-brand-ink);
+}
+
+.site-dropdown__heading {
+  padding: 0.5rem 0.8rem 0.2rem;
+  color: var(--c-slate-700);
+  font-family: 'Avenir', 'Avenir Next', 'Segoe UI', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.site-dropdown__divider {
+  height: 1px;
+  margin: 0.35rem 0.4rem;
+  background: var(--c-line-soft);
 }
 
 .site-menu-button {

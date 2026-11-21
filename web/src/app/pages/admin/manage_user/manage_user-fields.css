@@ -158,12 +158,31 @@
   box-sizing: border-box;
   border: 1px solid var(--c-slate-300);
   border-radius: 8px;
-  padding: 0 0.75rem;
+  padding: 0 0.75rem 0 2.5rem;
   background: var(--c-surface);
   color: var(--c-ink);
   transition:
     border-color 0.2s ease,
     box-shadow 0.2s ease;
+}
+
+.replicate-role-search__icon {
+  position: absolute;
+  top: 22px;
+  left: 0.75rem;
+  width: 1.1rem;
+  height: 1.1rem;
+  transform: translateY(-50%);
+  fill: none;
+  stroke: var(--c-slate-500, #64748b);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+.replicate-role-search input:disabled ~ .replicate-role-search__icon {
+  opacity: 0.5;
 }
 
 .replicate-role-search input:focus {

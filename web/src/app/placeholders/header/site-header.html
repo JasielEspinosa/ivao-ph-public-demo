@@ -1,17 +1,11 @@
-<header class="site-header">
+<header class="site-header" [class.site-header--compact]="compact()">
   <div class="site-header__inner">
-    <a
-      href="https://ivao.aero/"
-      target="_blank"
-      rel="noopener noreferrer"
-      class="site-logo"
-      aria-label="IVAO (opens in a new tab)"
-      title="IVAO"
-    >
+    <a routerLink="/home" class="site-logo" aria-label="IVAO Philippines home" title="Home">
       <img src="images/ivao-ph.png" alt="IVAO Philippines" class="site-logo__img" />
     </a>
 
     <button
+      *ngIf="!compact()"
       type="button"
       class="site-menu-button"
       [attr.aria-expanded]="menuOpen()"
@@ -34,7 +28,7 @@
       </svg>
     </button>
 
-    <nav id="site-nav" class="site-nav" [class.site-nav--open]="menuOpen()" aria-label="Main menu">
+    <nav *ngIf="!compact()" id="site-nav" class="site-nav" [class.site-nav--open]="menuOpen()" aria-label="Main menu">
       <a routerLink="/home" routerLinkActive="site-nav__link--active" class="site-nav__link">Home</a>
       <a href="https://webeye.ivao.aero/" target="_blank" rel="noopener noreferrer" class="site-nav__link"
         >Live Traffic</a
@@ -72,9 +66,92 @@
     <div class="site-actions">
       <app-theme-toggle *ngIf="showThemeToggle"></app-theme-toggle>
 
-      <a *ngIf="!userLabel" routerLink="/login" class="universal-button universal-button--primary site-login">Log-In</a>
+      <div class="site-dropdown" *ngIf="compact()">
+        <button
+          type="button"
+          class="site-user site-compact-toggle"
+          aria-haspopup="true"
+          aria-label="Menu"
+          [attr.aria-expanded]="compactMenuOpen()"
+          (click)="toggleCompactMenu()"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            width="20"
+            height="20"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            aria-hidden="true"
+          >
+            <path d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+          <span class="site-caret" aria-hidden="true">▾</span>
+        </button>
+        <div
+          class="site-dropdown__menu site-dropdown__menu--right site-dropdown__menu--compact"
+          *ngIf="compactMenuOpen()"
+        >
+          <a routerLink="/home" routerLinkActive="site-dropdown__item--active" class="site-dropdown__item">Home</a>
+          <a href="https://webeye.ivao.aero/" target="_blank" rel="noopener noreferrer" class="site-dropdown__item"
+            >Live Traffic</a
+          >
+          <a routerLink="/members" routerLinkActive="site-dropdown__item--active" class="site-dropdown__item"
+            >Members</a
+          >
+          <a routerLink="/documents" routerLinkActive="site-dropdown__item--active" class="site-dropdown__item"
+            >Documents</a
+          >
+          <a href="#" class="site-dropdown__item" (click)="noPageYet($event)">Charts</a>
+          <a href="#" class="site-dropdown__item" (click)="noPageYet($event)">Contacts</a>
 
-      <div class="site-dropdown" *ngIf="userLabel as label">
+          <div class="site-dropdown__heading">Rules and Policies</div>
+          <a routerLink="/privacy-policy" routerLinkActive="site-dropdown__item--active" class="site-dropdown__item"
+            >Privacy Policy</a
+          >
+          <a
+            href="https://wiki.ivao.aero/en/home/ivao/regulations"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="site-dropdown__item"
+            >IVAO Regulations</a
+          >
+
+          <div class="site-dropdown__divider"></div>
+          <a *ngIf="!userLabel" routerLink="/login" class="site-dropdown__item">Log-In</a>
+          <ng-container *ngIf="userLabel as label">
+            <div class="site-dropdown__heading">{{ label }}</div>
+            <a routerLink="/profile-settings" routerLinkActive="site-dropdown__item--active" class="site-dropdown__item"
+              >Profile Settings</a
+            >
+            <a
+              *ngIf="canManageData"
+              routerLink="/data-management"
+              routerLinkActive="site-dropdown__item--active"
+              class="site-dropdown__item"
+              >Data Management</a
+            >
+            <a
+              *ngIf="isAdmin"
+              routerLink="/admin-settings"
+              routerLinkActive="site-dropdown__item--active"
+              class="site-dropdown__item"
+              >Admin Settings</a
+            >
+            <a href="#" class="site-dropdown__item logout-link" (click)="logout(); $event.preventDefault()">Log-Out</a>
+          </ng-container>
+        </div>
+      </div>
+
+      <a
+        *ngIf="!compact() && !userLabel"
+        routerLink="/login"
+        class="universal-button universal-button--primary site-login"
+        >Log-In</a
+      >
+
+      <div class="site-dropdown" *ngIf="!compact() && userLabel as label">
         <button
           type="button"
           class="site-user"
