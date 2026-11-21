@@ -17,8 +17,10 @@ import { AirportPosition, PHILIPPINE_AIRPORTS } from './demo-airport-positions';
  *    real backend's source (aviationweather.gov) does not, so the card says so.
  *  - `/weather/:icao/model`: the live ECMWF model data from Open-Meteo (it allows cross-origin
  *    requests), as the real backend does.
- *  - `/weather/:icao/notam`: not available: the CAAP AIS service does not allow requests from a
- *    browser, so the card says so.
+ *  - `/weather/:icao/notam`: a snapshot of the CAAP AIS NOTAMs in `public/demo/notams.json` (the
+ *    service does not allow requests from a browser). `web/scripts/fetch-demo-notams.mjs` refreshes
+ *    it before each deploy; ended NOTAMs are dropped and active/upcoming is worked out here, in the
+ *    browser, so an older snapshot still shows the right state.
  */
 const DEMO_RESPONSES: Record<string, string> = {
   '/members': 'demo/members.json',
@@ -40,7 +42,7 @@ const MODEL_VARIABLES = [
   'precipitation',
 ] as const;
 const TAF_DEMO_NOTE = 'TAF is not available in the public demo.';
-const NOTAM_DEMO_NOTE = 'NOTAMs are not available in the public demo.';
+const NOTAMS_FILE = 'demo/notams.json';
 /** The feed is ~800 KB and refreshes about every 15 seconds; Home asks for pilots and ATC together. */
 const WHAZZUP_TTL_MS = 30 * 1000;
 const PHILIPPINE_PREFIX = 'RP';
@@ -81,6 +83,7 @@ const RATING_LABELS: Readonly<Record<number, string>> = {
 };
 
 interface WhazzupAtc {
+  id?: unknown;
   callsign?: unknown;
   rating?: unknown;
   time?: unknown;
@@ -105,6 +108,8 @@ interface Whazzup {
 }
 
 interface DemoAtc {
+  /** IVAO session id, used to link to the controller on Webeye; null when the feed has none. */
+  sessionId: number | null;
   callsign: string;
   position: string;
   frequency: number | null;
@@ -165,6 +170,7 @@ function buildAtc(feed: Whazzup) {
     byCountry.set(country, [
       ...(byCountry.get(country) ?? []),
       {
+        sessionId: typeof atc.id === 'number' ? atc.id : null,
         callsign,
         position: typeof position === 'string' ? position : '',
         frequency: typeof frequency === 'number' && frequency > 0 ? frequency : null,
@@ -247,6 +253,69 @@ function findNearestMetar(icao: string, allMetars: string) {
     direction: directionBetween(origin.lat, origin.lon, best.airport.lat, best.airport.lon),
     report: best.report,
   };
+}
+
+interface SnapshotNotam {
+  loc_indicator?: string | null;
+  full_number?: string | null;
+  notam_type?: string | null;
+  begin_effect?: string | null;
+  end_effect?: string | null;
+  estperm?: string | null;
+  additional_txt?: string | null;
+  notam_code?: string | null;
+  status?: string | number | null;
+  is_draft?: number | boolean | null;
+}
+
+/** "2026-11-21 10:40:00" (UTC, as NOTAMs are) -> "2026-11-21T10:40:00.000Z"; null when empty or not a date. */
+function toUtcIso(value: string | null | undefined): string | null {
+  if (!value) {
+    return null;
+  }
+  const time = Date.parse(`${value.trim().replace(' ', 'T')}Z`);
+  return Number.isNaN(time) ? null : new Date(time).toISOString();
+}
+
+/** Same rules as the backend's WeatherService: published NOTAMs of the airport that have not ended, newest start first. */
+function toNotams(snapshot: unknown, icao: string) {
+  const rows = (snapshot as { notams?: SnapshotNotam[] } | null)?.notams;
+  if (!Array.isArray(rows)) {
+    throw new Error('Unexpected NOTAM snapshot');
+  }
+
+  const now = Date.now();
+  const notams = [];
+  for (const row of rows) {
+    if (row.loc_indicator !== icao) {
+      continue;
+    }
+    // Drafts and unpublished rows are not shown.
+    if (row.is_draft || (row.status !== undefined && row.status !== null && String(row.status) !== '1')) {
+      continue;
+    }
+    const from = toUtcIso(row.begin_effect);
+    const to = toUtcIso(row.end_effect);
+    if (!row.full_number || from === null || (to !== null && Date.parse(to) < now)) {
+      continue;
+    }
+    // An end before the start is a typo in the source; do not show a misleading date.
+    if (to !== null && Date.parse(to) < Date.parse(from)) {
+      continue;
+    }
+
+    notams.push({
+      number: row.full_number,
+      type: row.notam_type ?? '',
+      status: Date.parse(from) <= now ? 'active' : 'upcoming',
+      from,
+      to,
+      estPerm: row.estperm || null,
+      text: (row.additional_txt ?? '').replace(/\r/g, '').trim(),
+      qCode: row.notam_code || null,
+    });
+  }
+  return notams.sort((a, b) => Date.parse(b.from) - Date.parse(a.from));
 }
 
 /** Keeps the current UTC hour of Open-Meteo's answer (it starts at 00:00 UTC of today); same shape as the backend's. */
@@ -358,7 +427,17 @@ export const demoDataInterceptor: HttpInterceptorFn = (req, next) => {
     }
 
     if (part === 'notam') {
-      return throwError(() => new HttpErrorResponse({ status: 400, error: { message: NOTAM_DEMO_NOTE } }));
+      // CAAP publishes NOTAMs for the Manila FIR only, as in the backend.
+      if (!icao.startsWith(PHILIPPINE_PREFIX)) {
+        return ok({ icao, notams: [] });
+      }
+      return next(req.clone({ url: NOTAMS_FILE, headers: new HttpHeaders() })).pipe(
+        filter((event): event is HttpResponse<unknown> => event instanceof HttpResponse),
+        map((event) => new HttpResponse({ status: 200, body: { icao, notams: toNotams(event.body, icao) } })),
+        catchError(() =>
+          throwError(() => new HttpErrorResponse({ status: 503, statusText: 'Service Unavailable', url: NOTAMS_FILE })),
+        ),
+      );
     }
 
     if (part === 'model') {
