@@ -1,6 +1,6 @@
 .universal-button {
   border-radius: 3px;
-  font-family: 'Avenir', 'Avenir Next', 'Segoe UI', sans-serif;
+  font-family: 'IVAO Sans', 'Segoe UI', sans-serif;
   font-size: 1rem;
   font-weight: 600;
   line-height: 1;
@@ -160,7 +160,7 @@
   border-radius: 3px;
   background: var(--c-brand);
   color: #ffffff;
-  font-family: 'Avenir', 'Avenir Next', 'Segoe UI', sans-serif;
+  font-family: 'IVAO Sans', 'Segoe UI', sans-serif;
   font-size: 1rem;
   font-weight: 600;
   line-height: 1;

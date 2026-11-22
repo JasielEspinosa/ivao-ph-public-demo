@@ -1,0 +1,128 @@
+<section class="home-section" id="online-pilots" aria-labelledby="online-pilots-title">
+  <div class="home-section__header">
+    <h2 id="online-pilots-title">Online Pilots</h2>
+  </div>
+  <p>Pilots online now on a flight plan to or from the Philippines.</p>
+
+  <p *ngIf="!pilotsLoaded()">Loading online pilots...</p>
+  <p class="status-box error" role="alert" *ngIf="pilotsError()">{{ pilotsError() }}</p>
+  <p *ngIf="pilotsLoaded() && !pilotsError() && pilots().length === 0">No pilots are online right now.</p>
+
+  <div class="table-wrap table-wrap--admin table-wrap--compact" *ngIf="pilots().length > 0">
+    <table>
+      <thead>
+        <tr>
+          <th
+            *ngFor="let column of pilotColumns"
+            data-disable-resize
+            [attr.aria-sort]="ariaSort(pilotSort(), column.key)"
+          >
+            <button type="button" class="sort-header-button" (click)="toggleSortPilots(column.key)">
+              {{ column.label }}
+              {{ sortIndicator(pilotSort(), column.key) }}
+            </button>
+          </th>
+          <th data-disable-resize>Is Member</th>
+          <th data-disable-resize>Track</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let pilot of sortedPilots()">
+          <td>{{ pilot.callsign }}</td>
+          <td>{{ pilot.name || pilot.vid || '-' }}</td>
+          <td>{{ pilot.aircraft || '-' }}</td>
+          <td>{{ pilot.departure || '-' }}</td>
+          <td>{{ pilot.arrival || '-' }}</td>
+          <td>{{ formatAltitude(pilot) }}</td>
+          <td></td>
+          <td>
+            <a
+              class="track-link"
+              [href]="webeyeTrackUrl(pilot.callsign)"
+              target="_blank"
+              rel="noopener noreferrer"
+              title="Track on IVAO Webeye"
+              [attr.aria-label]="'Track ' + pilot.callsign + ' on IVAO Webeye'"
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path
+                  d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"
+                />
+              </svg>
+            </a>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="home-note" *ngIf="pilotsUpdatedAt() as updatedAt">
+    Last updated {{ updatedAt | date: 'HH:mm' : 'UTC' }}Z, refreshed every minute. For the full picture, open
+    <a [href]="webeyeUrl" target="_blank" rel="noopener noreferrer">Live Traffic</a>.
+  </p>
+</section>
+
+<section class="home-section" id="online-atc" aria-labelledby="online-atc-title">
+  <div class="home-section__header">
+    <h2 id="online-atc-title">Online Air Traffic Controllers</h2>
+  </div>
+  <p>Controllers online now in the Philippines and the areas around it.</p>
+
+  <p *ngIf="!atcLoaded()">Loading online controllers...</p>
+  <p class="status-box error" role="alert" *ngIf="atcError()">{{ atcError() }}</p>
+  <p *ngIf="atcLoaded() && !atcError() && atcGroups().length === 0">No controllers are online right now.</p>
+
+  <div *ngFor="let group of sortedAtcGroups()">
+    <h3>{{ group.country }}</h3>
+    <div class="table-wrap table-wrap--admin table-wrap--compact">
+      <table>
+        <thead>
+          <tr>
+            <th
+              *ngFor="let column of atcColumns"
+              data-disable-resize
+              [attr.aria-sort]="ariaSort(atcSort(), column.key)"
+            >
+              <button type="button" class="sort-header-button" (click)="toggleSortAtc(column.key)">
+                {{ column.label }}
+                {{ sortIndicator(atcSort(), column.key) }}
+              </button>
+            </th>
+            <th data-disable-resize>Is Member</th>
+            <th data-disable-resize>Track</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let atc of group.controllers">
+            <td>{{ atc.callsign }}</td>
+            <td>{{ atc.name || atc.vid || '-' }}</td>
+            <td>{{ atc.position || '-' }}</td>
+            <td>{{ atc.frequency !== null ? (atc.frequency | number: '1.3-3') : '-' }}</td>
+            <td>{{ atc.rating }}</td>
+            <td>{{ formatOnlineTime(atc.onlineSeconds) }}</td>
+            <td></td>
+            <td>
+              <a
+                class="track-link"
+                [href]="webeyeAtcUrl(atc)"
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Track on IVAO Webeye"
+                [attr.aria-label]="'Track ' + atc.callsign + ' on IVAO Webeye'"
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path
+                    d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"
+                  />
+                </svg>
+              </a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <p class="home-note" *ngIf="atcUpdatedAt() as updatedAt">
+    Last updated {{ updatedAt | date: 'HH:mm' : 'UTC' }}Z, refreshed every minute.
+  </p>
+</section>

@@ -1,4 +1,5 @@
 @import './styles-validation.css';
+@import './styles-info-sections.css';
 @import './styles-input-field.css';
 @import './styles-text.css';
 @import './data-manage/styles-data-manage-modal.css';
@@ -70,7 +71,7 @@ body:has(.form-intro-page) {
   overflow: hidden;
 }
 
-/* The 'Avenir' @font-face rules live in public/media/fonts/fonts.css (linked from index.html). */
+/* The 'IVAO Sans' @font-face rules live in public/media/fonts/fonts.css (linked from index.html). */
 
 /* Text without its own font-family uses Bootstrap's system-ui stack, which is Segoe UI on Windows. Chrome draws weight 500
    (Bootstrap headings, many labels) in Segoe UI Semibold, while Firefox draws it in Regular, so headings looked lighter and
@@ -106,7 +107,7 @@ body:has(.form-intro-page) {
 
 p,
 span {
-  font-family: 'Avenir', 'Avenir Next', 'Segoe UI', sans-serif;
+  font-family: 'IVAO Sans', 'Segoe UI', sans-serif;
 }
 
 .visually-hidden-input {

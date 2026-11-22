@@ -1,4 +1,4 @@
-/** An airport offered in the Home page weather lookup. */
+/** An airport offered in the weather and charts lookups (Home and Pilot's Lounge). */
 export interface PhilippineAirport {
   readonly icao: string;
   readonly name: string;

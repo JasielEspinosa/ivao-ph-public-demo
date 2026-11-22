@@ -63,6 +63,8 @@
   --c-ph-blue: #0038a8;
   --c-ph-red: #ce1126;
   --c-ph-gold: #fcd116;
+  /* Flag red used as text color: the true red in the light theme, a lighter tone in the dark theme for readable contrast */
+  --c-ph-red-text: #ce1126;
 
   /* Admin banner accents (blue shades per page; the banner mixes them into --c-surface, so they follow the theme) */
   --c-banner-users-a: #1565c0;
@@ -137,6 +139,7 @@ html[data-theme='dark'] {
   --c-form-text: #dbe2ec;
   --c-brand-2-ink: #8ab8ec;
   --c-accent-blue: #7fb0f0;
+  --c-ph-red-text: #ff8a94;
 
   --c-brand: #1f5fa3;
   --c-brand-hover: #174c85;
@@ -200,7 +203,7 @@ html[data-theme='dark'] body {
 
 /*
  * Firefox draws dark text on a light background about 5% heavier than Chrome (its Windows text renderer applies a stronger
- * contrast; same font file, same widths, measured on Avenir Medium). No font or text-rendering setting changes this, so in
+ * contrast; same font file, same widths, measured on the site font at weight 500). No font or text-rendering setting changes this, so in
  * Firefox only, the dark text colors of the light theme are mixed 5% toward white to cancel it. Chrome and the dark theme
  * keep the original values. The comment after each value is the original color.
  */

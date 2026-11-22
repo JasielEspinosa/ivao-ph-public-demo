@@ -4,7 +4,7 @@ import { adminRoleGuard } from './guards/admin-role.guard';
 import { authSessionGuard } from './guards/auth-session.guard';
 import { dataManagementAccessGuard } from './guards/data-management-access.guard';
 
-// Public pages (no sign-in): home, members, documents, privacy-policy, login, forgot-password, set-password.
+// Public pages (no sign-in): home, members, pilots-lounge, documents, privacy-policy, login, forgot-password, set-password.
 // Signed-in pages: profile-settings (any user), data-management (+ its pages, by access code) and the admin pages (admins).
 // Keep the public list in sync with AdminAuthService.isPublicRoute.
 export const routes: Routes = [
@@ -17,6 +17,10 @@ export const routes: Routes = [
   {
     path: 'members',
     loadComponent: () => import('./pages/members/members').then((m) => m.MembersComponent),
+  },
+  {
+    path: 'pilots-lounge',
+    loadComponent: () => import('./pages/pilots-lounge/pilots-lounge').then((m) => m.PilotsLoungeComponent),
   },
   {
     path: 'documents',

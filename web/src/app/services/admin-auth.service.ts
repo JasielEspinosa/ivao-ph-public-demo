@@ -377,6 +377,7 @@ export class AdminAuthService {
       '',
       '/home',
       '/members',
+      '/pilots-lounge',
       '/documents',
       '/privacy-policy',
       '/login',

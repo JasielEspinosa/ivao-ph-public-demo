@@ -70,7 +70,7 @@
 
 .banner-subheading {
   display: block;
-  font-family: 'Avenir', 'Avenir Next', 'Segoe UI', sans-serif;
+  font-family: 'IVAO Sans', 'Segoe UI', sans-serif;
   font-size: 1.1rem;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -78,7 +78,7 @@
 
 .banner-description {
   margin: 0;
-  font-family: 'Avenir', 'Avenir Next', 'Segoe UI', sans-serif;
+  font-family: 'IVAO Sans', 'Segoe UI', sans-serif;
 }
 
 .banner-back-link {

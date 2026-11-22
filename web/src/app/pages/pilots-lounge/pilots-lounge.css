@@ -1,0 +1,102 @@
+/* Pilot's Lounge: the flight plan buttons and the Charts search results. The sections shared with Home are in styles/styles-info-sections.css. */
+.lounge-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+/* The copy result sits to the right of the "Copy ICAO flight plan" button, level with it. */
+.lounge-actions {
+  align-items: center;
+}
+
+.lounge-copy-status:empty {
+  display: none;
+}
+
+.lounge-copy-status .status-box {
+  margin: 0;
+  padding: 0.65rem 1rem;
+}
+
+.lounge-actions .universal-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.lounge-ivao {
+  margin-top: 1rem;
+}
+
+/* Keeps the card's title clear of the top edge (or a sticky header) when it is scrolled to. */
+.lounge-ofp-card {
+  scroll-margin-top: 1rem;
+}
+
+.lounge-icao {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0.75rem 0;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid var(--c-line-soft);
+  border-radius: 8px;
+  background: var(--c-tint-1);
+  color: inherit;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.9rem;
+  resize: vertical;
+}
+
+.lounge-ofp {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: 0.75rem 1.5rem;
+  margin: 0 0 1rem;
+}
+
+.lounge-ofp dt {
+  color: var(--c-slate-600);
+  font-size: 0.85rem;
+}
+
+.lounge-ofp dd {
+  margin: 0;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.lounge-ofp__route {
+  grid-column: 1 / -1;
+}
+
+.chart-list,
+.chart-sources {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chart-list li,
+.chart-sources li {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--c-line-soft);
+}
+
+.chart-list li:last-child,
+.chart-sources li:last-child {
+  border-bottom: 0;
+}
+
+.chart-list a,
+.chart-sources a {
+  color: var(--c-link);
+  font-weight: 600;
+}
+
+.chart-sources span {
+  display: block;
+  color: var(--c-slate-600);
+  font-size: 0.9rem;
+}

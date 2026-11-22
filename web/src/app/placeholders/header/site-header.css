@@ -38,7 +38,8 @@
   gap: 1rem;
 }
 
-/* The logo sits on a white plate so its navy and red lettering stays readable in the dark theme too. */
+/* The logo sits on a white plate in the light theme. The dark theme uses the dark-background logo (AO lettering in white)
+   on the dark header surface instead, so the plate is not needed there. */
 .site-logo {
   flex: 0 0 auto;
   display: inline-flex;
@@ -56,6 +57,22 @@
   margin: -6px 0;
 }
 
+.site-logo__img--dark {
+  display: none;
+}
+
+:host-context(html[data-theme='dark']) .site-logo {
+  background: var(--c-surface);
+}
+
+:host-context(html[data-theme='dark']) .site-logo__img--light {
+  display: none;
+}
+
+:host-context(html[data-theme='dark']) .site-logo__img--dark {
+  display: block;
+}
+
 .site-nav {
   flex: 1 1 auto;
   min-width: 0;
@@ -63,7 +80,7 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 0.15rem;
-  font-family: 'Avenir', inherit, sans-serif;
+  font-family: 'IVAO Sans', inherit, sans-serif;
 }
 
 .site-nav__link {
@@ -126,7 +143,7 @@
   border-radius: 8px;
   background: var(--c-surface);
   color: var(--c-brand-ink);
-  font-family: 'Avenir', 'Avenir Next', 'Segoe UI', sans-serif;
+  font-family: 'IVAO Sans', 'Segoe UI', sans-serif;
   font-size: 0.95rem;
   font-weight: 700;
   cursor: pointer;
@@ -176,7 +193,7 @@
   padding: 0.6rem 0.8rem;
   border-radius: 7px;
   color: var(--c-slate-800);
-  font-family: 'Avenir', 'Avenir Next', 'Segoe UI', sans-serif;
+  font-family: 'IVAO Sans', 'Segoe UI', sans-serif;
   font-size: 0.95rem;
   font-weight: 600;
   text-decoration: none;
@@ -271,7 +288,7 @@
 .site-dropdown__heading {
   padding: 0.5rem 0.8rem 0.2rem;
   color: var(--c-slate-700);
-  font-family: 'Avenir', 'Avenir Next', 'Segoe UI', sans-serif;
+  font-family: 'IVAO Sans', 'Segoe UI', sans-serif;
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.04em;

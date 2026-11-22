@@ -1,7 +1,8 @@
 <header class="site-header" [class.site-header--compact]="compact()">
   <div class="site-header__inner">
     <a routerLink="/home" class="site-logo" aria-label="IVAO Philippines home" title="Home">
-      <img src="images/ivao-ph.png" alt="IVAO Philippines" class="site-logo__img" />
+      <img src="images/ivao-ph.png" alt="IVAO Philippines" class="site-logo__img site-logo__img--light" />
+      <img src="images/ivao-ph-dark.png" alt="" aria-hidden="true" class="site-logo__img site-logo__img--dark" />
     </a>
 
     <button
@@ -30,6 +31,7 @@
 
     <nav *ngIf="!compact()" id="site-nav" class="site-nav" [class.site-nav--open]="menuOpen()" aria-label="Main menu">
       <a routerLink="/home" routerLinkActive="site-nav__link--active" class="site-nav__link">Home</a>
+      <a routerLink="/pilots-lounge" routerLinkActive="site-nav__link--active" class="site-nav__link">Pilot's Lounge</a>
       <a href="https://webeye.ivao.aero/" target="_blank" rel="noopener noreferrer" class="site-nav__link"
         >Live Traffic</a
       >
@@ -58,8 +60,7 @@
         </div>
       </div>
 
-      <!-- No pages yet: plain clickable menu text. -->
-      <a href="#" class="site-nav__link" (click)="noPageYet($event)">Charts</a>
+      <!-- No page yet: plain clickable menu text. -->
       <a href="#" class="site-nav__link" (click)="noPageYet($event)">Contacts</a>
     </nav>
 
@@ -94,6 +95,9 @@
           *ngIf="compactMenuOpen()"
         >
           <a routerLink="/home" routerLinkActive="site-dropdown__item--active" class="site-dropdown__item">Home</a>
+          <a routerLink="/pilots-lounge" routerLinkActive="site-dropdown__item--active" class="site-dropdown__item"
+            >Pilot's Lounge</a
+          >
           <a href="https://webeye.ivao.aero/" target="_blank" rel="noopener noreferrer" class="site-dropdown__item"
             >Live Traffic</a
           >
@@ -103,7 +107,6 @@
           <a routerLink="/documents" routerLinkActive="site-dropdown__item--active" class="site-dropdown__item"
             >Documents</a
           >
-          <a href="#" class="site-dropdown__item" (click)="noPageYet($event)">Charts</a>
           <a href="#" class="site-dropdown__item" (click)="noPageYet($event)">Contacts</a>
 
           <div class="site-dropdown__heading">Rules and Policies</div>

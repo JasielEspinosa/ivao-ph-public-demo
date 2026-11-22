@@ -1,0 +1,225 @@
+<section class="home-shell">
+  <div class="form-shell home-content">
+    <app-placeholder-banner subheading="IVAO PHILIPPINES" title="Pilot's Lounge"></app-placeholder-banner>
+
+    <nav class="home-jump" aria-label="Jump to a section of the Pilot's Lounge">
+      <a href="#flight-plan" (click)="scrollToSection($event, 'flight-plan')">File a Flight Plan</a>
+      <a href="#charts" (click)="scrollToSection($event, 'charts')">Charts</a>
+      <a href="#weather" (click)="scrollToSection($event, 'weather')">Weather &amp; NOTAMs</a>
+      <a href="#online-pilots" (click)="scrollToSection($event, 'online-pilots')">Online Pilots</a>
+      <a href="#online-atc" (click)="scrollToSection($event, 'online-atc')">Online Air Traffic Controllers</a>
+    </nav>
+
+    <section class="home-section" id="flight-plan" aria-labelledby="flight-plan-title">
+      <div class="home-section__header">
+        <h2 id="flight-plan-title">File a Flight Plan</h2>
+      </div>
+      <p>
+        Plan your route with SimBrief, then file the flight plan with IVAO before you connect. Both open in a new tab.
+      </p>
+      <div class="lounge-actions">
+        <a
+          class="universal-button universal-button--primary"
+          [href]="simbriefUrl"
+          target="_blank"
+          rel="noopener noreferrer"
+          >File a flight plan in SimBrief</a
+        >
+        <button
+          type="button"
+          class="universal-button universal-button--primary"
+          [attr.aria-expanded]="ivaoFormOpen()"
+          aria-controls="ivao-fpl-panel"
+          (click)="ivaoFormOpen.set(!ivaoFormOpen())"
+        >
+          File a flight plan in IVAO
+        </button>
+      </div>
+
+      <div class="lounge-ivao" id="ivao-fpl-panel" *ngIf="ivaoFormOpen()">
+        <p>
+          Type your SimBrief Pilot ID or username to load your latest flight plan. It is copied for you and the IVAO
+          flight plan page opens in a new tab, where you paste it into the ICAO import. You must already be logged in at
+          <a [href]="ivaoFlightPlanUrl" target="_blank" rel="noopener noreferrer">fpl.ivao.aero</a>.
+        </p>
+
+        <form class="universal-form weather-form" novalidate (submit)="$event.preventDefault(); loadFlightPlan()">
+          <label class="uf-field weather-form__field">
+            <span>SimBrief Pilot ID or username</span>
+            <input
+              type="text"
+              maxlength="40"
+              placeholder=" "
+              autocomplete="off"
+              autocorrect="off"
+              spellcheck="false"
+              data-lpignore="true"
+              data-1p-ignore="true"
+              [value]="simbrief.lookup()"
+              (input)="simbrief.setLookupFromInput($any($event.target))"
+            />
+          </label>
+          <button type="submit" class="universal-submit-btn weather-form__button" [disabled]="simbrief.loading()">
+            {{ simbrief.loading() ? 'Loading...' : 'Load my flight plan' }}
+          </button>
+        </form>
+
+        <div class="weather-status" aria-live="polite">
+          <p class="status-box error" *ngIf="simbrief.error()">{{ simbrief.error() }}</p>
+        </div>
+
+        <div class="weather-reports" *ngIf="simbrief.flightPlan() as plan">
+          <article class="weather-report weather-report--wide lounge-ofp-card" id="ofp-card">
+            <h3>
+              Your latest SimBrief flight plan
+              <span class="weather-report__icao" *ngIf="plan.callsign">{{ plan.callsign }}</span>
+            </h3>
+            <dl class="lounge-ofp">
+              <div>
+                <dt>From</dt>
+                <dd>{{ plan.origin || '-' }}</dd>
+              </div>
+              <div>
+                <dt>To</dt>
+                <dd>{{ plan.destination || '-' }}</dd>
+              </div>
+              <div>
+                <dt>Alternate</dt>
+                <dd>{{ plan.alternate || '-' }}</dd>
+              </div>
+              <div>
+                <dt>Aircraft</dt>
+                <dd>{{ plan.aircraft || '-' }}</dd>
+              </div>
+              <div>
+                <dt>Cruise altitude</dt>
+                <dd>{{ plan.cruiseAltitude || '-' }}</dd>
+              </div>
+              <div class="lounge-ofp__route">
+                <dt>Route</dt>
+                <dd>{{ plan.route || '-' }}</dd>
+              </div>
+            </dl>
+            <ng-container *ngIf="plan.icaoFlightPlan as icaoText; else noIcaoText">
+              <h4>1. Copy the ICAO flight plan</h4>
+              <textarea
+                class="lounge-icao"
+                readonly
+                rows="6"
+                aria-label="ICAO flight plan"
+                [value]="icaoText"
+                (focus)="$any($event.target).select()"
+              ></textarea>
+              <div class="lounge-actions">
+                <button type="button" class="universal-button universal-button--primary" (click)="copyIcaoText()">
+                  Copy ICAO flight plan
+                </button>
+                <div class="lounge-copy-status" aria-live="polite">
+                  <p class="status-box success" *ngIf="copyState() === 'copied'">Flight plan copied.</p>
+                  <p class="status-box error" *ngIf="copyState() === 'failed'">
+                    It could not be copied automatically. Click the text above, select all (Ctrl+A) and copy it
+                    (Ctrl+C).
+                  </p>
+                </div>
+              </div>
+
+              <h4>2. Open IVAO and paste it</h4>
+              <p>
+                Open the IVAO flight plan page, choose the ICAO import and paste the flight plan (Ctrl+V). It opens in a
+                new tab.
+              </p>
+            </ng-container>
+            <ng-template #noIcaoText>
+              <p class="home-note">
+                SimBrief gave no ICAO flight plan for this plan. Open the IVAO flight plan page and copy the details
+                above into it.
+              </p>
+            </ng-template>
+            <div class="lounge-actions">
+              <a
+                class="universal-button universal-button--primary"
+                [href]="ivaoFlightPlanUrl"
+                target="_blank"
+                rel="noopener noreferrer"
+                >Open IVAO Flight Plans</a
+              >
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="home-section" id="charts" aria-labelledby="charts-title">
+      <div class="home-section__header">
+        <h2 id="charts-title">Charts</h2>
+      </div>
+
+      <form class="universal-form weather-form" novalidate (submit)="$event.preventDefault(); searchCharts()">
+        <label class="uf-field weather-form__field">
+          <span>Type in the airport ICAO code</span>
+          <input
+            type="text"
+            list="charts-airports"
+            maxlength="4"
+            placeholder=" "
+            autocomplete="off"
+            autocapitalize="characters"
+            autocorrect="off"
+            spellcheck="false"
+            data-lpignore="true"
+            data-1p-ignore="true"
+            [value]="chartsIcao()"
+            (input)="onChartsIcaoInput($any($event.target))"
+          />
+          <datalist id="charts-airports">
+            <option *ngFor="let airport of airports" [value]="airport.icao">{{ airport.name }}</option>
+          </datalist>
+        </label>
+        <button type="submit" class="universal-submit-btn weather-form__button">Search charts</button>
+      </form>
+
+      <div class="weather-status" aria-live="polite">
+        <p class="status-box error" *ngIf="chartsError()">{{ chartsError() }}</p>
+      </div>
+
+      <div class="weather-reports" *ngIf="chartsShownIcao() as icao">
+        <article class="weather-report weather-report--wide">
+          <h3>
+            Charts <span class="weather-report__icao">{{ icao }}</span>
+            <ng-container *ngIf="chartsAirportName()"> - {{ chartsAirportName() }}</ng-container>
+          </h3>
+
+          <ng-container *ngIf="chartGroups().length; else noCharts">
+            <ng-container *ngFor="let group of chartGroups()">
+              <h4>{{ group.type }}</h4>
+              <ul class="chart-list">
+                <li *ngFor="let chart of group.charts">
+                  <a [href]="chart.file" target="_blank" rel="noopener noreferrer">{{ chart.title }}</a>
+                </li>
+              </ul>
+            </ng-container>
+          </ng-container>
+          <ng-template #noCharts>
+            <p class="weather-report__none">No charts of {{ icao }} are kept on this site yet.</p>
+          </ng-template>
+
+          <h4>Find the charts of {{ icao }}</h4>
+          <ul class="chart-sources">
+            <li *ngFor="let source of chartSources">
+              <a [href]="source.url(icao)" target="_blank" rel="noopener noreferrer">{{ source.name }}</a>
+              <span>{{ source.description }}</span>
+            </li>
+          </ul>
+          <p class="home-note">
+            For flight simulation on the IVAO network only, not for real-world navigation. Always use the charts of the
+            current AIRAC cycle.
+          </p>
+        </article>
+      </div>
+    </section>
+
+    <app-weather></app-weather>
+
+    <app-online-traffic></app-online-traffic>
+  </div>
+</section>

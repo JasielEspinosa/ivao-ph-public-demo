@@ -55,7 +55,7 @@ import { PlaceholderBannerComponent } from '../../placeholders/banner/placeholde
   `,
   styles: `
     .policy-page {
-      font-family: 'Avenir', inherit, sans-serif;
+      font-family: 'IVAO Sans', inherit, sans-serif;
       color: var(--c-slate-800);
       line-height: 1.6;
     }

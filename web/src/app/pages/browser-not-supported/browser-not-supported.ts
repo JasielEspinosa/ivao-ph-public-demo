@@ -25,7 +25,7 @@ import { SUPPORTED_BROWSER_NAMES } from '../../shared/browser-support';
   styles: `
     :host {
       display: block;
-      font-family: 'Avenir', inherit, sans-serif;
+      font-family: 'IVAO Sans', inherit, sans-serif;
     }
 
     .bns-page {

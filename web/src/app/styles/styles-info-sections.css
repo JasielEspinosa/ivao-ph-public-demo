@@ -1,0 +1,252 @@
+/* Sections shared by the Home and Pilot's Lounge pages: section headings, online tables, the weather and charts lookups. Colors come from the theme tokens. */
+.home-content {
+  font-family: 'IVAO Sans', inherit, sans-serif;
+  color: var(--c-slate-800);
+}
+
+.home-section {
+  margin-bottom: 2.25rem;
+}
+
+.home-section h2 {
+  margin: 0 0 0.75rem;
+  color: var(--c-brand-ink);
+  font-size: 1.6rem;
+  line-height: 1.2;
+}
+
+.home-section p {
+  margin: 0 0 0.85rem;
+  color: var(--c-slate-700);
+  line-height: 1.6;
+}
+
+.home-section__header {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.9rem;
+  margin-bottom: 0.75rem;
+}
+
+.home-section__header h2 {
+  margin: 0;
+}
+
+/* The sample pilots table fills the page width and scrolls inside its own box on a phone. */
+.home-section .table-wrap.table-wrap--compact {
+  width: 100%;
+  margin: 0;
+  padding: 0 0 1.5rem;
+}
+
+.home-section .table-wrap.table-wrap--compact table {
+  width: 100%;
+}
+
+.home-section[id] {
+  scroll-margin-top: 1rem;
+}
+
+.home-note {
+  margin-top: 0.75rem;
+  font-size: 0.9rem;
+}
+
+.track-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--c-link);
+}
+
+.track-link:hover,
+.track-link:focus-visible {
+  color: var(--c-link-hover);
+}
+
+.track-link svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  fill: currentColor;
+}
+
+.home-note a {
+  color: var(--c-link);
+  font-weight: 600;
+}
+
+/* METAR and TAF lookup */
+.weather-form {
+  display: flex;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.weather-form__field {
+  flex: 1 1 18rem;
+  max-width: 28rem;
+}
+
+.weather-form .weather-form__button {
+  height: 58px;
+  margin: 0;
+}
+
+.weather-status:not(:empty) {
+  margin-top: 1rem;
+}
+
+.weather-reports {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.25rem;
+  margin-top: 1rem;
+}
+
+.weather-report {
+  padding: 1rem 1.1rem;
+}
+
+.weather-report h3 {
+  margin: 0 0 0.6rem;
+  color: var(--c-slate-900);
+  font-size: 1.15rem;
+}
+
+.weather-report__icao {
+  color: var(--c-ph-red-text);
+  font-size: 0.95rem;
+}
+
+.weather-report__text {
+  margin: 0;
+  padding: 0.75rem 0.85rem;
+  border-radius: 8px;
+  background: var(--c-tint-1);
+  color: var(--c-slate-800);
+  font-family: Consolas, 'Courier New', monospace;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.home-section .weather-report__none {
+  margin: 0;
+}
+
+.weather-report--wide {
+  grid-column: 1 / -1;
+}
+
+.weather-model__scroll {
+  overflow-x: auto;
+}
+
+.home-section .weather-model__scroll + .home-note {
+  margin: 1rem 0 0;
+}
+
+.weather-model {
+  width: 100%;
+  border-collapse: collapse;
+  white-space: nowrap;
+}
+
+.weather-model th,
+.weather-model td {
+  padding: 0.3rem 0.6rem;
+  border-bottom: 1px solid var(--c-line-soft);
+  text-align: left;
+}
+
+.weather-model th {
+  background: var(--c-tint-1);
+}
+
+/* NOTAM list: scrolls inside the card because an airport can have dozens */
+.weather-notams {
+  max-height: 32rem;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.weather-notam {
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--c-line-soft);
+}
+
+.weather-notam__head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.75rem;
+  margin-bottom: 0.4rem;
+}
+
+.weather-report h4 {
+  margin: 1rem 0 0;
+  color: var(--c-slate-900);
+  font-size: 1rem;
+}
+
+/* Active on the left, upcoming on the right (stacked on narrow screens) */
+.weather-notam-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 1.25rem;
+  margin-bottom: 1rem;
+}
+
+/* The card padding sets the space below the last paragraph of a card */
+.home-section .weather-report > p:last-child {
+  margin-bottom: 0;
+}
+
+/* Weather and chart cards share one box */
+.weather-report {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--c-line-soft);
+  border-radius: 12px;
+  background: var(--c-surface);
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.06);
+}
+
+@media (max-width: 900px) {
+  .weather-reports,
+  .weather-notam-columns {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .home-section h2 {
+    font-size: 1.35rem;
+  }
+}
+
+/* Quick links under the banner that scroll down to the sections of the page. */
+.home-jump {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.home-jump a {
+  color: var(--c-brand-ink);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.home-jump a:hover,
+.home-jump a:focus-visible {
+  color: var(--c-ph-gold);
+}

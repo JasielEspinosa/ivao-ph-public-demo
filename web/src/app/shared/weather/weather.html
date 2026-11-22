@@ -1,0 +1,222 @@
+<section class="home-section" id="weather" aria-labelledby="weather-title">
+  <div class="home-section__header">
+    <h2 id="weather-title">Weather &amp; NOTAMs</h2>
+  </div>
+
+  <form class="universal-form weather-form" novalidate (submit)="$event.preventDefault(); fetchWeather()">
+    <label class="uf-field weather-form__field">
+      <span>Type in the airport ICAO code</span>
+      <input
+        type="text"
+        list="weather-airports"
+        maxlength="4"
+        placeholder=" "
+        autocomplete="off"
+        autocapitalize="characters"
+        autocorrect="off"
+        spellcheck="false"
+        data-lpignore="true"
+        data-1p-ignore="true"
+        [value]="weatherIcao()"
+        (input)="onWeatherIcaoInput($any($event.target))"
+      />
+      <datalist id="weather-airports">
+        <option *ngFor="let airport of airports" [value]="airport.icao">{{ airport.name }}</option>
+      </datalist>
+    </label>
+    <button type="submit" class="universal-submit-btn weather-form__button" [disabled]="weatherLoading()">
+      Get weather
+    </button>
+  </form>
+
+  <div class="weather-status" aria-live="polite">
+    <p class="status-box error" *ngIf="weatherError()">{{ weatherError() }}</p>
+  </div>
+
+  <div class="weather-reports" *ngIf="weatherShownIcao() as icao">
+    <article class="weather-report">
+      <h3>
+        METAR <span class="weather-report__icao">{{ icao }}</span>
+      </h3>
+      <ng-container *ngIf="metarCard() as card">
+        <p class="status-box" *ngIf="card.status === 'loading'">Loading the METAR...</p>
+        <p class="status-box error" *ngIf="card.status === 'error'">{{ card.error }}</p>
+        <ng-container *ngIf="card.data as metar">
+          <pre class="weather-report__text" *ngIf="metar.report; else noMetar">{{ metar.report }}</pre>
+          <ng-template #noMetar>
+            <p class="weather-report__none">
+              No METAR is available for {{ icao }}.
+              <ng-container *ngIf="!metar.nearest">No nearby airport with a METAR was found.</ng-container>
+            </p>
+            <ng-container *ngIf="metar.nearest as near">
+              <p class="home-note">
+                Nearest airport with a METAR: <strong>{{ near.icao }}</strong> ({{ near.name }}),
+                {{ near.distanceKm }} km {{ near.direction }} of {{ icao }}.
+              </p>
+              <pre class="weather-report__text">{{ near.report }}</pre>
+            </ng-container>
+          </ng-template>
+        </ng-container>
+      </ng-container>
+    </article>
+    <article class="weather-report">
+      <h3>
+        TAF <span class="weather-report__icao">{{ icao }}</span>
+      </h3>
+      <ng-container *ngIf="tafCard() as card">
+        <p class="status-box" *ngIf="card.status === 'loading'">Loading the TAF...</p>
+        <p class="status-box error" *ngIf="card.status === 'error'">{{ card.error }}</p>
+        <ng-container *ngIf="card.data as taf">
+          <pre class="weather-report__text" *ngIf="taf.report; else noTaf">{{ taf.report }}</pre>
+          <ng-template #noTaf>
+            <p class="weather-report__none">
+              No TAF is available for {{ icao }}.
+              <ng-container *ngIf="!taf.nearest">No nearby airport with a TAF was found.</ng-container>
+            </p>
+            <ng-container *ngIf="taf.nearest as near">
+              <p class="home-note">
+                Nearest airport with a TAF: <strong>{{ near.icao }}</strong> ({{ near.name }}), {{ near.distanceKm }} km
+                {{ near.direction }} of {{ icao }}.
+              </p>
+              <pre class="weather-report__text">{{ near.report }}</pre>
+            </ng-container>
+          </ng-template>
+        </ng-container>
+      </ng-container>
+    </article>
+    <article class="weather-report weather-report--wide">
+      <h3>
+        {{ modelCard().data?.forecast?.model || 'ECMWF' }} model forecast
+        <span class="weather-report__icao">{{ icao }}</span>
+      </h3>
+      <ng-container *ngIf="modelCard() as card">
+        <p class="status-box" *ngIf="card.status === 'loading'">Loading the model forecast...</p>
+        <p class="status-box error" *ngIf="card.status === 'error'">{{ card.error }}</p>
+        <ng-container *ngIf="card.data as result">
+          <ng-container *ngIf="result.forecast as model; else noModel">
+            <div class="weather-model__scroll">
+              <table class="weather-model">
+                <thead>
+                  <tr>
+                    <th>Time (UTC)</th>
+                    <th>Wind</th>
+                    <th>Temp / Dew</th>
+                    <th>QNH</th>
+                    <th>Cloud</th>
+                    <th>Precip</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let hour of model.hours">
+                    <td>{{ hour.time | date: 'HH:mm' : 'UTC' }}Z ({{ hour.time | date: 'hh:mm a' : '+0800' }} PHT)</td>
+                    <td>
+                      <ng-container *ngIf="hour.windKt !== null && hour.windDirection !== null; else dash">
+                        {{ hour.windDirection | number: '3.0-0' }}° / {{ hour.windKt | number: '1.0-0' }} kt
+                        <ng-container *ngIf="hour.gustKt !== null">G{{ hour.gustKt | number: '1.0-0' }}</ng-container>
+                      </ng-container>
+                    </td>
+                    <td>
+                      <ng-container *ngIf="hour.tempC !== null; else dash">
+                        {{ hour.tempC | number: '1.0-0' }} / {{ hour.dewpointC | number: '1.0-0' }} °C
+                      </ng-container>
+                    </td>
+                    <td>
+                      <ng-container *ngIf="hour.qnhHpa !== null; else dash"
+                        >{{ hour.qnhHpa | number: '1.0-0' }} hPa</ng-container
+                      >
+                    </td>
+                    <td>
+                      <ng-container *ngIf="hour.cloudCoverPct !== null; else dash"
+                        >{{ hour.cloudCoverPct }}%</ng-container
+                      >
+                    </td>
+                    <td>
+                      <ng-container *ngIf="hour.precipMm !== null; else dash"
+                        >{{ hour.precipMm | number: '1.0-1' }} mm</ng-container
+                      >
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="home-note">
+              Model grid-point values, not an official observation or forecast. Do not use for flight planning. Weather
+              data by
+              <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Open-Meteo.com</a>
+              (ECMWF).
+            </p>
+          </ng-container>
+          <ng-template #noModel>
+            <p class="weather-report__none">No model forecast is available for {{ icao }}.</p>
+          </ng-template>
+        </ng-container>
+      </ng-container>
+      <ng-template #dash>–</ng-template>
+    </article>
+    <article class="weather-report weather-report--wide">
+      <h3>
+        NOTAMs <span class="weather-report__icao">{{ icao }}</span>
+      </h3>
+      <ng-container *ngIf="notamCard() as card">
+        <p class="status-box" *ngIf="card.status === 'loading'">Loading the NOTAMs...</p>
+        <p class="status-box error" *ngIf="card.status === 'error'">{{ card.error }}</p>
+        <ng-container *ngIf="card.data as result">
+          <ng-container *ngIf="result.notams.length; else noNotams">
+            <p class="home-note">
+              {{ result.notams.length }} NOTAM{{ result.notams.length === 1 ? '' : 's' }} in force or upcoming (times in
+              UTC).
+            </p>
+            <div class="weather-notam-columns">
+              <div>
+                <h4>Active ({{ activeNotams().length }})</h4>
+                <ng-container
+                  *ngTemplateOutlet="notamList; context: { $implicit: activeNotams(), empty: 'No active NOTAM.' }"
+                ></ng-container>
+              </div>
+              <div>
+                <h4>Upcoming ({{ upcomingNotams().length }})</h4>
+                <ng-container
+                  *ngTemplateOutlet="notamList; context: { $implicit: upcomingNotams(), empty: 'No upcoming NOTAM.' }"
+                ></ng-container>
+              </div>
+            </div>
+          </ng-container>
+          <ng-template #notamList let-notams let-empty="empty">
+            <p class="weather-report__none" *ngIf="!notams.length">{{ empty }}</p>
+            <ul class="weather-notams" *ngIf="notams.length">
+              <li class="weather-notam" *ngFor="let notam of notams">
+                <div class="weather-notam__head">
+                  <strong>{{ notam.number }}</strong>
+                  <span>
+                    {{ notam.from | date: 'MMM. dd, yyyy HH:mm' : 'UTC' }}Z
+                    <ng-container *ngIf="notam.to"
+                      >to {{ notam.to | date: 'MMM. dd, yyyy HH:mm' : 'UTC' }}Z ({{
+                        formatNotamDuration(notam)
+                      }})</ng-container
+                    >
+                    <ng-container *ngIf="notam.estPerm">{{ notam.estPerm }}</ng-container>
+                  </span>
+                </div>
+                <pre class="weather-report__text">{{ notam.text }}</pre>
+              </li>
+            </ul>
+          </ng-template>
+          <ng-template #noNotams>
+            <p class="weather-report__none">
+              CAAP AIS lists no NOTAM in force or upcoming for {{ icao }}.
+              <ng-container *ngIf="!icao.startsWith('RP')"
+                >NOTAMs are available for Philippine airports only.</ng-container
+              >
+            </p>
+          </ng-template>
+          <p class="home-note">
+            NOTAMs from the
+            <a href="https://ais.caap.gov.ph/notam-overview" target="_blank" rel="noopener noreferrer"
+              >CAAP Aeronautical Information Service</a
+            >. For information only, not for flight planning: always check the official AIS.
+          </p>
+        </ng-container>
+      </ng-container>
+    </article>
+  </div>
+</section>
