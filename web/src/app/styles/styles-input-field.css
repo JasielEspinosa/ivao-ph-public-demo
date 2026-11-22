@@ -31,7 +31,8 @@
 }
 
 .universal-form .uf-field > input,
-.universal-form .uf-field > select {
+.universal-form .uf-field > select,
+.universal-form .uf-field > textarea {
   width: 100%;
   height: var(--uf-control-height);
   padding: 1.55rem 0.85rem 0.45rem;
@@ -51,7 +52,8 @@
 }
 
 .universal-form .uf-field > input:focus,
-.universal-form .uf-field > select:focus {
+.universal-form .uf-field > select:focus,
+.universal-form .uf-field > textarea:focus {
   outline: none;
   border-color: var(--uf-border-focus);
   box-shadow: 0 0 0 2px rgba(111, 143, 184, 0.15);
@@ -74,6 +76,8 @@
 
 .universal-form .uf-field:has(> input:focus) > span,
 .universal-form .uf-field:has(> input:not(:placeholder-shown)) > span,
+.universal-form .uf-field:has(> textarea:focus) > span,
+.universal-form .uf-field:has(> textarea:not(:placeholder-shown)) > span,
 .universal-form .uf-field:has(> select:focus) > span,
 .universal-form .uf-field:has(> select.ng-dirty) > span,
 .universal-form .uf-field:has(> select.ng-valid) > span {
@@ -117,6 +121,16 @@
   top: 0.42rem;
   transform: none;
   font-size: 0.82rem;
+}
+
+/* A multi-line field (textarea): the look of an input, but taller and free to grow downwards (use placeholder=" " like inputs). */
+.universal-form .uf-field > textarea {
+  height: auto;
+  min-height: 6.5rem;
+  padding-top: 1.75rem;
+  font-family: inherit;
+  line-height: 1.35;
+  resize: vertical;
 }
 
 /* Native date, month and time inputs do not reliably support :placeholder-shown, so always float labels. */

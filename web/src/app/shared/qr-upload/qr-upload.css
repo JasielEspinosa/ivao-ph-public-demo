@@ -1,0 +1,106 @@
+.qr-upload {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+/* "Choose File" and "Scan QR" are two answers to the same question: two small buttons of one look, side by side. */
+.qr-upload__options {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.qr-upload__option {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.5rem 0.9rem;
+  border: 1px solid var(--c-line);
+  border-radius: 8px;
+  background: var(--c-surface);
+  color: var(--c-brand-ink);
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.qr-upload__option:hover,
+.qr-upload__option.is-selected {
+  border-color: var(--c-brand);
+  background: var(--c-tint-1);
+}
+
+.qr-upload__option:focus-visible {
+  outline: 2px solid var(--c-brand-2);
+  outline-offset: 2px;
+}
+
+.qr-upload__option.is-invalid:not(.is-selected) {
+  border-color: var(--c-danger-bright);
+}
+
+.qr-upload__icon {
+  width: 1.1rem;
+  height: 1.1rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.qr-upload__or {
+  color: var(--c-slate-500);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+}
+
+.qr-upload__panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.75rem;
+  border: 1px solid var(--c-line);
+  border-radius: 12px;
+  background: var(--c-tint-1);
+  text-align: center;
+}
+
+/* A QR code needs a light quiet zone to scan, so its card stays white in Dark mode too. */
+.qr-upload__image {
+  width: min(100%, 16rem);
+  height: auto;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.qr-upload__steps {
+  margin: 0;
+  padding-left: 1.2rem;
+  color: var(--c-slate-700);
+  text-align: left;
+}
+
+.qr-upload__text {
+  margin: 0;
+  color: var(--c-slate-700);
+}
+
+.qr-upload__text--warn {
+  color: var(--validation-error-color);
+}
+
+.qr-upload__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.6rem;
+}

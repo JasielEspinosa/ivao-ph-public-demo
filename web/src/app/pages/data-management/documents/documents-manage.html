@@ -1,0 +1,321 @@
+<section class="page-shell data-manage-page">
+  <div class="form-shell">
+    <app-placeholder-banner-data-management> </app-placeholder-banner-data-management>
+
+    <div class="dashboard-header manage-toolbar">
+      <p>{{ page?.entry?.description }}</p>
+
+      <div class="manage-toolbar-actions">
+        <button type="button" class="universal-button universal-button--primary" (click)="openAddModal()">
+          Add Document
+        </button>
+      </div>
+    </div>
+
+    <div
+      class="route-loading-overlay route-loading-overlay--inline"
+      *ngIf="isLoading"
+      role="status"
+      aria-live="polite"
+      [attr.aria-label]="messages.loading('Documents')"
+    >
+      <div class="route-loading-spinner"></div>
+    </div>
+
+    <div *ngIf="errorMessage && !isModalOpen" class="status-box error">
+      {{ errorMessage }}
+    </div>
+
+    <div *ngIf="successMessage && !isModalOpen" class="status-box success">
+      {{ successMessage }}
+    </div>
+
+    <div class="table-wrap table-wrap--admin table-wrap--compact" *ngIf="!isLoading && !errorMessage">
+      <app-table-pagination [pager]="pager"></app-table-pagination>
+      <table>
+        <thead>
+          <tr>
+            <th data-disable-resize data-fit-content>
+              <button type="button" class="sort-header-button" (click)="toggleSort('id')">
+                ID
+                {{ getSortIndicator('id') }}
+              </button>
+            </th>
+
+            <th>
+              <button type="button" class="sort-header-button" (click)="toggleSort('name')">
+                Name
+                {{ getSortIndicator('name') }}
+              </button>
+            </th>
+
+            <th>
+              <button type="button" class="sort-header-button" (click)="toggleSort('file_name')">
+                File
+                {{ getSortIndicator('file_name') }}
+              </button>
+            </th>
+
+            <th>
+              <button type="button" class="sort-header-button" (click)="toggleSort('validity')">
+                Valid
+                {{ getSortIndicator('validity') }}
+              </button>
+            </th>
+
+            <th>
+              <button type="button" class="sort-header-button" (click)="toggleSort('is_active')">
+                Enabled
+                {{ getSortIndicator('is_active') }}
+              </button>
+            </th>
+
+            <th data-disable-resize></th>
+          </tr>
+
+          <tr class="column-filter-row">
+            <th>
+              <input
+                type="text"
+                class="column-filter-input"
+                aria-label="Filter by ID"
+                [value]="columnFilters.id"
+                (input)="setColumnFilter('id', $any($event.target).value || '')"
+                placeholder="Filter"
+              />
+            </th>
+
+            <th>
+              <input
+                type="text"
+                class="column-filter-input"
+                aria-label="Filter by name"
+                [value]="columnFilters.name"
+                (input)="setColumnFilter('name', $any($event.target).value || '')"
+                placeholder="Filter"
+              />
+            </th>
+
+            <th>
+              <input
+                type="text"
+                class="column-filter-input"
+                aria-label="Filter by file"
+                [value]="columnFilters.file_name"
+                (input)="setColumnFilter('file_name', $any($event.target).value || '')"
+                placeholder="Filter"
+              />
+            </th>
+
+            <th>
+              <input
+                type="text"
+                class="column-filter-input"
+                aria-label="Filter by validity"
+                [value]="columnFilters.validity"
+                (input)="setColumnFilter('validity', $any($event.target).value || '')"
+                placeholder="Filter"
+              />
+            </th>
+
+            <th>
+              <input
+                type="text"
+                class="column-filter-input"
+                aria-label="Filter by enabled"
+                [value]="columnFilters.is_active"
+                (input)="setColumnFilter('is_active', $any($event.target).value || '')"
+                placeholder="Filter"
+              />
+            </th>
+
+            <th>
+              <button
+                *ngIf="hasActiveFilters"
+                type="button"
+                class="universal-button universal-button--clear"
+                (click)="clearFilters()"
+              >
+                Clear
+              </button>
+            </th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let item of pager.slice(filteredDocuments)">
+            <td>{{ item.id }}</td>
+
+            <td class="resizable-wrap-column">{{ item.name }}</td>
+
+            <td class="resizable-wrap-column">{{ item.file_name }} ({{ formatFileSize(item.file_size) }})</td>
+
+            <td>{{ formatValidity(item) }}</td>
+
+            <td>{{ item.is_active ? 'Yes' : 'No' }}</td>
+
+            <td>
+              <button type="button" class="universal-button universal-button--edit" (click)="edit(item)">Edit</button>
+            </td>
+          </tr>
+
+          <tr *ngIf="filteredDocuments.length === 0">
+            <td colspan="6">{{ messages.noRecords('Documents') }}</td>
+          </tr>
+        </tbody>
+      </table>
+      <app-table-pagination [pager]="pager"></app-table-pagination>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================
+     ADD / EDIT MODAL
+     ========================================================= -->
+
+<div *ngIf="isModalOpen" class="manage-modal-backdrop">
+  <div class="manage-modal-card" role="dialog" aria-modal="true" aria-label="Documents Management">
+    <button type="button" class="universal-modal-close" aria-label="Close" [disabled]="isSaving" (click)="closeModal()">
+      &times;
+    </button>
+
+    <h3>
+      {{ isEditMode ? 'Edit Document' : 'Add Document' }}
+    </h3>
+
+    <form class="manage-form universal-form" [formGroup]="form" (ngSubmit)="save()">
+      <div class="manage-modal-field">
+        <span class="manage-field-title">
+          Document File
+          <span class="required-mark" *ngIf="!isEditMode">*</span>
+        </span>
+
+        <app-qr-upload
+          purpose="DOCUMENTS"
+          inputId="document_file"
+          [accept]="documentAccept"
+          [file]="selectedFile"
+          [invalid]="!!fileErrorMessage"
+          (fileChange)="onFileChange($event)"
+        ></app-qr-upload>
+
+        <small class="universal-helper-text-gray">{{ documentHelperText }}</small>
+        <small class="universal-helper-text-gray" *ngIf="isEditMode && editingDocument && !selectedFile">
+          Current file: {{ editingDocument.file_name }} ({{ formatFileSize(editingDocument.file_size) }}). Choose a new
+          file only to replace it.
+        </small>
+        <small class="uf-error" *ngIf="fileErrorMessage">{{ fileErrorMessage }}</small>
+      </div>
+
+      <div class="manage-modal-field">
+        <label class="uf-field" for="name" [class.uf-invalid]="showInvalid('name')">
+          <span>
+            Name of the Document
+            <span class="required-mark">*</span>
+          </span>
+
+          <input id="name" type="text" maxlength="255" formControlName="name" placeholder=" " />
+        </label>
+
+        <small class="uf-error" *ngIf="showInvalid('name')">
+          {{ VALIDATION_MESSAGES.required }}
+        </small>
+      </div>
+
+      <div class="manage-modal-field">
+        <label class="uf-field" for="description">
+          <span>Description</span>
+
+          <textarea id="description" maxlength="1000" formControlName="description" placeholder=" "></textarea>
+        </label>
+        <small class="universal-helper-text-gray">Optional. Shown under the name on the Documents page.</small>
+      </div>
+
+      <div class="manage-modal-field">
+        <div class="manage-toggle-row">
+          <label class="manage-active">
+            <input type="checkbox" formControlName="use_validity_dates" />
+            <span>Use Start Date and End Date</span>
+          </label>
+        </div>
+        <small class="universal-helper-text-gray">
+          When ticked, the document is shown on the Documents page only from the Start Date through the End Date.
+        </small>
+      </div>
+
+      <div class="documents-date-row" *ngIf="useValidityDates">
+        <div class="manage-modal-field">
+          <label class="uf-field" for="start_date" [class.uf-invalid]="showInvalid('start_date')">
+            <span>
+              Start Date
+              <span class="required-mark">*</span>
+            </span>
+
+            <input id="start_date" type="date" formControlName="start_date" />
+          </label>
+
+          <small class="uf-error" *ngIf="showInvalid('start_date')">
+            {{ VALIDATION_MESSAGES.required }}
+          </small>
+        </div>
+
+        <div class="manage-modal-field">
+          <label class="uf-field" for="end_date" [class.uf-invalid]="showInvalid('end_date')">
+            <span>
+              End Date
+              <span class="required-mark">*</span>
+            </span>
+
+            <input id="end_date" type="date" formControlName="end_date" [attr.min]="minEndDate" />
+          </label>
+
+          <small class="uf-error" *ngIf="showInvalid('end_date') && form.controls.end_date.errors?.['required']">
+            {{ VALIDATION_MESSAGES.required }}
+          </small>
+          <small class="uf-error" *ngIf="showInvalid('end_date') && form.controls.end_date.errors?.['endBeforeStart']">
+            {{ endBeforeStartMessage }}
+          </small>
+        </div>
+      </div>
+
+      <div class="manage-toggle-row">
+        <label class="manage-active">
+          <span>Enable this Document</span>
+
+          <input type="checkbox" class="switch-input" role="switch" formControlName="is_active" />
+        </label>
+      </div>
+
+      <div *ngIf="errorMessage" class="status-box error manage-modal-message" role="alert">
+        {{ errorMessage }}
+      </div>
+
+      <div class="manage-modal-actions">
+        <button
+          type="button"
+          class="universal-button universal-button--cancel"
+          [disabled]="isSaving"
+          (click)="closeModal()"
+        >
+          Cancel
+        </button>
+
+        <div class="manage-modal-actions-right">
+          <button
+            type="button"
+            class="universal-button universal-button--danger"
+            *ngIf="isEditMode"
+            [disabled]="isSaving"
+            (click)="deleteDocument()"
+          >
+            Delete
+          </button>
+
+          <button type="submit" class="universal-button universal-button--save" [disabled]="isSaving">
+            {{ isSaving ? 'Saving...' : isEditMode ? 'Update' : 'Add' }}
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>

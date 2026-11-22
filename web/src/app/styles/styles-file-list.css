@@ -1,0 +1,62 @@
+/* The list of files on the public Documents and Charts pages: one card per file with its View / Download buttons. */
+.file-list {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.file-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.5rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--c-line);
+  border-radius: 8px;
+  background: var(--c-surface);
+}
+
+.file-item__text {
+  flex: 1 1 16rem;
+  min-width: 0;
+}
+
+.file-item__text h2 {
+  margin: 0 0 0.25rem;
+  font-size: 1.2rem;
+}
+
+.file-item__text h2 a {
+  color: var(--c-brand-ink);
+  text-decoration: none;
+}
+
+.file-item__text h2 a:hover,
+.file-item__text h2 a:focus-visible {
+  text-decoration: underline;
+}
+
+.file-item__text p {
+  margin: 0;
+  color: var(--c-slate-500);
+  /* A description keeps the line breaks it was typed with. */
+  white-space: pre-line;
+}
+
+.file-actions {
+  display: flex;
+  margin-left: auto;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.file-icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.6rem;
+  text-decoration: none;
+}

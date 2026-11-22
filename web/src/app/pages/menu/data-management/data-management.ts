@@ -21,7 +21,12 @@ export class DataManagementComponent {
   searchTerm = '';
 
   // Codes match the manageCode of each route (app.routes.ts) and the data management pages in backend/scripts.
-  readonly cards = [manageMenuCard('/members-manage', 'MEMBERS'), manageMenuCard('/countries-manage', 'COUNTRIES')];
+  readonly cards = [
+    manageMenuCard('/members-manage', 'MEMBERS'),
+    manageMenuCard('/charts-manage', 'CHARTS'),
+    manageMenuCard('/countries-manage', 'COUNTRIES'),
+    manageMenuCard('/documents-manage', 'DOCUMENTS'),
+  ];
 
   constructor() {
     this.title.setTitle('IVAO Philippines - Data Management');

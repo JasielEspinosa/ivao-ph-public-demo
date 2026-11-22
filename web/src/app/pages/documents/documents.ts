@@ -1,22 +1,47 @@
-import { Component, inject } from '@angular/core';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { Title } from '@angular/platform-browser';
 
+import { environment } from '../../../environments/environment';
+import { getAuthHeader } from '../../app';
 import { PlaceholderBannerComponent } from '../../placeholders/banner/placeholder-banner';
+import { DATA_MANAGE_MESSAGES } from '../../shared/data-manage-messages';
+import { FileActionsComponent } from '../../shared/file-actions/file-actions';
+import { PublicFileService } from '../../shared/public-file.service';
+import { buildSubmitErrorMessage } from '../../shared/submit-error-utils';
+import { formatFileSize, formatIsoDate, getFileExtension } from '../../shared/upload-files';
 
-/** A downloadable document. `file` is a PDF under web/public/documents (relative, so the site's base href applies). */
-interface DocumentEntry {
-  readonly title: string;
-  readonly description: string;
-  readonly file: string;
-  /** File name offered by the Download button. */
-  readonly downloadName: string;
+/** A document managed on Data Management > Documents, as the public API returns it (enabled and valid today only). */
+interface UploadedDocument {
+  id: number;
+  name: string;
+  description: string | null;
+  file_name: string;
+  file_mimetype: string;
+  file_size: number;
+  /** YYYY-MM-DD, or null when the document has no validity dates. */
+  start_date: string | null;
+  end_date: string | null;
 }
 
-/** Public list of the division's documents. To add one, drop the PDF in web/public/documents and add a line here. */
+const DOCUMENTS_API = `${environment.apiUrl.replace(/\/$/, '')}/documents`;
+
+const FILE_TYPE_LABELS: Readonly<Record<string, string>> = {
+  pdf: 'PDF',
+  doc: 'Word',
+  docx: 'Word',
+  xls: 'Excel',
+  xlsx: 'Excel',
+};
+
+/**
+ * Public list of the division's documents: the ones managed on Data Management > Documents, shown while they are
+ * enabled and valid today.
+ */
 @Component({
   selector: 'app-documents',
   standalone: true,
-  imports: [PlaceholderBannerComponent],
+  imports: [PlaceholderBannerComponent, FileActionsComponent],
   template: `
     <section class="page-shell">
       <div class="form-shell">
@@ -26,138 +51,121 @@ interface DocumentEntry {
           <p>Official documents of IVAO Philippines.</p>
         </div>
 
-        <ul class="documents-list">
-          @for (doc of documents; track doc.file) {
-            <li class="documents-item">
-              <div class="documents-item__text">
+        @if (errorMessage()) {
+          <div class="status-box error" role="alert">{{ errorMessage() }}</div>
+        }
+
+        @if (isLoading()) {
+          <p class="universal-helper-text-gray" role="status">{{ messages.loading('Documents') }}...</p>
+        } @else if (!errorMessage() && documents().length === 0) {
+          <p class="universal-helper-text-gray">{{ messages.noRecords('Documents') }}</p>
+        }
+
+        <ul class="file-list">
+          @for (doc of documents(); track doc.id) {
+            <li class="file-item">
+              <div class="file-item__text">
                 <h2>
-                  <a [href]="doc.file" target="_blank" rel="noopener noreferrer">{{ doc.title }}</a>
+                  @if (canView(doc)) {
+                    <a
+                      href="#"
+                      (click)="$event.preventDefault(); open(doc, 'view')"
+                      [attr.aria-disabled]="busyId() === doc.id"
+                      >{{ doc.name }}</a
+                    >
+                  } @else {
+                    {{ doc.name }}
+                  }
                 </h2>
-                <p>{{ doc.description }}</p>
+                @if (doc.description) {
+                  <p>{{ doc.description }}</p>
+                }
+                <p>{{ describe(doc) }}</p>
               </div>
-              <div class="documents-item__actions">
-                <a
-                  class="universal-button universal-button--primary documents-icon-button"
-                  [href]="doc.file"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  title="View document"
-                  aria-label="View document"
-                >
-                  <svg
-                    viewBox="0 0 24 24"
-                    width="20"
-                    height="20"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z" />
-                    <circle cx="12" cy="12" r="3" />
-                  </svg>
-                </a>
-                <a
-                  class="universal-button universal-button--edit documents-icon-button"
-                  [href]="doc.file"
-                  [attr.download]="doc.downloadName"
-                  title="Download document"
-                  aria-label="Download document"
-                >
-                  <svg
-                    viewBox="0 0 24 24"
-                    width="20"
-                    height="20"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M12 3v12" />
-                    <path d="M7 10l5 5 5-5" />
-                    <path d="M4 21h16" />
-                  </svg>
-                </a>
-              </div>
+              <app-file-actions
+                label="document"
+                [canView]="canView(doc)"
+                [busy]="busyId() === doc.id"
+                (view)="open(doc, 'view')"
+                (download)="open(doc, 'download')"
+              ></app-file-actions>
             </li>
           }
         </ul>
       </div>
     </section>
   `,
-  styles: `
-    .documents-list {
-      display: grid;
-      gap: 0.75rem;
-      margin: 0;
-      padding: 0;
-      list-style: none;
-    }
-
-    .documents-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 0.75rem 1.5rem;
-      padding: 1rem 1.25rem;
-      border: 1px solid var(--c-line);
-      border-radius: 8px;
-      background: var(--c-surface);
-    }
-
-    .documents-item__actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-    }
-
-    .documents-icon-button {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0.6rem;
-      text-decoration: none;
-    }
-
-    .documents-item__text h2 {
-      margin: 0 0 0.25rem;
-      font-size: 1.2rem;
-    }
-
-    .documents-item__text h2 a {
-      color: var(--c-brand-ink);
-      text-decoration: none;
-    }
-
-    .documents-item__text h2 a:hover,
-    .documents-item__text h2 a:focus-visible {
-      text-decoration: underline;
-    }
-
-    .documents-item__text p {
-      margin: 0;
-      color: var(--c-slate-500);
-    }
-  `,
 })
-export class DocumentsComponent {
+export class DocumentsComponent implements OnInit {
   private readonly title = inject(Title);
+  private readonly http = inject(HttpClient);
+  private readonly publicFiles = inject(PublicFileService);
 
-  readonly documents: readonly DocumentEntry[] = [
-    {
-      title: 'RPHI Manila FIR ATC Standard Operating Procedures',
-      description: 'Standard operating procedures for air traffic controllers in the Manila FIR (RPHI).',
-      file: 'documents/RPHI-Manila-FIR-ATC-Standard-Operating-Procedures.pdf',
-      downloadName: 'RPHI Manila FIR ATC Standard Operating Procedures.pdf',
-    },
-  ];
+  readonly messages = DATA_MANAGE_MESSAGES;
+  readonly documents = signal<UploadedDocument[]>([]);
+  readonly isLoading = signal(true);
+  /** The document whose file is being fetched (its buttons are disabled meanwhile). */
+  readonly busyId = signal<number | null>(null);
+  readonly errorMessage = signal('');
 
   constructor() {
     this.title.setTitle('IVAO Philippines - Documents');
+  }
+
+  ngOnInit(): void {
+    this.http.get<UploadedDocument[]>(DOCUMENTS_API, { headers: this.headers }).subscribe({
+      next: (rows) => {
+        this.documents.set(Array.isArray(rows) ? rows : []);
+        this.isLoading.set(false);
+      },
+      error: (error) => {
+        this.errorMessage.set(
+          buildSubmitErrorMessage(error, { fallbackMessage: DATA_MANAGE_MESSAGES.unableToLoad('documents') }),
+        );
+        this.isLoading.set(false);
+      },
+    });
+  }
+
+  /** "PDF - 1.2 MB", plus "Valid until Nov 30, 2026" when the document has an End Date. */
+  describe(doc: UploadedDocument): string {
+    const type = FILE_TYPE_LABELS[getFileExtension(doc.file_name)] ?? 'File';
+    const parts = [type, formatFileSize(doc.file_size)];
+    if (doc.end_date) {
+      parts.push(`Valid until ${formatIsoDate(doc.end_date)}`);
+    }
+
+    return parts.join(' - ');
+  }
+
+  /** Only a PDF can be shown in the browser; Word and Excel files are downloaded. */
+  canView(doc: UploadedDocument): boolean {
+    return doc.file_mimetype === 'application/pdf';
+  }
+
+  /** Shows (PDF only) or saves the file; see PublicFileService for why it is fetched instead of linked. */
+  open(doc: UploadedDocument, mode: 'view' | 'download'): void {
+    if (this.busyId() !== null) {
+      return;
+    }
+
+    this.busyId.set(doc.id);
+    this.errorMessage.set('');
+    this.publicFiles.open(`${DOCUMENTS_API}/${doc.id}/file`, doc.file_name, doc.file_mimetype, mode).subscribe({
+      next: () => this.busyId.set(null),
+      error: (error) => {
+        this.errorMessage.set(
+          buildSubmitErrorMessage(error, {
+            notFoundMessage: 'This document is no longer available. Please refresh the page.',
+            fallbackMessage: 'Unable to open the document. Please try again.',
+          }),
+        );
+        this.busyId.set(null);
+      },
+    });
+  }
+
+  private get headers(): HttpHeaders {
+    return new HttpHeaders({ Authorization: getAuthHeader() });
   }
 }

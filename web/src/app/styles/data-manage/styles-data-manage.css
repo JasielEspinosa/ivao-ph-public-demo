@@ -58,6 +58,15 @@
   margin-top: 1rem;
 }
 
+/* A success/error message right above the table: a small gap instead of the message's margin plus the table's own. */
+.data-manage-page .status-box:has(+ .table-wrap) {
+  margin-bottom: 0.5rem;
+}
+
+.data-manage-page .status-box + .table-wrap.table-wrap--compact {
+  margin-top: 0;
+}
+
 .data-manage-page .table-wrap.table-wrap--compact table {
   width: 100%;
 }

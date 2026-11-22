@@ -1,0 +1,57 @@
+<section class="page-shell">
+  <div class="form-shell">
+    <app-placeholder-banner title="Upload File" subheading="IVAO PHILIPPINES"></app-placeholder-banner>
+
+    <div class="upload-card">
+      @switch (state()) {
+        @case ('loading') {
+          <p class="universal-helper-text-gray">Loading...</p>
+        }
+        @case ('expired') {
+          <h2>QR code expired</h2>
+          <p class="universal-helper-text-gray">
+            This QR code is no longer valid. Please go back to the page on your computer and scan a new QR code.
+          </p>
+        }
+        @case ('error') {
+          <h2>Something went wrong</h2>
+          <div class="status-box error" role="alert">{{ errorMessage() }}</div>
+        }
+        @case ('done') {
+          <h2>File sent</h2>
+          <p class="universal-helper-text">Your file was sent. You can now go back to your computer.</p>
+          <p class="universal-helper-text-gray">You may close this page.</p>
+        }
+        @default {
+          <h2>Upload {{ fieldLabel() }}</h2>
+          <p class="universal-helper-text">Choose a photo or file</p>
+          <p class="universal-helper-text-gray">{{ uploadHelperText() }}</p>
+
+          <input
+            type="file"
+            class="universal-file-input"
+            aria-label="Choose a file to upload"
+            [accept]="uploadAccept()"
+            [disabled]="state() === 'uploading'"
+            (change)="onFileChosen($event)"
+          />
+          @if (fileName()) {
+            <span class="universal-helper-text-gray">Selected file: {{ fileName() }}</span>
+          }
+          @if (errorMessage()) {
+            <div class="status-box error" role="alert">{{ errorMessage() }}</div>
+          }
+
+          <button
+            type="button"
+            class="universal-button universal-button--primary upload-card__send"
+            [disabled]="state() === 'uploading'"
+            (click)="send()"
+          >
+            {{ state() === 'uploading' ? 'Sending...' : 'Send File' }}
+          </button>
+        }
+      }
+    </div>
+  </div>
+</section>

@@ -1,0 +1,25 @@
+/* The phone page is one short card; buttons, helper texts and the status box come from the shared styles. */
+.upload-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1rem;
+  padding: 1.25rem;
+  border: 1px solid var(--c-line);
+  border-radius: 8px;
+  background: var(--c-surface);
+}
+
+.upload-card h2 {
+  margin: 0;
+  color: var(--c-brand-ink);
+  font-size: 1.2rem;
+}
+
+.upload-card p {
+  margin: 0;
+}
+
+.upload-card__send {
+  width: 100%;
+}

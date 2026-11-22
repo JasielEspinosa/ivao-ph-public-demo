@@ -1,0 +1,91 @@
+<div class="qr-upload">
+  <input #fileInput [id]="inputId" type="file" hidden [accept]="accept" (change)="onFileChosen($event)" />
+
+  <div class="qr-upload__options" role="group" aria-label="Choose how to upload the file">
+    <button
+      type="button"
+      class="qr-upload__option"
+      [class.is-selected]="isSelected('device')"
+      [class.is-invalid]="invalid"
+      title="Pick a file from this device"
+      (click)="openFilePicker()"
+    >
+      <svg class="qr-upload__icon" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 16V4m0 0L7 9m5-5 5 5M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3" />
+      </svg>
+      Choose File
+    </button>
+
+    @if (!phoneLike) {
+      <span class="qr-upload__or" aria-hidden="true">or</span>
+
+      <button
+        type="button"
+        class="qr-upload__option"
+        [class.is-selected]="isSelected('phone') || (panelOpen() && status() === 'waiting')"
+        [class.is-invalid]="invalid"
+        title="Upload from your phone"
+        (click)="startScan()"
+      >
+        <svg class="qr-upload__icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h2v2h-2zM18 14h2v2h-2zM14 18h2v2h-2zM18 18h2v2h-2z" />
+        </svg>
+        Scan QR
+      </button>
+    }
+  </div>
+
+  @if (file) {
+    <span class="universal-helper-text-gray">Selected file: {{ file.name }}</span>
+  }
+
+  @if (panelOpen()) {
+    <div class="qr-upload__panel" aria-live="polite">
+      @switch (status()) {
+        @case ('creating') {
+          <p class="qr-upload__text">Creating your QR code...</p>
+        }
+        @case ('waiting') {
+          <img class="qr-upload__image" [src]="qrImage()" alt="QR code to upload the file from your phone" />
+          <ol class="qr-upload__steps">
+            <li>Open the camera on your phone and point it at the QR code.</li>
+            <li>Open the link, then take a photo or choose the file to upload.</li>
+            <li>The file appears here automatically. Please keep this page open.</li>
+          </ol>
+          <p class="qr-upload__text">Waiting for your upload... This QR code expires in {{ countdownText }}.</p>
+          @if (localhostHint) {
+            <p class="qr-upload__text qr-upload__text--warn">
+              This page was opened as "localhost", which a phone cannot reach. Open it using this computer's network
+              address instead.
+            </p>
+          }
+        }
+        @case ('receiving') {
+          <p class="qr-upload__text">File received. Loading it into the form...</p>
+        }
+        @case ('expired') {
+          <p class="qr-upload__text qr-upload__text--warn">This QR code has expired. Please create a new one.</p>
+        }
+        @case ('error') {
+          <p class="qr-upload__text qr-upload__text--warn">{{ errorMessage() }}</p>
+        }
+      }
+
+      <div class="qr-upload__actions">
+        @if (status() === 'waiting' || status() === 'expired' || status() === 'error') {
+          <button type="button" class="universal-button universal-button--edit" (click)="startScan()">
+            New QR code
+          </button>
+        }
+        <button
+          type="button"
+          class="universal-button universal-button--cancel"
+          [disabled]="status() === 'receiving'"
+          (click)="cancelScan()"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  }
+</div>

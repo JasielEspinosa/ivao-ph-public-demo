@@ -11,11 +11,24 @@ export interface PageTitleEntry {
 }
 
 export const DATA_MANAGE_PAGE_TITLES: Readonly<Record<string, PageTitleEntry>> = {
+  CHARTS: {
+    title: 'Charts',
+    subtitle: '',
+    description: 'Upload the airport charts (PDF) shown on the public Charts page, and choose which are shown.',
+    tabTitle: 'IVAO Philippines - Manage Charts',
+  },
   COUNTRIES: {
     title: 'Countries',
     subtitle: '',
     description: 'Manage the country records used by the Members page.',
     tabTitle: 'IVAO Philippines - Manage Countries',
+  },
+  DOCUMENTS: {
+    title: 'Documents',
+    subtitle: '',
+    description:
+      'Upload the Word, Excel and PDF documents shown on the public Documents page, and choose when they are shown.',
+    tabTitle: 'IVAO Philippines - Manage Documents',
   },
   MEMBERS: {
     title: 'Members',

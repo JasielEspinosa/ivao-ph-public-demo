@@ -4,6 +4,7 @@
 @import './styles-text.css';
 @import './data-manage/styles-data-manage-modal.css';
 @import './styles-modal.css';
+@import './styles-file-list.css';
 
 /* Always show the vertical scrollbar so centered content (header, banner, shell) does not shift sideways between short and long pages, and the banner has no blank gap beside it on short pages */
 html {

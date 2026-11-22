@@ -4,7 +4,7 @@ import { adminRoleGuard } from './guards/admin-role.guard';
 import { authSessionGuard } from './guards/auth-session.guard';
 import { dataManagementAccessGuard } from './guards/data-management-access.guard';
 
-// Public pages (no sign-in): home, members, pilots-lounge, documents, privacy-policy, login, forgot-password, set-password.
+// Public pages (no sign-in): home, members, pilots-lounge, documents, charts, privacy-policy, upload-file (opened from a QR code), login, forgot-password, set-password.
 // Signed-in pages: profile-settings (any user), data-management (+ its pages, by access code) and the admin pages (admins).
 // Keep the public list in sync with AdminAuthService.isPublicRoute.
 export const routes: Routes = [
@@ -27,8 +27,17 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/documents/documents').then((m) => m.DocumentsComponent),
   },
   {
+    path: 'charts',
+    loadComponent: () => import('./pages/charts/charts').then((m) => m.ChartsComponent),
+  },
+  {
     path: 'privacy-policy',
     loadComponent: () => import('./pages/privacy-policy/privacy-policy').then((m) => m.PrivacyPolicyComponent),
+  },
+  {
+    // Opened on a phone from the QR code of a data management upload; the token in the address is its credential.
+    path: 'upload-file',
+    loadComponent: () => import('./pages/upload-file/upload-file').then((m) => m.UploadFilePageComponent),
   },
 
   { path: 'login', component: LoginComponent },
@@ -75,11 +84,24 @@ export const routes: Routes = [
     canActivate: [dataManagementAccessGuard],
   },
   {
+    path: 'charts-manage',
+    loadComponent: () => import('./pages/data-management/charts/charts-manage').then((m) => m.ChartsManageComponent),
+    canActivate: [dataManagementAccessGuard],
+    data: { manageCode: 'CHARTS' },
+  },
+  {
     path: 'countries-manage',
     loadComponent: () =>
       import('./pages/data-management/countries/countries-manage').then((m) => m.CountriesManageComponent),
     canActivate: [dataManagementAccessGuard],
     data: { manageCode: 'COUNTRIES' },
+  },
+  {
+    path: 'documents-manage',
+    loadComponent: () =>
+      import('./pages/data-management/documents/documents-manage').then((m) => m.DocumentsManageComponent),
+    canActivate: [dataManagementAccessGuard],
+    data: { manageCode: 'DOCUMENTS' },
   },
   {
     path: 'members-manage',
