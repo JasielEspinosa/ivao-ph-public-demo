@@ -25,11 +25,53 @@ export const DOCUMENT_RULES: UploadRules = {
 /** Flight charts are PDFs kept in a folder on the server, so they may be larger. */
 export const CHART_RULES: UploadRules = {
   extensions: ['pdf'],
-  maxBytes: 25 * 1024 * 1024,
+  maxBytes: 50 * 1024 * 1024,
   typeMessage: 'Charts must be PDF files.',
-  sizeMessage: 'File must be 25 MB or smaller.',
-  helperText: 'Accepted file type: PDF (up to 25 MB)',
+  sizeMessage: 'File must be 50 MB or smaller.',
+  helperText: 'Accepted file type: PDF (up to 50 MB)',
 };
+
+/** An event's picture is small (kept in the database) and shown at 16:9. The backend checks type and size again. */
+export const EVENT_IMAGE_RULES: UploadRules = {
+  extensions: ['jpg', 'jpeg', 'png', 'webp'],
+  maxBytes: 2 * 1024 * 1024,
+  typeMessage: 'The event image must be a JPG, PNG or WebP file.',
+  sizeMessage: 'The event image must be 2 MB or smaller.',
+  helperText: 'Recommended: 16:9 ratio (1280 x 720 px), JPG, PNG or WebP, up to 2 MB',
+};
+
+/** The picture must be at least this wide (px) to stay sharp on a large screen. */
+export const EVENT_IMAGE_MIN_WIDTH = 640;
+export const EVENT_IMAGE_RATIO_MESSAGE = 'The event image must have a 16:9 ratio, for example 1280 x 720 pixels.';
+export const EVENT_IMAGE_SMALL_MESSAGE = `The event image must be at least ${EVENT_IMAGE_MIN_WIDTH} pixels wide.`;
+export const EVENT_IMAGE_UNREADABLE_MESSAGE = 'The event image could not be read. Choose another file.';
+
+/** The width and height of an image file in pixels, or null when the browser cannot read it as a picture. */
+export function readImageSize(file: File): Promise<{ width: number; height: number } | null> {
+  return new Promise((resolve) => {
+    const objectUrl = URL.createObjectURL(file);
+    const image = new Image();
+    const finish = (size: { width: number; height: number } | null) => {
+      URL.revokeObjectURL(objectUrl);
+      resolve(size);
+    };
+    image.onload = () => finish({ width: image.naturalWidth, height: image.naturalHeight });
+    image.onerror = () => finish(null);
+    image.src = objectUrl;
+  });
+}
+
+/** Why a picture of this size cannot be an event image ('' when it is 16:9 within 2% and wide enough). */
+export function getEventImageSizeError(size: { width: number; height: number } | null): string {
+  if (!size || size.width === 0 || size.height === 0) {
+    return EVENT_IMAGE_UNREADABLE_MESSAGE;
+  }
+  if (Math.abs(size.width / size.height - 16 / 9) / (16 / 9) > 0.02) {
+    return EVENT_IMAGE_RATIO_MESSAGE;
+  }
+
+  return size.width < EVENT_IMAGE_MIN_WIDTH ? EVENT_IMAGE_SMALL_MESSAGE : '';
+}
 
 /** The `accept` attribute of a file input for these rules (".pdf,.doc,..."). */
 export function getAcceptAttribute(rules: Pick<UploadRules, 'extensions'>): string {

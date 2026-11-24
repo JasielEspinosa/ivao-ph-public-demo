@@ -109,7 +109,8 @@
   cursor: pointer;
 }
 
-.manage-form .manage-active input[type='checkbox']:not(.switch-input) {
+.manage-form .manage-active input[type='checkbox']:not(.switch-input),
+.manage-form .manage-active input[type='radio'] {
   position: static !important;
   flex: 0 0 18px;
   width: 18px;
@@ -123,6 +124,13 @@
 .manage-form .manage-active span {
   margin: 0;
   font: inherit;
+}
+
+/* "Upload a file" / "Link to a web page" choice of the Documents and Charts forms. */
+.manage-source-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 1.75rem;
 }
 
 .manage-modal-message {

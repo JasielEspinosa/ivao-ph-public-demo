@@ -1,0 +1,132 @@
+[
+  {
+    "id": 1,
+    "title": "Manila Evening Rush",
+    "day_offset": 0,
+    "start_gmt": "12:00",
+    "end_gmt": "15:00",
+    "airport_mode": "ANY_TO",
+    "from_icao": null,
+    "to_icao": "RPLL",
+    "airport_icaos": [],
+    "airport_details": [
+      {
+        "icao": "RPLL",
+        "name": "Ninoy Aquino International Airport",
+        "place": "Manila (Pasay), Philippines"
+      }
+    ],
+    "description": "Fly in from anywhere and join the busiest evening of the week at Manila. Full ATC coverage on Manila Tower, Ground and Approach.",
+    "has_image": true,
+    "updated_at": "2026-11-24T00:00:00.000Z"
+  },
+  {
+    "id": 2,
+    "title": "Cebu to Clark Island Hopper",
+    "day_offset": 3,
+    "start_gmt": "11:00",
+    "end_gmt": "14:00",
+    "airport_mode": "FROM_TO",
+    "from_icao": "RPVM",
+    "to_icao": "RPLC",
+    "airport_icaos": [],
+    "airport_details": [
+      {
+        "icao": "RPVM",
+        "name": "Mactan Cebu International Airport",
+        "place": "Lapu-Lapu City, Philippines"
+      },
+      {
+        "icao": "RPLC",
+        "name": "Clark International Airport",
+        "place": "Angeles City, Philippines"
+      }
+    ],
+    "description": "A relaxed evening flight from Mactan-Cebu to Clark with ATC at both ends. Bring any aircraft you like, from a turboprop to a heavy.",
+    "has_image": true,
+    "updated_at": "2026-11-24T00:00:00.000Z"
+  },
+  {
+    "id": 3,
+    "title": "Tour of the Philippines",
+    "day_offset": 10,
+    "start_gmt": "09:00",
+    "end_gmt": "13:00",
+    "airport_mode": "MULTIPLE",
+    "from_icao": null,
+    "to_icao": null,
+    "airport_icaos": [
+      "RPLL",
+      "RPVM",
+      "RPMD",
+      "RPVP",
+      "RPMZ"
+    ],
+    "airport_details": [
+      {
+        "icao": "RPLL",
+        "name": "Ninoy Aquino International Airport",
+        "place": "Manila (Pasay), Philippines"
+      },
+      {
+        "icao": "RPVM",
+        "name": "Mactan Cebu International Airport",
+        "place": "Lapu-Lapu City, Philippines"
+      },
+      {
+        "icao": "RPMD",
+        "name": "Francisco Bangoy International Airport",
+        "place": "Davao City, Philippines"
+      },
+      {
+        "icao": "RPVP",
+        "name": "Puerto Princesa International Airport",
+        "place": "Puerto Princesa, Philippines"
+      },
+      {
+        "icao": "RPMZ",
+        "name": "Zamboanga International Airport",
+        "place": "Zamboanga City, Philippines"
+      }
+    ],
+    "description": "Visit as many of the planned airports as you can in one session and enjoy a tour of the country from the north to the south. Pick your own route and aircraft; controllers will be online at every airport listed, so expect plenty of traffic and a friendly welcome wherever you land. Share your route and screenshots on our Discord after the event.",
+    "has_image": true,
+    "updated_at": "2026-11-24T00:00:00.000Z"
+  },
+  {
+    "id": 4,
+    "title": "Clark Night Operations",
+    "day_offset": -5,
+    "start_gmt": "13:00",
+    "end_gmt": "16:00",
+    "airport_mode": "FROM_ANY",
+    "from_icao": "RPLC",
+    "to_icao": null,
+    "airport_icaos": [],
+    "airport_details": [
+      {
+        "icao": "RPLC",
+        "name": "Clark International Airport",
+        "place": "Angeles City, Philippines"
+      }
+    ],
+    "description": "Departures from Clark to anywhere in the region, with a full controller team on the ground and in the approach sector.",
+    "has_image": true,
+    "updated_at": "2026-11-24T00:00:00.000Z"
+  },
+  {
+    "id": 5,
+    "title": "Open Skies Community Flight",
+    "day_offset": -20,
+    "start_gmt": "10:00",
+    "end_gmt": "14:00",
+    "airport_mode": "ANY",
+    "from_icao": null,
+    "to_icao": null,
+    "airport_icaos": [],
+    "airport_details": [],
+    "description": "Our monthly community flight: pick any airport, fly anywhere, and say hello on the frequency.",
+    "has_image": true,
+    "updated_at": "2026-11-24T00:00:00.000Z"
+  }
+]

@@ -7,6 +7,7 @@ import { getAuthHeader } from '../../app';
 import { PlaceholderBannerComponent } from '../../placeholders/banner/placeholder-banner';
 import { DATA_MANAGE_MESSAGES } from '../../shared/data-manage-messages';
 import { FileActionsComponent } from '../../shared/file-actions/file-actions';
+import { getLinkHost } from '../../shared/link-url';
 import { PublicFileService } from '../../shared/public-file.service';
 import { buildSubmitErrorMessage } from '../../shared/submit-error-utils';
 import { formatFileSize, formatIsoDate, getFileExtension } from '../../shared/upload-files';
@@ -16,9 +17,14 @@ interface UploadedDocument {
   id: number;
   name: string;
   description: string | null;
-  file_name: string;
-  file_mimetype: string;
-  file_size: number;
+  /** The page a link document opens in a new tab; null for a document that holds a file. */
+  link_url: string | null;
+  /** The link points to a PDF: it can be downloaded (the server fetches it) as well as opened. */
+  link_is_pdf: boolean;
+  /** The file fields are null for a link. */
+  file_name: string | null;
+  file_mimetype: string | null;
+  file_size: number | null;
   /** YYYY-MM-DD, or null when the document has no validity dates. */
   start_date: string | null;
   end_date: string | null;
@@ -66,7 +72,9 @@ const FILE_TYPE_LABELS: Readonly<Record<string, string>> = {
             <li class="file-item">
               <div class="file-item__text">
                 <h2>
-                  @if (canView(doc)) {
+                  @if (doc.link_url) {
+                    <a [href]="doc.link_url" target="_blank" rel="noopener noreferrer">{{ doc.name }}</a>
+                  } @else if (canView(doc)) {
                     <a
                       href="#"
                       (click)="$event.preventDefault(); open(doc, 'view')"
@@ -85,6 +93,7 @@ const FILE_TYPE_LABELS: Readonly<Record<string, string>> = {
               <app-file-actions
                 label="document"
                 [canView]="canView(doc)"
+                [canDownload]="!doc.link_url || doc.link_is_pdf"
                 [busy]="busyId() === doc.id"
                 (view)="open(doc, 'view')"
                 (download)="open(doc, 'download')"
@@ -127,10 +136,11 @@ export class DocumentsComponent implements OnInit {
     });
   }
 
-  /** "PDF - 1.2 MB", plus "Valid until Nov 30, 2026" when the document has an End Date. */
+  /** "PDF - 1.2 MB" (or "Link - example.com"), plus "Valid until Nov 30, 2026" when the document has an End Date. */
   describe(doc: UploadedDocument): string {
-    const type = FILE_TYPE_LABELS[getFileExtension(doc.file_name)] ?? 'File';
-    const parts = [type, formatFileSize(doc.file_size)];
+    const parts = doc.link_url
+      ? ['Link', getLinkHost(doc.link_url)]
+      : [FILE_TYPE_LABELS[getFileExtension(doc.file_name ?? '')] ?? 'File', formatFileSize(doc.file_size ?? 0)];
     if (doc.end_date) {
       parts.push(`Valid until ${formatIsoDate(doc.end_date)}`);
     }
@@ -138,25 +148,41 @@ export class DocumentsComponent implements OnInit {
     return parts.join(' - ');
   }
 
-  /** Only a PDF can be shown in the browser; Word and Excel files are downloaded. */
+  /** A link is opened; of the files only a PDF can be shown in the browser (Word and Excel files are downloaded). */
   canView(doc: UploadedDocument): boolean {
-    return doc.file_mimetype === 'application/pdf';
+    return !!doc.link_url || doc.file_mimetype === 'application/pdf';
   }
 
-  /** Shows (PDF only) or saves the file; see PublicFileService for why it is fetched instead of linked. */
+  /**
+   * A link opens in a new tab; only a link to a PDF can also be downloaded (the server fetches it). A file is shown
+   * (PDF only) or saved.
+   */
   open(doc: UploadedDocument, mode: 'view' | 'download'): void {
-    if (this.busyId() !== null) {
+    const isLink = !!doc.link_url;
+    if (isLink && mode === 'view') {
+      window.open(doc.link_url!, '_blank', 'noopener,noreferrer');
+      return;
+    }
+    if (isLink && !doc.link_is_pdf) {
+      return;
+    }
+
+    const fileName = isLink ? `${doc.name}.pdf` : doc.file_name;
+    const mimetype = isLink ? 'application/pdf' : doc.file_mimetype;
+    if (!fileName || !mimetype || this.busyId() !== null) {
       return;
     }
 
     this.busyId.set(doc.id);
     this.errorMessage.set('');
-    this.publicFiles.open(`${DOCUMENTS_API}/${doc.id}/file`, doc.file_name, doc.file_mimetype, mode).subscribe({
+    this.publicFiles.open(`${DOCUMENTS_API}/${doc.id}/file`, fileName, mimetype, mode).subscribe({
       next: () => this.busyId.set(null),
       error: (error) => {
         this.errorMessage.set(
           buildSubmitErrorMessage(error, {
-            notFoundMessage: 'This document is no longer available. Please refresh the page.',
+            notFoundMessage: isLink
+              ? 'This PDF could not be downloaded from the website it is on. Please use View to open it instead.'
+              : 'This document is no longer available. Please refresh the page.',
             fallbackMessage: 'Unable to open the document. Please try again.',
           }),
         );

@@ -84,11 +84,6 @@ export class SiteHeaderComponent implements AfterViewInit {
     this.authService.logout();
   }
 
-  /** Menu entries that have no page yet: they are clickable but go nowhere. */
-  noPageYet(event: Event): void {
-    event.preventDefault();
-  }
-
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
     if (!this.host.nativeElement.contains(event.target as Node)) {

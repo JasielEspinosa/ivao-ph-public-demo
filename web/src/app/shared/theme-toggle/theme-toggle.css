@@ -70,6 +70,8 @@
   .theme-hint {
     right: 50%;
     transform: translateX(50%);
+    /* Narrower than on desktop: the switch sits left of the Log-In button, so a wider centered balloon would run off the screen edge. */
+    max-width: min(15rem, calc(100vw - 2rem));
   }
 
   .theme-hint::before {

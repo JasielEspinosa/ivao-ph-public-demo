@@ -1,4 +1,4 @@
-<section class="page-shell data-manage-page">
+<section class="page-shell data-manage-page data-manage-page--full">
   <div class="form-shell">
     <app-placeholder-banner-data-management> </app-placeholder-banner-data-management>
 
@@ -50,6 +50,13 @@
             </th>
 
             <th>
+              <button type="button" class="sort-header-button" (click)="toggleSort('description')">
+                Description
+                {{ getSortIndicator('description') }}
+              </button>
+            </th>
+
+            <th>
               <button type="button" class="sort-header-button" (click)="toggleSort('file_name')">
                 File
                 {{ getSortIndicator('file_name') }}
@@ -92,6 +99,17 @@
                 aria-label="Filter by name"
                 [value]="columnFilters.name"
                 (input)="setColumnFilter('name', $any($event.target).value || '')"
+                placeholder="Filter"
+              />
+            </th>
+
+            <th>
+              <input
+                type="text"
+                class="column-filter-input"
+                aria-label="Filter by description"
+                [value]="columnFilters.description"
+                (input)="setColumnFilter('description', $any($event.target).value || '')"
                 placeholder="Filter"
               />
             </th>
@@ -148,7 +166,9 @@
 
             <td class="resizable-wrap-column">{{ item.name }}</td>
 
-            <td class="resizable-wrap-column">{{ item.file_name }} ({{ formatFileSize(item.file_size) }})</td>
+            <td class="resizable-wrap-column">{{ item.description }}</td>
+
+            <td class="resizable-wrap-column">{{ formatFile(item) }}</td>
 
             <td>{{ formatValidity(item) }}</td>
 
@@ -160,7 +180,7 @@
           </tr>
 
           <tr *ngIf="filteredDocuments.length === 0">
-            <td colspan="6">{{ messages.noRecords('Documents') }}</td>
+            <td colspan="7">{{ messages.noRecords('Documents') }}</td>
           </tr>
         </tbody>
       </table>
@@ -185,9 +205,25 @@
 
     <form class="manage-form universal-form" [formGroup]="form" (ngSubmit)="save()">
       <div class="manage-modal-field">
+        <span class="manage-field-title" id="document_source_title">Document Source</span>
+
+        <div class="manage-source-row" role="radiogroup" aria-labelledby="document_source_title">
+          <label class="manage-active">
+            <input type="radio" formControlName="source" value="file" />
+            <span>Upload a file</span>
+          </label>
+
+          <label class="manage-active">
+            <input type="radio" formControlName="source" value="link" />
+            <span>Link to a web page</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="manage-modal-field" *ngIf="!isLinkSource">
         <span class="manage-field-title">
           Document File
-          <span class="required-mark" *ngIf="!isEditMode">*</span>
+          <span class="required-mark" *ngIf="!hasSavedFile">*</span>
         </span>
 
         <app-qr-upload
@@ -200,11 +236,40 @@
         ></app-qr-upload>
 
         <small class="universal-helper-text-gray">{{ documentHelperText }}</small>
-        <small class="universal-helper-text-gray" *ngIf="isEditMode && editingDocument && !selectedFile">
-          Current file: {{ editingDocument.file_name }} ({{ formatFileSize(editingDocument.file_size) }}). Choose a new
-          file only to replace it.
+        <small class="universal-helper-text-gray" *ngIf="hasSavedFile && editingDocument && !selectedFile">
+          Current file: {{ editingDocument.file_name }} ({{ formatFileSize(editingDocument.file_size ?? 0) }}). Choose a
+          new file only to replace it.
         </small>
         <small class="uf-error" *ngIf="fileErrorMessage">{{ fileErrorMessage }}</small>
+      </div>
+
+      <div class="manage-modal-field" *ngIf="isLinkSource">
+        <label class="uf-field" for="link_url" [class.uf-invalid]="showInvalid('link_url')">
+          <span>
+            Link (URL)
+            <span class="required-mark">*</span>
+          </span>
+
+          <input
+            id="link_url"
+            type="url"
+            [attr.maxlength]="linkUrlMaxLength"
+            autocomplete="off"
+            spellcheck="false"
+            formControlName="link_url"
+            placeholder=" "
+          />
+        </label>
+
+        <small class="universal-helper-text-gray">
+          The Documents page sends the visitor to this web address when the document is opened. Only a link to a PDF
+          that this website is able to fetch (checked when you save) also gets a Download button; any other link can
+          only be opened.
+          <ng-container *ngIf="hasSavedFile">Saving a link replaces the stored file.</ng-container>
+        </small>
+        <small class="uf-error" *ngIf="showInvalid('link_url')">
+          {{ form.controls.link_url.errors?.['required'] ? VALIDATION_MESSAGES.required : linkUrlErrorMessage }}
+        </small>
       </div>
 
       <div class="manage-modal-field">

@@ -7,6 +7,7 @@ import { getAuthHeader } from '../../app';
 import { PlaceholderBannerComponent } from '../../placeholders/banner/placeholder-banner';
 import { DATA_MANAGE_MESSAGES } from '../../shared/data-manage-messages';
 import { FileActionsComponent } from '../../shared/file-actions/file-actions';
+import { getLinkHost } from '../../shared/link-url';
 import { PHILIPPINE_AIRPORTS } from '../../shared/philippine-airports';
 import { PublicFileService } from '../../shared/public-file.service';
 import { buildSubmitErrorMessage } from '../../shared/submit-error-utils';
@@ -15,13 +16,21 @@ import { formatFileSize } from '../../shared/upload-files';
 /** A chart as the public API returns it: enabled charts only. */
 interface PublicChart {
   id: number;
-  airport_icao: string;
+  /** Empty for a chart that belongs to no single airport. */
+  airport_icao: string | null;
   chart_name: string;
-  file_name: string;
-  file_size: number;
+  description: string | null;
+  /** The page a link chart opens in a new tab; null for a chart that holds a PDF. */
+  link_url: string | null;
+  /** The link points to a PDF: it can be downloaded (the server fetches it) as well as opened. */
+  link_is_pdf: boolean;
+  /** The file fields are null for a link. */
+  file_name: string | null;
+  file_size: number | null;
 }
 
 interface AirportCharts {
+  /** '' for the charts without an airport. */
   icao: string;
   /** The airport's name when it is a known Philippine airport. */
   name: string;
@@ -56,9 +65,13 @@ const CHARTS_API = `${environment.apiUrl.replace(/\/$/, '')}/charts`;
 
         @for (airport of airports(); track airport.icao) {
           <h2 class="charts-airport">
-            {{ airport.icao }}
-            @if (airport.name) {
-              <span class="charts-airport__name">- {{ airport.name }}</span>
+            @if (airport.icao) {
+              {{ airport.icao }}
+              @if (airport.name) {
+                <span class="charts-airport__name">- {{ airport.name }}</span>
+              }
+            } @else {
+              Other Charts
             }
           </h2>
 
@@ -66,11 +79,26 @@ const CHARTS_API = `${environment.apiUrl.replace(/\/$/, '')}/charts`;
             @for (chart of airport.charts; track chart.id) {
               <li class="file-item">
                 <div class="file-item__text">
-                  <h3 class="charts-chart">{{ chart.chart_name }}</h3>
-                  <p>PDF - {{ formatFileSize(chart.file_size) }}</p>
+                  <h3 class="charts-chart">
+                    @if (chart.link_url) {
+                      <a [href]="chart.link_url" target="_blank" rel="noopener noreferrer">{{ chart.chart_name }}</a>
+                    } @else {
+                      <a
+                        href="#"
+                        (click)="$event.preventDefault(); open(chart, 'view')"
+                        [attr.aria-disabled]="busyId() === chart.id"
+                        >{{ chart.chart_name }}</a
+                      >
+                    }
+                  </h3>
+                  @if (chart.description) {
+                    <p>{{ chart.description }}</p>
+                  }
+                  <p>{{ describe(chart) }}</p>
                 </div>
                 <app-file-actions
                   label="chart"
+                  [canDownload]="!chart.link_url || chart.link_is_pdf"
                   [busy]="busyId() === chart.id"
                   (view)="open(chart, 'view')"
                   (download)="open(chart, 'download')"
@@ -97,6 +125,16 @@ const CHARTS_API = `${environment.apiUrl.replace(/\/$/, '')}/charts`;
       margin: 0 0 0.25rem;
       font-size: 1.1rem;
     }
+
+    .charts-chart a {
+      color: var(--c-brand-ink);
+      text-decoration: none;
+    }
+
+    .charts-chart a:hover,
+    .charts-chart a:focus-visible {
+      text-decoration: underline;
+    }
   `,
 })
 export class ChartsComponent implements OnInit {
@@ -105,7 +143,6 @@ export class ChartsComponent implements OnInit {
   private readonly publicFiles = inject(PublicFileService);
 
   readonly messages = DATA_MANAGE_MESSAGES;
-  readonly formatFileSize = formatFileSize;
 
   readonly isLoading = signal(true);
   readonly errorMessage = signal('');
@@ -117,11 +154,12 @@ export class ChartsComponent implements OnInit {
   readonly airports = computed<AirportCharts[]>(() => {
     const groups = new Map<string, AirportCharts>();
     for (const chart of this.charts()) {
-      let group = groups.get(chart.airport_icao);
+      const icao = chart.airport_icao ?? '';
+      let group = groups.get(icao);
       if (!group) {
-        const known = PHILIPPINE_AIRPORTS.find((airport) => airport.icao === chart.airport_icao);
-        group = { icao: chart.airport_icao, name: known?.name ?? '', charts: [] };
-        groups.set(chart.airport_icao, group);
+        const known = PHILIPPINE_AIRPORTS.find((airport) => airport.icao === icao);
+        group = { icao, name: known?.name ?? '', charts: [] };
+        groups.set(icao, group);
       }
       group.charts.push(chart);
     }
@@ -150,20 +188,40 @@ export class ChartsComponent implements OnInit {
       });
   }
 
-  /** Shows the chart in a new tab or saves it; see PublicFileService for why it is fetched instead of linked. */
+  /** "PDF - 1.2 MB", or "Link - example.com" for a chart that points to a page. */
+  describe(chart: PublicChart): string {
+    return chart.link_url ? `Link - ${getLinkHost(chart.link_url)}` : `PDF - ${formatFileSize(chart.file_size ?? 0)}`;
+  }
+
+  /**
+   * A link opens in a new tab; only a link to a PDF can also be downloaded (the server fetches it). A file is shown in a new tab or saved (see PublicFileService
+   * for why it is fetched instead of linked).
+   */
   open(chart: PublicChart, mode: 'view' | 'download'): void {
-    if (this.busyId() !== null) {
+    const isLink = !!chart.link_url;
+    if (isLink && mode === 'view') {
+      window.open(chart.link_url!, '_blank', 'noopener,noreferrer');
+      return;
+    }
+    if (isLink && !chart.link_is_pdf) {
+      return;
+    }
+
+    const fileName = isLink ? `${chart.chart_name}.pdf` : chart.file_name;
+    if (!fileName || this.busyId() !== null) {
       return;
     }
 
     this.busyId.set(chart.id);
     this.errorMessage.set('');
-    this.publicFiles.open(`${CHARTS_API}/${chart.id}/file`, chart.file_name, 'application/pdf', mode).subscribe({
+    this.publicFiles.open(`${CHARTS_API}/${chart.id}/file`, fileName, 'application/pdf', mode).subscribe({
       next: () => this.busyId.set(null),
       error: (error) => {
         this.errorMessage.set(
           buildSubmitErrorMessage(error, {
-            notFoundMessage: 'This chart is no longer available. Please refresh the page.',
+            notFoundMessage: isLink
+              ? 'This PDF could not be downloaded from the website it is on. Please use View to open it instead.'
+              : 'This chart is no longer available. Please refresh the page.',
             fallbackMessage: 'Unable to open the chart. Please try again.',
           }),
         );

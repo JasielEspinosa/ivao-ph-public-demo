@@ -15,6 +15,7 @@ import { environment } from '../environments/environment';
 import { AdminAuthService } from './services/admin-auth.service';
 import { AppVersionService } from './services/app-version.service';
 import { ThemeService } from './services/theme.service';
+import { installAutoTrimInputs } from './shared/auto-trim-inputs';
 
 export function getAuthHeader(): string {
   const username = environment.apiAuth.username;
@@ -47,6 +48,7 @@ export class App implements AfterViewInit, OnDestroy {
   private readonly onWindowScroll = (): void => this.backToTopScrolled.set(window.scrollY > 300);
   private readonly sessionTicker = window.setInterval(() => this.enforceSessionTimeout(), 30000);
   private readonly subscriptions = new Subscription();
+  private readonly stopAutoTrimInputs = installAutoTrimInputs();
   private loadingDelayTimer: ReturnType<typeof setTimeout> | null = null;
   private hasCompletedInitialNavigation = false;
   private static readonly LOADING_START_DELAY_MS = 125;
@@ -117,6 +119,7 @@ export class App implements AfterViewInit, OnDestroy {
   ngOnDestroy(): void {
     window.clearInterval(this.sessionTicker);
     window.removeEventListener('scroll', this.onWindowScroll);
+    this.stopAutoTrimInputs();
     this.clearLoadingDelayTimer();
     this.subscriptions.unsubscribe();
     this.tableResizeObserver?.disconnect();

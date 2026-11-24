@@ -1,0 +1,60 @@
+[
+  {
+    "id": 1,
+    "name": "Division Operations Manual",
+    "description": "How IVAO Philippines runs its flights, events and air traffic control.",
+    "link_url": null,
+    "link_is_pdf": false,
+    "file_name": "Division-Operations-Manual.pdf",
+    "file_mimetype": "application/pdf",
+    "file_size": 922,
+    "start_date": null,
+    "end_date": null
+  },
+  {
+    "id": 2,
+    "name": "Controller Training Handbook",
+    "description": "The training path for new air traffic controllers, from Observer to ADC.",
+    "link_url": null,
+    "link_is_pdf": false,
+    "file_name": "Controller-Training-Handbook.pdf",
+    "file_mimetype": "application/pdf",
+    "file_size": 926,
+    "start_date": null,
+    "end_date": null
+  },
+  {
+    "id": 3,
+    "name": "Code of Conduct",
+    "description": "What we expect from every member of the division.",
+    "link_url": null,
+    "link_is_pdf": false,
+    "file_name": "Code-of-Conduct.pdf",
+    "file_mimetype": "application/pdf",
+    "file_size": 890,
+    "start_date": null,
+    "end_date": "2030-12-31"
+  },
+  {
+    "id": 4,
+    "name": "IVAO Global Policies",
+    "description": "The network-wide rules and policies, on the IVAO website.",
+    "link_url": "https://www.ivao.aero/",
+    "link_is_pdf": false,
+    "file_name": null,
+    "file_mimetype": null,
+    "file_size": null,
+    "start_date": null
+  },
+  {
+    "id": 5,
+    "name": "Event Participation Guide",
+    "description": "Tips for taking part in a division event as a pilot or controller.",
+    "link_url": "https://example.com/event-participation-guide.pdf",
+    "link_is_pdf": true,
+    "file_name": null,
+    "file_mimetype": null,
+    "file_size": null,
+    "start_date": null
+  }
+]

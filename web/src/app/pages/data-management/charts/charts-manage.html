@@ -146,11 +146,11 @@
           <tr *ngFor="let item of pager.slice(filteredCharts)">
             <td>{{ item.id }}</td>
 
-            <td>{{ item.airport_icao }}</td>
+            <td>{{ item.airport_icao || '-' }}</td>
 
             <td class="resizable-wrap-column">{{ item.chart_name }}</td>
 
-            <td class="resizable-wrap-column">{{ item.file_name }} ({{ formatFileSize(item.file_size) }})</td>
+            <td class="resizable-wrap-column">{{ formatFile(item) }}</td>
 
             <td>{{ item.is_active ? 'Yes' : 'No' }}</td>
 
@@ -185,9 +185,25 @@
 
     <form class="manage-form universal-form" [formGroup]="form" (ngSubmit)="save()">
       <div class="manage-modal-field">
+        <span class="manage-field-title" id="chart_source_title">Chart Source</span>
+
+        <div class="manage-source-row" role="radiogroup" aria-labelledby="chart_source_title">
+          <label class="manage-active">
+            <input type="radio" formControlName="source" value="file" />
+            <span>Upload a PDF</span>
+          </label>
+
+          <label class="manage-active">
+            <input type="radio" formControlName="source" value="link" />
+            <span>Link to a web page</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="manage-modal-field" *ngIf="!isLinkSource">
         <span class="manage-field-title">
           Chart File (PDF)
-          <span class="required-mark" *ngIf="!isEditMode">*</span>
+          <span class="required-mark" *ngIf="!hasSavedFile">*</span>
         </span>
 
         <app-qr-upload
@@ -200,19 +216,60 @@
         ></app-qr-upload>
 
         <small class="universal-helper-text-gray">{{ chartHelperText }}</small>
-        <small class="universal-helper-text-gray" *ngIf="isEditMode && editingChart && !selectedFile">
-          Current file: {{ editingChart.file_name }} ({{ formatFileSize(editingChart.file_size) }}). Choose a new file
-          only to replace it.
+        <small class="universal-helper-text-gray" *ngIf="hasSavedFile && editingChart && !selectedFile">
+          Current file: {{ editingChart.file_name }} ({{ formatFileSize(editingChart.file_size ?? 0) }}). Choose a new
+          file only to replace it.
         </small>
         <small class="uf-error" *ngIf="fileErrorMessage">{{ fileErrorMessage }}</small>
       </div>
 
-      <div class="manage-modal-field">
-        <label class="uf-field" for="airport_icao" [class.uf-invalid]="showInvalid('airport_icao')">
+      <div class="manage-modal-field" *ngIf="isLinkSource">
+        <label class="uf-field" for="link_url" [class.uf-invalid]="showInvalid('link_url')">
           <span>
-            Airport (ICAO)
+            Link (URL)
             <span class="required-mark">*</span>
           </span>
+
+          <input
+            id="link_url"
+            type="url"
+            [attr.maxlength]="linkUrlMaxLength"
+            autocomplete="off"
+            spellcheck="false"
+            formControlName="link_url"
+            placeholder=" "
+          />
+        </label>
+
+        <small class="universal-helper-text-gray">
+          The Charts page sends the visitor to this web address when the chart is opened. Only a link to a PDF that this
+          website is able to fetch (checked when you save) also gets a Download button; any other link can only be
+          opened.
+          <ng-container *ngIf="hasSavedFile">Saving a link replaces the stored file.</ng-container>
+        </small>
+        <small class="uf-error" *ngIf="showInvalid('link_url')">
+          {{ form.controls.link_url.errors?.['required'] ? VALIDATION_MESSAGES.required : linkUrlErrorMessage }}
+        </small>
+      </div>
+
+      <div class="manage-modal-field">
+        <label class="uf-field" for="chart_name" [class.uf-invalid]="showInvalid('chart_name')">
+          <span>
+            Chart Name
+            <span class="required-mark">*</span>
+          </span>
+
+          <input id="chart_name" type="text" maxlength="255" formControlName="chart_name" placeholder=" " />
+        </label>
+
+        <small class="uf-error" *ngIf="showInvalid('chart_name')">
+          {{ VALIDATION_MESSAGES.required }}
+        </small>
+      </div>
+
+      <div class="manage-modal-field">
+        <label class="uf-field" for="airport_icao" [class.uf-invalid]="showInvalid('airport_icao')">
+          <span>Airport (ICAO)</span>
 
           <input
             id="airport_icao"
@@ -232,24 +289,19 @@
           </datalist>
         </label>
 
-        <small class="uf-error" *ngIf="showInvalid('airport_icao')">
-          {{ form.controls.airport_icao.errors?.['required'] ? VALIDATION_MESSAGES.required : invalidIcaoMessage }}
-        </small>
+        <small class="universal-helper-text-gray"
+          >Optional. Leave empty for a chart that belongs to no single airport.</small
+        >
+        <small class="uf-error" *ngIf="showInvalid('airport_icao')">{{ invalidIcaoMessage }}</small>
       </div>
 
       <div class="manage-modal-field">
-        <label class="uf-field" for="chart_name" [class.uf-invalid]="showInvalid('chart_name')">
-          <span>
-            Chart Name
-            <span class="required-mark">*</span>
-          </span>
+        <label class="uf-field" for="description">
+          <span>Description</span>
 
-          <input id="chart_name" type="text" maxlength="255" formControlName="chart_name" placeholder=" " />
+          <textarea id="description" maxlength="1000" formControlName="description" placeholder=" "></textarea>
         </label>
-
-        <small class="uf-error" *ngIf="showInvalid('chart_name')">
-          {{ VALIDATION_MESSAGES.required }}
-        </small>
+        <small class="universal-helper-text-gray">Optional. Shown under the chart name on the Charts page.</small>
       </div>
 
       <div class="manage-toggle-row">

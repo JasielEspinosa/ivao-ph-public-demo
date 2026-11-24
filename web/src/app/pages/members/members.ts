@@ -7,19 +7,17 @@ import { environment } from '../../../environments/environment';
 import { getAuthHeader } from '../../app';
 import { PlaceholderBannerComponent } from '../../placeholders/banner/placeholder-banner';
 import { DATA_MANAGE_MESSAGES } from '../../shared/data-manage-messages';
+import { StaffCardsComponent, StaffContact } from '../../shared/staff-cards/staff-cards';
 import { NETWORK_UNAVAILABLE_MESSAGE } from '../../shared/submit-error-utils';
 import { TablePagination, TablePaginationComponent } from '../../shared/table-pagination/table-pagination';
 
 /** A member as the public API returns it: display fields of enabled members only. */
-interface PublicMember {
-  vid: string;
-  name: string;
+interface PublicMember extends StaffContact {
   country: string | null;
   division: string | null;
   is_pilot: boolean;
   is_atc: boolean;
   is_staff: boolean;
-  role_description: string | null;
 }
 
 const MEMBERS_API = `${environment.apiUrl.replace(/\/$/, '')}/members`;
@@ -28,7 +26,7 @@ const MEMBERS_API = `${environment.apiUrl.replace(/\/$/, '')}/members`;
 @Component({
   selector: 'app-members',
   standalone: true,
-  imports: [CommonModule, PlaceholderBannerComponent, TablePaginationComponent],
+  imports: [CommonModule, PlaceholderBannerComponent, TablePaginationComponent, StaffCardsComponent],
   templateUrl: './members.html',
   styleUrl: './members.css',
 })
@@ -39,14 +37,13 @@ export class MembersComponent implements OnInit {
   readonly messages = DATA_MANAGE_MESSAGES;
   readonly pilotsPager = new TablePagination();
   readonly atcPager = new TablePagination();
-  readonly staffPager = new TablePagination();
 
   readonly isLoading = signal(true);
   readonly errorMessage = signal('');
   readonly searchTerm = signal('');
   private readonly members = signal<PublicMember[]>([]);
 
-  /** Members matching the search box (VID, name, country, division or role). */
+  /** Members matching the search box (VID, name, country, division, role or contact details). */
   private readonly matching = computed(() => {
     const needle = this.searchTerm().trim().toLowerCase();
     if (!needle) {
@@ -54,7 +51,16 @@ export class MembersComponent implements OnInit {
     }
 
     return this.members().filter((member) =>
-      [member.vid, member.name, member.country, member.division, member.role_description]
+      [
+        member.vid,
+        member.name,
+        member.country,
+        member.division,
+        member.role_title,
+        member.role_description,
+        member.contact_email,
+        member.contact_number,
+      ]
         .map((part) => (part ?? '').toLowerCase())
         .join(' ')
         .includes(needle),

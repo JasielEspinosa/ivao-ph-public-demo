@@ -9,6 +9,7 @@ import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
 import { PlaceholderBannerAdminComponent } from '../../../placeholders/banner/placeholder-banner-admin';
 import { AdminAuthService } from '../../../services/admin-auth.service';
 import { scrollToFirstValidationError } from '../../../shared/form-validation-scroll';
+import { sanitizePhilippineContactNumber } from '../../../shared/philippine-contact-number';
 import { VALIDATION_MESSAGES } from '../../../shared/validation-messages';
 import { VALIDATION_PATTERNS } from '../../../shared/validation-patterns';
 import { environment } from '../../../../environments/environment';
@@ -16,6 +17,11 @@ import { environment } from '../../../../environments/environment';
 interface DataManagementPageRecord {
   code: string;
   name: string;
+}
+
+interface CountryOption {
+  id: number;
+  country_name: string;
 }
 
 interface AdminUserDetails {
@@ -29,6 +35,20 @@ interface AdminUserDetails {
   is_admin: boolean;
   manage_all_data: boolean;
   manage_data_codes: string[];
+  // "Add to Member List": the member this user is kept in sync with (only sent by the user details endpoint).
+  add_to_member_list?: boolean;
+  vid?: string;
+  country_id?: number | null;
+  country_name?: string | null;
+  division?: string;
+  is_pilot?: boolean;
+  is_atc?: boolean;
+  is_staff?: boolean;
+  show_in_contacts?: boolean;
+  role_title?: string;
+  role_description?: string;
+  contact_email?: string;
+  contact_number?: string;
 }
 
 interface AdminUserSummary extends AdminUserDetails {
@@ -37,6 +57,7 @@ interface AdminUserSummary extends AdminUserDetails {
 
 const ADMIN_USERS_API = `${environment.apiUrl.replace(/\/$/, '')}/admin-users`;
 const BASIC_EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+const VID_PATTERN = /^\d{3,10}$/;
 const REPLICATE_SEARCH_DEBOUNCE_MS = 300;
 const REPLICATE_MAX_RESULTS = 10;
 
@@ -58,7 +79,10 @@ export class ManageUserComponent implements OnInit {
   private readonly document = inject(DOCUMENT);
   readonly requiredFieldMessage = VALIDATION_MESSAGES.required;
   readonly invalidSuffixMessage = VALIDATION_MESSAGES.invalidSuffixShort;
+  readonly invalidVidMessage = VALIDATION_MESSAGES.invalidVid;
   readonly suffixPattern = new RegExp(VALIDATION_PATTERNS.suffix);
+  readonly invalidEmailMessage = VALIDATION_MESSAGES.invalidEmail;
+  readonly invalidContactNumberMessage = VALIDATION_MESSAGES.invalidPhilippineContactNumber;
 
   readonly form = this.fb.nonNullable.group({
     login_email: ['', [Validators.required, this.loginEmailOrAdminValidator]],
@@ -72,9 +96,26 @@ export class ManageUserComponent implements OnInit {
     is_active: [false],
     is_admin: [false],
     manage_all_data: [false],
+    // "Add to Member List": off by default; the member fields below apply (and VID is required) only while it is on.
+    add_to_member_list: [false],
+    vid: [''],
+    country_id: [null as number | null],
+    division: ['', [Validators.maxLength(10)]],
+    is_pilot: [false],
+    is_atc: [false],
+    is_staff: [false],
+    // Staff only: the four fields below apply (and Role Title is required) while "Show in Contacts List" is on.
+    show_in_contacts: [false],
+    role_title: ['', [Validators.maxLength(255)]],
+    role_description: ['', [Validators.maxLength(255)]],
+    contact_email: ['', [Validators.maxLength(255)]],
+    contact_number: [''],
   });
 
   availableDataManagementPages: DataManagementPageRecord[] = [];
+  countryOptions: CountryOption[] = [];
+  private availableCountries: CountryOption[] = [];
+  private savedMemberCountry: CountryOption | null = null;
   selectedManageCodes = new Set<string>();
   isEditMode = false;
   // Stays true until the data management page list (and, in edit mode, the user) has loaded.
@@ -117,6 +158,16 @@ export class ManageUserComponent implements OnInit {
       this.updateProtectedAdminCheckboxState();
     });
 
+    this.form.controls.add_to_member_list.valueChanges.subscribe((isOn) => {
+      this.updateMemberFieldValidators(Boolean(isOn));
+      this.updateContactFieldValidators();
+    });
+
+    this.form.controls.is_staff.valueChanges.subscribe(() => this.updateContactFieldValidators());
+    this.form.controls.show_in_contacts.valueChanges.subscribe(() => this.updateContactFieldValidators());
+
+    this.loadCountryOptions();
+
     this.replicateSearchInput$
       .pipe(debounceTime(REPLICATE_SEARCH_DEBOUNCE_MS), distinctUntilChanged())
       .subscribe((term) => {
@@ -145,6 +196,109 @@ export class ManageUserComponent implements OnInit {
           }
 
           this.feedbackMessage = 'Unable to load the data management pages.';
+          this.changeDetectorRef.detectChanges();
+        },
+      });
+  }
+
+  get isAddToMemberList(): boolean {
+    return Boolean(this.form.controls.add_to_member_list.value);
+  }
+
+  /** "Is Staff" is on: the "Show in Contacts List" switch shows. */
+  get isStaffMember(): boolean {
+    return this.isAddToMemberList && Boolean(this.form.controls.is_staff.value);
+  }
+
+  /** "Show in Contacts List" is on: the Email and Number fields show. */
+  get showContactFields(): boolean {
+    return this.isStaffMember && Boolean(this.form.controls.show_in_contacts.value);
+  }
+
+  showContactError(controlName: 'role_title' | 'contact_email' | 'contact_number', error: string): boolean {
+    const control = this.form.controls[controlName];
+    return Boolean(control.errors?.[error]) && (control.touched || this.submitAttempted);
+  }
+
+  onContactNumberInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const sanitized = sanitizePhilippineContactNumber(input.value);
+    if (sanitized !== input.value) {
+      input.value = sanitized;
+    }
+    this.form.controls.contact_number.setValue(sanitized);
+  }
+
+  showVidRequiredError(): boolean {
+    const control = this.form.controls.vid;
+    return Boolean(control.errors?.['required']) && (control.touched || this.submitAttempted);
+  }
+
+  showVidInvalidError(): boolean {
+    const control = this.form.controls.vid;
+    return (
+      Boolean(control.errors?.['pattern']) && !this.showVidRequiredError() && (control.touched || this.submitAttempted)
+    );
+  }
+
+  showDivisionInvalidError(): boolean {
+    const control = this.form.controls.division;
+    return Boolean(control.errors?.['maxlength']) && (control.touched || this.submitAttempted);
+  }
+
+  // VID is validated only while "Add to Member List" is on; a hidden member field is never validated or saved.
+  private updateMemberFieldValidators(isOn: boolean): void {
+    const vid = this.form.controls.vid;
+    vid.setValidators(isOn ? [Validators.required, Validators.pattern(VID_PATTERN)] : []);
+    vid.updateValueAndValidity({ emitEvent: false });
+  }
+
+  // Role Title is required for staff, and the email and number are checked while they are shown.
+  private updateContactFieldValidators(): void {
+    const { role_title, role_description, contact_email, contact_number } = this.form.controls;
+    const isShown = this.showContactFields;
+
+    role_title.setValidators(
+      this.isStaffMember ? [Validators.required, Validators.maxLength(255)] : [Validators.maxLength(255)],
+    );
+    contact_email.setValidators(
+      isShown
+        ? [Validators.maxLength(255), Validators.pattern(VALIDATION_PATTERNS.email)]
+        : [Validators.maxLength(255)],
+    );
+    contact_number.setValidators(isShown ? [Validators.pattern(VALIDATION_PATTERNS.contactNumber_ph)] : []);
+
+    for (const control of [role_title, role_description, contact_email, contact_number]) {
+      control.updateValueAndValidity({ emitEvent: false });
+    }
+  }
+
+  // A country that was switched off since is still offered, so saving does not silently clear it.
+  private updateCountryOptions(): void {
+    const saved = this.savedMemberCountry;
+    const isMissing = saved !== null && !this.availableCountries.some((option) => option.id === saved.id);
+    this.countryOptions = isMissing ? [...this.availableCountries, saved] : this.availableCountries;
+  }
+
+  private loadCountryOptions(): void {
+    this.http
+      .get<CountryOption[]>(`${ADMIN_USERS_API}/country-options`, {
+        headers: this.authService.getAdminApiHeaders(),
+      })
+      .subscribe({
+        next: (rows) => {
+          this.availableCountries = Array.isArray(rows) ? rows : [];
+          this.updateCountryOptions();
+          this.changeDetectorRef.detectChanges();
+        },
+        error: (error: HttpErrorResponse) => {
+          if (error?.status === 401) {
+            this.authService.logout();
+            this.changeDetectorRef.detectChanges();
+            return;
+          }
+
+          this.feedbackMessage = 'Unable to load the countries.';
           this.changeDetectorRef.detectChanges();
         },
       });
@@ -324,9 +478,42 @@ export class ManageUserComponent implements OnInit {
       return;
     }
 
+    const {
+      vid,
+      country_id,
+      division,
+      is_pilot,
+      is_atc,
+      is_staff,
+      show_in_contacts,
+      role_title,
+      role_description,
+      contact_email,
+      contact_number,
+      ...userValues
+    } = this.form.getRawValue();
+    const addToMemberList = userValues.add_to_member_list;
+    // The role only applies to staff, the email and number to staff shown in the Contacts list: hidden fields are not saved.
+    const showContact = is_staff && show_in_contacts;
     const payload = {
-      ...this.form.getRawValue(),
+      ...userValues,
       manage_data_codes: Array.from(this.selectedManageCodes),
+      // The member fields are sent only while "Add to Member List" is on.
+      ...(addToMemberList
+        ? {
+            vid: vid.trim(),
+            country_id: country_id === null || (country_id as unknown) === '' ? null : Number(country_id),
+            division: division.trim(),
+            is_pilot,
+            is_atc,
+            is_staff,
+            show_in_contacts: showContact,
+            role_title: is_staff ? role_title.trim() : '',
+            role_description: is_staff ? role_description.trim() : '',
+            contact_email: showContact ? contact_email.trim() : '',
+            contact_number: showContact ? contact_number.trim() : '',
+          }
+        : {}),
     };
 
     this.isSaving = true;
@@ -605,7 +792,25 @@ export class ManageUserComponent implements OnInit {
             is_active: Boolean(user.is_active),
             is_admin: user.is_admin,
             manage_all_data: user.manage_all_data,
+            add_to_member_list: Boolean(user.add_to_member_list),
+            vid: user.vid || '',
+            country_id: user.country_id ?? null,
+            division: user.division || '',
+            is_pilot: Boolean(user.is_pilot),
+            is_atc: Boolean(user.is_atc),
+            is_staff: Boolean(user.is_staff),
+            show_in_contacts: Boolean(user.show_in_contacts),
+            role_title: user.role_title || '',
+            role_description: user.role_description || '',
+            contact_email: user.contact_email || '',
+            contact_number: user.contact_number || '',
           });
+          this.updateMemberFieldValidators(Boolean(user.add_to_member_list));
+          this.updateContactFieldValidators();
+
+          this.savedMemberCountry =
+            user.country_id != null ? { id: user.country_id, country_name: user.country_name ?? '' } : null;
+          this.updateCountryOptions();
 
           this.updateLoginEmailEditableState(user.login_email);
           this.updateProtectedAdminCheckboxState();

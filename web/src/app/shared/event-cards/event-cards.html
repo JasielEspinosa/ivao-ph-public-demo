@@ -1,0 +1,122 @@
+@if (events.length === 0) {
+  <p class="universal-helper-text-gray">{{ emptyMessage }}</p>
+} @else {
+  <div class="event-grid">
+    @for (event of events; track event.id) {
+      <article class="event-card" [class]="'event-card event-card--' + kind(event)">
+        <button
+          type="button"
+          class="event-card__image-button"
+          [attr.aria-label]="'Enlarge the picture of ' + event.title"
+          (click)="openEvent(event, $event)"
+        >
+          <img
+            class="event-card__image"
+            [appAuthSrc]="imageUrl(event)"
+            [appAuthFallback]="fallbackImage"
+            [alt]="'Picture of ' + event.title"
+            loading="lazy"
+          />
+        </button>
+        <div class="event-card__body">
+          @if (statusLabel(event); as status) {
+            <span class="event-card__status">{{ status }}</span>
+          }
+          <h3 class="event-card__title">
+            {{ event.title }}
+            @if (kind(event) === 'past') {
+              <span class="event-card__tag">Ended</span>
+            }
+          </h3>
+          <p class="event-card__date">
+            @for (line of formatWhen(event.start_at, event.end_at); track $index) {
+              {{ line }}<br />
+            }
+          </p>
+          <p class="event-card__airports">
+            <span class="event-card__label">Airports:</span> {{ formatAirports(event) }}
+          </p>
+          <app-event-airport-list [airports]="event.airport_details" [limit]="3"></app-event-airport-list>
+          @if (event.description) {
+            <p class="event-card__summary" [class.event-card__summary--clamped]="isLong(event) && !isExpanded(event)">
+              {{ event.description }}
+            </p>
+            @if (isLong(event)) {
+              <button
+                type="button"
+                class="event-card__more"
+                [attr.aria-expanded]="isExpanded(event)"
+                (click)="toggleExpanded(event)"
+              >
+                {{ isExpanded(event) ? 'Show less' : 'Read more' }}
+              </button>
+            }
+          }
+        </div>
+      </article>
+    }
+  </div>
+
+  @if (selected(); as event) {
+    <div
+      class="event-modal"
+      [class.event-modal--closing]="closing()"
+      [style.--event-modal-from-x]="originX() + 'px'"
+      [style.--event-modal-from-y]="originY() + 'px'"
+      (click)="closeEvent()"
+    >
+      <div
+        [class]="'event-modal__panel event-modal__panel--' + kind(event)"
+        role="dialog"
+        aria-modal="true"
+        [attr.aria-labelledby]="'event-modal-title-' + event.id"
+        (click)="$event.stopPropagation()"
+      >
+        <button #closeButton type="button" class="event-modal__close" aria-label="Close" (click)="closeEvent()">
+          <svg
+            viewBox="0 0 24 24"
+            width="20"
+            height="20"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.4"
+            stroke-linecap="round"
+            aria-hidden="true"
+          >
+            <path d="M6 6l12 12M18 6L6 18" />
+          </svg>
+        </button>
+        <img
+          class="event-modal__image"
+          [class.event-modal__image--past]="kind(event) === 'past'"
+          [appAuthSrc]="imageUrl(event)"
+          [appAuthFallback]="fallbackImage"
+          [alt]="'Picture of ' + event.title"
+        />
+        <div class="event-modal__body">
+          @if (statusLabel(event); as status) {
+            <span class="event-card__status">{{ status }}</span>
+          }
+          <h3 class="event-card__title" [id]="'event-modal-title-' + event.id">
+            {{ event.title }}
+            @if (kind(event) === 'past') {
+              <span class="event-card__tag">Ended</span>
+            }
+          </h3>
+          <p class="event-card__date">
+            @for (line of formatWhen(event.start_at, event.end_at); track $index) {
+              {{ line }}<br />
+            }
+          </p>
+          <p class="event-card__airports">
+            <span class="event-card__label">Airports:</span> {{ formatAirports(event) }}
+          </p>
+          <app-event-airport-list [airports]="event.airport_details"></app-event-airport-list>
+          @if (event.description) {
+            <p class="event-card__summary">{{ event.description }}</p>
+          }
+        </div>
+      </div>
+    </div>
+  }
+}

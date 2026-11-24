@@ -7,6 +7,7 @@ import { environment } from '../../../../environments/environment';
 import { PlaceholderBannerDataManagementComponent } from '../../../placeholders/banner/placeholder-banner-data-management';
 import { AdminAuthService } from '../../../services/admin-auth.service';
 import { DATA_MANAGE_MESSAGES } from '../../../shared/data-manage-messages';
+import { LINK_URL_ERROR, LINK_URL_MAX_LENGTH, linkUrlValidator } from '../../../shared/link-url';
 import { injectCurrentPage } from '../../../shared/page-titles';
 import { QrUploadComponent } from '../../../shared/qr-upload/qr-upload';
 import { buildSubmitErrorMessage } from '../../../shared/submit-error-utils';
@@ -26,9 +27,12 @@ interface DocumentRow {
   id: number;
   name: string;
   description: string | null;
-  file_name: string;
-  file_mimetype: string;
-  file_size: number;
+  /** The page a link document opens; null for a document that holds a file. */
+  link_url: string | null;
+  /** The file fields are null for a link. */
+  file_name: string | null;
+  file_mimetype: string | null;
+  file_size: number | null;
   use_validity_dates: boolean;
   /** YYYY-MM-DD */
   start_date: string | null;
@@ -38,12 +42,15 @@ interface DocumentRow {
   updated_at?: string;
 }
 
-type DocumentColumnKey = 'id' | 'name' | 'file_name' | 'validity' | 'is_active';
+type DocumentColumnKey = 'id' | 'name' | 'description' | 'file_name' | 'validity' | 'is_active';
 type SortDirection = 'asc' | 'desc';
+/** A document is a file chosen on this device / sent from a phone, or a link to a page. */
+type DocumentSource = 'file' | 'link';
 
 const EMPTY_FILTERS: Record<DocumentColumnKey, string> = {
   id: '',
   name: '',
+  description: '',
   file_name: '',
   validity: '',
   is_active: '',
@@ -59,7 +66,8 @@ function endNotBeforeStart(control: AbstractControl): ValidationErrors | null {
 /**
  * Data management page for the documents shown on the public Documents page: a Word, Excel or PDF file (chosen on
  * this device or sent from a phone through a QR code), its name, optional validity dates and the Enabled switch.
- * Unlike the other data management pages it has no template import/export: a file cannot travel in a CSV.
+ * Instead of a file a document can be a link: the public page then sends the visitor to that web address (it cannot be
+ * downloaded). Unlike the other data management pages it has no template import/export: a file cannot travel in a CSV.
  */
 @Component({
   selector: 'app-documents-manage',
@@ -89,8 +97,16 @@ export class DocumentsManageComponent implements OnInit {
   readonly documentHelperText = DOCUMENT_RULES.helperText;
   readonly formatFileSize = formatFileSize;
   readonly endBeforeStartMessage = 'End Date cannot be earlier than Start Date.';
+  readonly linkUrlMaxLength = LINK_URL_MAX_LENGTH;
+  readonly linkUrlErrorMessage = LINK_URL_ERROR;
 
   readonly form = this.fb.nonNullable.group({
+    source: ['file' as DocumentSource],
+    // Off until "Link to a web page" is chosen; a disabled field is neither validated nor saved.
+    link_url: [
+      { value: '', disabled: true },
+      [Validators.required, Validators.maxLength(LINK_URL_MAX_LENGTH), linkUrlValidator],
+    ],
     name: ['', [Validators.required, Validators.maxLength(255)]],
     description: ['', [Validators.maxLength(1000)]],
     use_validity_dates: [false],
@@ -117,7 +133,8 @@ export class DocumentsManageComponent implements OnInit {
   sortDirection: SortDirection = 'asc';
 
   constructor() {
-    const { use_validity_dates, start_date, end_date } = this.form.controls;
+    const { source, use_validity_dates, start_date, end_date } = this.form.controls;
+    source.valueChanges.subscribe((value) => this.setLinkFieldEnabled(value === 'link'));
     use_validity_dates.valueChanges.subscribe((useDates) => this.setValidityFieldsEnabled(useDates));
     // A new Start Date can make the End Date invalid (or valid again).
     start_date.valueChanges.subscribe(() => end_date.updateValueAndValidity({ emitEvent: false }));
@@ -135,6 +152,15 @@ export class DocumentsManageComponent implements OnInit {
     return this.documents.find((item) => item.id === this.editingId);
   }
 
+  get isLinkSource(): boolean {
+    return this.form.controls.source.value === 'link';
+  }
+
+  /** The document being edited holds a stored file (not a link): choosing a new file is then optional. */
+  get hasSavedFile(): boolean {
+    return !!this.editingDocument?.file_name;
+  }
+
   get useValidityDates(): boolean {
     return this.form.controls.use_validity_dates.value;
   }
@@ -144,13 +170,16 @@ export class DocumentsManageComponent implements OnInit {
     return this.form.controls.start_date.value || null;
   }
 
-  /** Why the chosen file cannot be used ('' when it is fine or nothing was tried yet). A new document needs a file. */
+  /**
+   * Why the chosen file cannot be used ('' when it is fine, nothing was tried yet, or the document is a link). A file is
+   * required unless the document being edited already holds one.
+   */
   get fileErrorMessage(): string {
-    if (!this.fileTouched) {
+    if (!this.fileTouched || this.isLinkSource) {
       return '';
     }
 
-    return getUploadFileError(this.selectedFile, DOCUMENT_RULES, this.isEditMode ? '' : VALIDATION_MESSAGES.required);
+    return getUploadFileError(this.selectedFile, DOCUMENT_RULES, this.hasSavedFile ? '' : VALIDATION_MESSAGES.required);
   }
 
   get hasActiveFilters(): boolean {
@@ -161,6 +190,7 @@ export class DocumentsManageComponent implements OnInit {
     const filters = {
       id: this.columnFilters.id.trim().toLowerCase(),
       name: this.columnFilters.name.trim().toLowerCase(),
+      description: this.columnFilters.description.trim().toLowerCase(),
       file_name: this.columnFilters.file_name.trim().toLowerCase(),
       validity: this.columnFilters.validity.trim().toLowerCase(),
       is_active: this.columnFilters.is_active.trim().toLowerCase(),
@@ -173,7 +203,10 @@ export class DocumentsManageComponent implements OnInit {
       if (filters.name && !item.name.toLowerCase().includes(filters.name)) {
         return false;
       }
-      if (filters.file_name && !item.file_name.toLowerCase().includes(filters.file_name)) {
+      if (filters.description && !(item.description ?? '').toLowerCase().includes(filters.description)) {
+        return false;
+      }
+      if (filters.file_name && !this.formatFile(item).toLowerCase().includes(filters.file_name)) {
         return false;
       }
       if (filters.validity && !this.formatValidity(item).toLowerCase().includes(filters.validity)) {
@@ -204,12 +237,26 @@ export class DocumentsManageComponent implements OnInit {
         return leftKey.localeCompare(rightKey) * directionMultiplier;
       }
 
-      const leftValue = sortColumn === 'name' ? left.name : left.file_name;
-      const rightValue = sortColumn === 'name' ? right.name : right.file_name;
+      const leftValue = this.getTextSortValue(left, sortColumn);
+      const rightValue = this.getTextSortValue(right, sortColumn);
       return (
         leftValue.localeCompare(rightValue, undefined, { numeric: true, sensitivity: 'base' }) * directionMultiplier
       );
     });
+  }
+
+  private getTextSortValue(item: DocumentRow, column: DocumentColumnKey): string {
+    if (column === 'name') {
+      return item.name;
+    }
+    return column === 'description' ? (item.description ?? '') : this.formatFile(item);
+  }
+
+  /** "report.pdf (1.2 MB)" for a file, or "Link: https://example.com" for a link. */
+  formatFile(item: DocumentRow): string {
+    return item.link_url
+      ? `Link: ${item.link_url}`
+      : `${item.file_name ?? ''} (${formatFileSize(item.file_size ?? 0)})`;
   }
 
   /** "Always" or "Nov 1, 2026 - Nov 30, 2026". */
@@ -253,6 +300,11 @@ export class DocumentsManageComponent implements OnInit {
 
     this.form.controls.name.setValue(item.name);
     this.form.controls.description.setValue(item.description ?? '');
+    // Choosing the source enables the link field, which can then be filled.
+    this.form.controls.source.setValue(item.link_url ? 'link' : 'file');
+    if (item.link_url) {
+      this.form.controls.link_url.setValue(item.link_url);
+    }
     this.form.controls.is_active.setValue(item.is_active);
     // Ticking the box enables the date fields, which can then be filled.
     this.form.controls.use_validity_dates.setValue(item.use_validity_dates);
@@ -280,7 +332,7 @@ export class DocumentsManageComponent implements OnInit {
     this.changeDetectorRef.detectChanges();
   }
 
-  showInvalid(controlName: 'name' | 'start_date' | 'end_date'): boolean {
+  showInvalid(controlName: 'name' | 'link_url' | 'start_date' | 'end_date'): boolean {
     const control = this.form.controls[controlName];
     return control.invalid && (control.touched || control.dirty);
   }
@@ -295,6 +347,7 @@ export class DocumentsManageComponent implements OnInit {
     }
 
     const value = this.form.getRawValue();
+    const isLink = value.source === 'link';
     const name = value.name.trim();
     if (!name) {
       this.form.controls.name.setErrors({ required: true });
@@ -305,6 +358,8 @@ export class DocumentsManageComponent implements OnInit {
     // multipart/form-data: the text fields and, when one was chosen, the file. Unused date fields are not sent.
     const body = new FormData();
     body.append('name', name);
+    // Always sent: an empty text tells the server this document is a file (it drops a saved link).
+    body.append('link_url', isLink ? value.link_url.trim() : '');
     // Always sent: an empty text clears the description of a document being edited.
     body.append('description', value.description.trim());
     body.append('use_validity_dates', String(value.use_validity_dates));
@@ -313,7 +368,7 @@ export class DocumentsManageComponent implements OnInit {
       body.append('end_date', value.end_date);
     }
     body.append('is_active', String(value.is_active));
-    if (this.selectedFile) {
+    if (!isLink && this.selectedFile) {
       body.append('file', this.selectedFile, this.selectedFile.name);
     }
 
@@ -401,6 +456,17 @@ export class DocumentsManageComponent implements OnInit {
     return this.sortDirection === 'asc' ? '↑' : '↓';
   }
 
+  /** Turns the link field on (required) or off (emptied, not validated, not saved). */
+  private setLinkFieldEnabled(enabled: boolean): void {
+    const { link_url } = this.form.controls;
+    if (enabled) {
+      link_url.enable({ emitEvent: false });
+    } else {
+      link_url.reset('', { emitEvent: false });
+      link_url.disable({ emitEvent: false });
+    }
+  }
+
   /** Turns the Start Date and End Date fields on (required) or off (emptied, not validated, not saved). */
   private setValidityFieldsEnabled(enabled: boolean): void {
     const { start_date, end_date } = this.form.controls;
@@ -419,6 +485,8 @@ export class DocumentsManageComponent implements OnInit {
     this.selectedFile = null;
     this.fileTouched = false;
     this.form.reset({
+      source: 'file',
+      link_url: '',
       name: '',
       description: '',
       use_validity_dates: false,
@@ -426,6 +494,7 @@ export class DocumentsManageComponent implements OnInit {
       end_date: '',
       is_active: true,
     });
+    this.setLinkFieldEnabled(false);
     this.setValidityFieldsEnabled(false);
     this.form.markAsPristine();
     this.form.markAsUntouched();

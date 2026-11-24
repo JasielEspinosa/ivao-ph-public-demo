@@ -1,4 +1,4 @@
-<section class="page-shell data-manage-page data-manage-page--wide">
+<section class="page-shell data-manage-page data-manage-page--full">
   <div class="form-shell">
     <app-placeholder-banner-data-management></app-placeholder-banner-data-management>
 
@@ -124,37 +124,36 @@
             <input id="vid" type="text" inputmode="numeric" maxlength="10" formControlName="vid" placeholder=" " />
           </label>
           <small class="uf-error" *ngIf="showInvalid('vid')">
-            {{ form.controls.vid.hasError('required') ? VALIDATION_MESSAGES.required : vidMessage }}
+            {{ form.controls.vid.hasError('required') ? VALIDATION_MESSAGES.required : VALIDATION_MESSAGES.invalidVid }}
           </small>
+        </div>
+
+        <div class="manage-modal-field">
+          <label class="uf-field" for="nickname" [class.uf-invalid]="showInvalid('nickname')">
+            <span>Nickname</span>
+            <input id="nickname" type="text" maxlength="255" formControlName="nickname" placeholder=" " />
+          </label>
         </div>
       </div>
 
       <div class="manage-form-row members-row members-row--names">
         <div class="manage-modal-field">
           <label class="uf-field" for="last_name" [class.uf-invalid]="showInvalid('last_name')">
-            <span>Last Name <span class="required-mark">*</span></span>
+            <span>Last Name</span>
             <input id="last_name" type="text" formControlName="last_name" placeholder=" " />
           </label>
           <small class="uf-error" *ngIf="showInvalid('last_name')">
-            {{
-              form.controls.last_name.hasError('required')
-                ? VALIDATION_MESSAGES.required
-                : VALIDATION_MESSAGES.invalidName
-            }}
+            {{ VALIDATION_MESSAGES.invalidName }}
           </small>
         </div>
 
         <div class="manage-modal-field">
           <label class="uf-field" for="first_name" [class.uf-invalid]="showInvalid('first_name')">
-            <span>First Name <span class="required-mark">*</span></span>
+            <span>First Name</span>
             <input id="first_name" type="text" formControlName="first_name" placeholder=" " />
           </label>
           <small class="uf-error" *ngIf="showInvalid('first_name')">
-            {{
-              form.controls.first_name.hasError('required')
-                ? VALIDATION_MESSAGES.required
-                : VALIDATION_MESSAGES.invalidName
-            }}
+            {{ VALIDATION_MESSAGES.invalidName }}
           </small>
         </div>
 
@@ -197,6 +196,13 @@
       <div class="manage-form-row members-row members-row--flags">
         <div class="manage-toggle-row">
           <label class="manage-active">
+            <span>Enable this Member</span>
+            <input type="checkbox" class="switch-input" role="switch" formControlName="is_active" />
+          </label>
+        </div>
+
+        <div class="manage-toggle-row">
+          <label class="manage-active">
             <span>Is Pilot</span>
             <input type="checkbox" class="switch-input" role="switch" formControlName="is_pilot" />
           </label>
@@ -217,26 +223,76 @@
         </div>
       </div>
 
-      <div class="manage-form-row manage-form-row--stack" *ngIf="form.controls.is_staff.value">
+      <!-- Staff only: the role fields, then "Show in Contacts List", which turns the email and number on. -->
+      <ng-container *ngIf="form.controls.is_staff.value">
+        <div class="manage-form-row manage-form-row--stack">
+          <div class="manage-modal-field">
+            <label class="uf-field" for="role_title" [class.uf-invalid]="showInvalid('role_title')">
+              <span>Role Title <span class="required-mark">*</span></span>
+              <input id="role_title" type="text" maxlength="255" formControlName="role_title" placeholder=" " />
+            </label>
+            <small class="uf-error" *ngIf="showInvalid('role_title')">{{ VALIDATION_MESSAGES.required }}</small>
+          </div>
+        </div>
+
+        <div class="manage-form-row manage-form-row--stack">
+          <div class="manage-modal-field">
+            <label class="uf-field" for="role_description" [class.uf-invalid]="showInvalid('role_description')">
+              <span>Role Description</span>
+              <input
+                id="role_description"
+                type="text"
+                maxlength="255"
+                formControlName="role_description"
+                placeholder=" "
+              />
+            </label>
+          </div>
+        </div>
+
+        <div class="manage-form-row members-row">
+          <div class="manage-toggle-row">
+            <label class="manage-active">
+              <span>Show in Contacts List</span>
+              <input type="checkbox" class="switch-input" role="switch" formControlName="show_in_contacts" />
+            </label>
+          </div>
+        </div>
+      </ng-container>
+
+      <div class="manage-form-row members-row members-row--contact" *ngIf="showContactFields">
         <div class="manage-modal-field">
-          <label class="uf-field" for="role_description" [class.uf-invalid]="showInvalid('role_description')">
-            <span>Role Description</span>
+          <label class="uf-field" for="contact_email" [class.uf-invalid]="showInvalid('contact_email')">
+            <span>Email</span>
             <input
-              id="role_description"
+              id="contact_email"
               type="text"
+              inputmode="email"
               maxlength="255"
-              formControlName="role_description"
+              formControlName="contact_email"
               placeholder=" "
             />
           </label>
+          <small class="uf-error" *ngIf="showInvalid('contact_email')">{{ VALIDATION_MESSAGES.invalidEmail }}</small>
         </div>
-      </div>
 
-      <div class="manage-toggle-row">
-        <label class="manage-active">
-          <span>Enable this Member</span>
-          <input type="checkbox" class="switch-input" role="switch" formControlName="is_active" />
-        </label>
+        <div class="manage-modal-field">
+          <label class="uf-field" for="contact_number" [class.uf-invalid]="showInvalid('contact_number')">
+            <span>Number</span>
+            <input
+              id="contact_number"
+              type="text"
+              inputmode="tel"
+              maxlength="13"
+              formControlName="contact_number"
+              placeholder=" "
+              (input)="onContactNumberInput($event)"
+            />
+          </label>
+          <small class="uf-error" *ngIf="showInvalid('contact_number')">
+            {{ VALIDATION_MESSAGES.invalidPhilippineContactNumber }}
+          </small>
+        </div>
       </div>
 
       <div *ngIf="errorMessage" class="status-box error manage-modal-message">

@@ -4,7 +4,7 @@ import { adminRoleGuard } from './guards/admin-role.guard';
 import { authSessionGuard } from './guards/auth-session.guard';
 import { dataManagementAccessGuard } from './guards/data-management-access.guard';
 
-// Public pages (no sign-in): home, members, pilots-lounge, documents, charts, privacy-policy, upload-file (opened from a QR code), login, forgot-password, set-password.
+// Public pages (no sign-in): home, members, pilots-lounge, documents, charts, contacts, privacy-policy, upload-file (opened from a QR code), login, forgot-password, set-password.
 // Signed-in pages: profile-settings (any user), data-management (+ its pages, by access code) and the admin pages (admins).
 // Keep the public list in sync with AdminAuthService.isPublicRoute.
 export const routes: Routes = [
@@ -29,6 +29,10 @@ export const routes: Routes = [
   {
     path: 'charts',
     loadComponent: () => import('./pages/charts/charts').then((m) => m.ChartsComponent),
+  },
+  {
+    path: 'contacts',
+    loadComponent: () => import('./pages/contacts/contacts').then((m) => m.ContactsComponent),
   },
   {
     path: 'privacy-policy',
@@ -102,6 +106,12 @@ export const routes: Routes = [
       import('./pages/data-management/documents/documents-manage').then((m) => m.DocumentsManageComponent),
     canActivate: [dataManagementAccessGuard],
     data: { manageCode: 'DOCUMENTS' },
+  },
+  {
+    path: 'events-manage',
+    loadComponent: () => import('./pages/data-management/events/events-manage').then((m) => m.EventsManageComponent),
+    canActivate: [dataManagementAccessGuard],
+    data: { manageCode: 'EVENTS' },
   },
   {
     path: 'members-manage',

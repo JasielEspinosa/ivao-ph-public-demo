@@ -1,0 +1,19 @@
+<section class="staff-section" id="staff" aria-labelledby="staff-title">
+  <h2 id="staff-title">
+    Staff <span class="staff-count">{{ staff.length }}</span>
+  </h2>
+
+  <p *ngIf="staff.length === 0" class="staff-empty">{{ emptyMessage }}</p>
+
+  <ul class="staff-grid" *ngIf="staff.length > 0">
+    <li class="staff-card" *ngFor="let member of staff; trackBy: trackByVid">
+      <p class="staff-card__role" *ngIf="member.role_title">{{ member.role_title }}</p>
+      <h3 class="staff-card__name">{{ displayName(member) }}</h3>
+      <p class="staff-card__description" *ngIf="member.role_description">{{ member.role_description }}</p>
+      <p class="staff-card__line" *ngIf="member.contact_email">
+        <a [href]="'mailto:' + member.contact_email">{{ member.contact_email }}</a>
+      </p>
+      <p class="staff-card__line" *ngIf="member.contact_number">{{ member.contact_number }}</p>
+    </li>
+  </ul>
+</section>

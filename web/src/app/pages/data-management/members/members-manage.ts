@@ -1,10 +1,12 @@
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { AdminAuthService } from '../../../services/admin-auth.service';
 import { PlaceholderBannerDataManagementComponent } from '../../../placeholders/banner/placeholder-banner-data-management';
+import { sanitizePhilippineContactNumber } from '../../../shared/philippine-contact-number';
 import { VALIDATION_MESSAGES } from '../../../shared/validation-messages';
 import { VALIDATION_PATTERNS } from '../../../shared/validation-patterns';
 import { injectCurrentPage } from '../../../shared/page-titles';
@@ -23,12 +25,17 @@ const TEMPLATE_HEADERS = [
   'first_name',
   'middle_name',
   'suffix',
+  'nickname',
   'country',
   'division',
   'is_pilot',
   'is_atc',
   'is_staff',
+  'show_in_contacts',
+  'role_title',
   'role_description',
+  'contact_email',
+  'contact_number',
   'is_active',
 ] as const;
 
@@ -36,17 +43,22 @@ interface MemberRow {
   id: number;
   vid: string;
   name: string;
-  last_name: string;
-  first_name: string;
+  last_name: string | null;
+  first_name: string | null;
   middle_name: string | null;
   suffix: string | null;
+  nickname: string | null;
   country_id: number | null;
   country: string | null;
   division: string | null;
   is_pilot: boolean;
   is_atc: boolean;
   is_staff: boolean;
+  show_in_contacts: boolean;
+  role_title: string | null;
   role_description: string | null;
+  contact_email: string | null;
+  contact_number: string | null;
   is_active: boolean;
 }
 
@@ -62,12 +74,17 @@ type MemberColumnKey =
   | 'first_name'
   | 'middle_name'
   | 'suffix'
+  | 'nickname'
   | 'country'
   | 'division'
   | 'is_pilot'
   | 'is_atc'
   | 'is_staff'
+  | 'show_in_contacts'
+  | 'role_title'
   | 'role_description'
+  | 'contact_email'
+  | 'contact_number'
   | 'is_active';
 
 interface MemberColumn {
@@ -96,46 +113,44 @@ export class MembersManageComponent implements OnInit {
   private readonly templateService = inject(TemplateImportExportService);
   readonly VALIDATION_MESSAGES = VALIDATION_MESSAGES;
   readonly messages = DATA_MANAGE_MESSAGES;
-  readonly vidMessage = 'Enter a valid VID (3 to 10 digits).';
   readonly suffixPattern = VALIDATION_PATTERNS.suffix;
+  private readonly emailPattern = VALIDATION_PATTERNS.email;
+  private readonly contactNumberPattern = VALIDATION_PATTERNS.contactNumber_ph;
 
   /** Table columns, in display order. */
   readonly columns: readonly MemberColumn[] = [
     { key: 'vid', label: 'VID', isBoolean: false },
     { key: 'name', label: 'Name', isBoolean: false },
-    { key: 'last_name', label: 'Last Name', isBoolean: false },
-    { key: 'first_name', label: 'First Name', isBoolean: false },
-    { key: 'middle_name', label: 'Middle Name', isBoolean: false },
-    { key: 'suffix', label: 'Suffix', isBoolean: false },
+    { key: 'nickname', label: 'Nickname', isBoolean: false },
     { key: 'country', label: 'Country', isBoolean: false },
     { key: 'division', label: 'Division', isBoolean: false },
     { key: 'is_pilot', label: 'Is Pilot', isBoolean: true },
     { key: 'is_atc', label: 'Is ATC', isBoolean: true },
     { key: 'is_staff', label: 'Is Staff', isBoolean: true },
-    { key: 'role_description', label: 'Role Description', isBoolean: false },
+    { key: 'role_title', label: 'Role Title', isBoolean: false },
     { key: 'is_active', label: 'Active', isBoolean: true },
   ];
 
   readonly form = this.fb.nonNullable.group({
     vid: ['', [Validators.required, Validators.pattern(/^\d{3,10}$/)]],
-    last_name: [
-      '',
-      [Validators.required, Validators.maxLength(255), Validators.pattern(VALIDATION_PATTERNS.personNameFull)],
-    ],
-    first_name: [
-      '',
-      [Validators.required, Validators.maxLength(255), Validators.pattern(VALIDATION_PATTERNS.personNameFull)],
-    ],
+    last_name: ['', [Validators.maxLength(255), Validators.pattern(VALIDATION_PATTERNS.personNameFull)]],
+    first_name: ['', [Validators.maxLength(255), Validators.pattern(VALIDATION_PATTERNS.personNameFull)]],
     middle_name: ['', [Validators.maxLength(255), Validators.pattern(VALIDATION_PATTERNS.personNameFull)]],
     suffix: ['', [Validators.pattern(VALIDATION_PATTERNS.suffix)]],
+    nickname: ['', [Validators.maxLength(255)]],
     country_id: [null as number | null],
     division: ['', [Validators.maxLength(10)]],
     is_pilot: [false],
     is_atc: [false],
     is_staff: [false],
+    // Staff only: the four fields below apply (and Role Title is required) while "Show in Contacts List" is on.
+    show_in_contacts: [false],
+    role_title: ['', [Validators.maxLength(255)]],
     role_description: ['', [Validators.maxLength(255)]],
-    // "Enable this Member" is off by default when adding new data.
-    is_active: [false],
+    contact_email: ['', [Validators.maxLength(255)]],
+    contact_number: [''],
+    // "Enable this Member" is on by default when adding new data.
+    is_active: [true],
   });
 
   members: MemberRow[] = [];
@@ -154,6 +169,26 @@ export class MembersManageComponent implements OnInit {
 
   sortColumn: MemberColumnKey | null = 'last_name';
   sortDirection: SortDirection = 'asc';
+
+  constructor() {
+    // Is Pilot / Is ATC / Is Staff only apply to an enabled member.
+    this.syncRoleToggles(this.form.controls.is_active.value);
+    this.form.controls.is_active.valueChanges.pipe(takeUntilDestroyed()).subscribe((isActive) => {
+      this.syncRoleToggles(isActive);
+    });
+
+    // The contact fields are validated only while they are shown.
+    this.form.controls.is_staff.valueChanges.pipe(takeUntilDestroyed()).subscribe(() => this.syncContactValidators());
+    this.form.controls.show_in_contacts.valueChanges
+      .pipe(takeUntilDestroyed())
+      .subscribe(() => this.syncContactValidators());
+  }
+
+  /** Staff who are shown in the Contacts list: the Email and Number fields show. */
+  get showContactFields(): boolean {
+    const value = this.form.getRawValue();
+    return value.is_staff && value.show_in_contacts;
+  }
 
   ngOnInit(): void {
     this.loadMembers();
@@ -260,18 +295,24 @@ export class MembersManageComponent implements OnInit {
 
     this.form.setValue({
       vid: item.vid,
-      last_name: item.last_name,
-      first_name: item.first_name,
+      last_name: item.last_name ?? '',
+      first_name: item.first_name ?? '',
       middle_name: item.middle_name ?? '',
       suffix: item.suffix ?? '',
+      nickname: item.nickname ?? '',
       country_id: item.country_id,
       division: item.division ?? '',
       is_pilot: item.is_pilot,
       is_atc: item.is_atc,
       is_staff: item.is_staff,
+      show_in_contacts: item.show_in_contacts,
+      role_title: item.role_title ?? '',
       role_description: item.role_description ?? '',
+      contact_email: item.contact_email ?? '',
+      contact_number: item.contact_number ?? '',
       is_active: item.is_active,
     });
+    this.syncContactValidators();
 
     this.isModalOpen = true;
   }
@@ -295,19 +336,26 @@ export class MembersManageComponent implements OnInit {
     }
 
     const value = this.form.getRawValue();
+    const showContact = value.is_staff && value.show_in_contacts;
     const payload = {
       vid: value.vid.trim(),
       last_name: value.last_name.trim(),
       first_name: value.first_name.trim(),
       middle_name: value.middle_name.trim(),
       suffix: value.suffix.trim(),
+      nickname: value.nickname.trim(),
       country_id: value.country_id === null || (value.country_id as unknown) === '' ? null : Number(value.country_id),
       division: value.division.trim(),
       is_pilot: value.is_pilot,
       is_atc: value.is_atc,
       is_staff: value.is_staff,
-      // The role only applies to staff: a hidden role description is not saved.
+      // The role only applies to staff, the email and number to staff shown in the Contacts list: hidden fields are
+      // not saved.
+      show_in_contacts: showContact,
+      role_title: value.is_staff ? value.role_title.trim() : '',
       role_description: value.is_staff ? value.role_description.trim() : '',
+      contact_email: showContact ? value.contact_email.trim() : '',
+      contact_number: showContact ? value.contact_number.trim() : '',
       is_active: value.is_active,
     };
 
@@ -425,16 +473,21 @@ export class MembersManageComponent implements OnInit {
       ...this.members.map((row) => [
         String(row.id),
         row.vid,
-        row.last_name,
-        row.first_name,
+        row.last_name ?? '',
+        row.first_name ?? '',
         row.middle_name ?? '',
         row.suffix ?? '',
+        row.nickname ?? '',
         row.country ?? '',
         row.division ?? '',
         row.is_pilot ? 'true' : 'false',
         row.is_atc ? 'true' : 'false',
         row.is_staff ? 'true' : 'false',
+        row.show_in_contacts ? 'true' : 'false',
+        row.role_title ?? '',
         row.role_description ?? '',
+        row.contact_email ?? '',
+        row.contact_number ?? '',
         row.is_active ? 'true' : 'false',
       ]),
     ]);
@@ -526,6 +579,48 @@ export class MembersManageComponent implements OnInit {
     return control.invalid && control.touched;
   }
 
+  /** Keeps the digits (and a leading "+") of the number only, as it is typed. */
+  onContactNumberInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const sanitized = sanitizePhilippineContactNumber(input.value);
+    if (sanitized !== input.value) {
+      input.value = sanitized;
+    }
+    this.form.controls.contact_number.setValue(sanitized);
+  }
+
+  /** Role Title is required for staff, and the email and number are checked while they are shown. */
+  private syncContactValidators(): void {
+    const { role_title, role_description, contact_email, contact_number } = this.form.controls;
+    const isShown = this.showContactFields;
+
+    role_title.setValidators(
+      this.form.controls.is_staff.value
+        ? [Validators.required, Validators.maxLength(255)]
+        : [Validators.maxLength(255)],
+    );
+    contact_email.setValidators(
+      isShown ? [Validators.maxLength(255), Validators.pattern(this.emailPattern)] : [Validators.maxLength(255)],
+    );
+    contact_number.setValidators(isShown ? [Validators.pattern(this.contactNumberPattern)] : []);
+
+    for (const control of [role_title, role_description, contact_email, contact_number]) {
+      control.updateValueAndValidity({ emitEvent: false });
+    }
+  }
+
+  /** Is Pilot / Is ATC / Is Staff can be switched only while the member is enabled. */
+  private syncRoleToggles(isActive: boolean): void {
+    const toggles = [this.form.controls.is_pilot, this.form.controls.is_atc, this.form.controls.is_staff];
+    for (const toggle of toggles) {
+      if (isActive) {
+        toggle.enable({ emitEvent: false });
+      } else {
+        toggle.disable({ emitEvent: false });
+      }
+    }
+  }
+
   private emptyFilters(): Record<MemberColumnKey, string> {
     return {
       vid: '',
@@ -534,12 +629,17 @@ export class MembersManageComponent implements OnInit {
       first_name: '',
       middle_name: '',
       suffix: '',
+      nickname: '',
       country: '',
       division: '',
       is_pilot: '',
       is_atc: '',
       is_staff: '',
+      show_in_contacts: '',
+      role_title: '',
       role_description: '',
+      contact_email: '',
+      contact_number: '',
       is_active: '',
     };
   }
@@ -552,14 +652,20 @@ export class MembersManageComponent implements OnInit {
       first_name: '',
       middle_name: '',
       suffix: '',
+      nickname: '',
       country_id: null,
       division: '',
       is_pilot: false,
       is_atc: false,
       is_staff: false,
+      show_in_contacts: false,
+      role_title: '',
       role_description: '',
-      is_active: false,
+      contact_email: '',
+      contact_number: '',
+      is_active: true,
     });
+    this.syncContactValidators();
 
     this.form.markAsPristine();
     this.form.markAsUntouched();

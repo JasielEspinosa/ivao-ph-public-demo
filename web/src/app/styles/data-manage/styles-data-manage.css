@@ -19,6 +19,16 @@
   border-radius: 16px;
 }
 
+/* A data management page with few columns that fits the standard width. */
+.data-manage-page--standard .form-shell {
+  max-width: var(--form-shell-width-standard);
+}
+
+/* A data management page with very few columns that fits the narrowest width (e.g. Countries). */
+.data-manage-page--narrow .form-shell {
+  max-width: var(--form-shell-width-login);
+}
+
 /* A data management page whose table has many columns (e.g. Members). */
 .data-manage-page--wide .form-shell {
   max-width: var(--form-shell-width-wide);
@@ -50,6 +60,11 @@
   align-items: center;
   gap: 0.75rem;
   flex-wrap: wrap;
+}
+
+/* On the narrow tier the buttons wrap under the description: keep them on the right. */
+.data-manage-page--narrow .manage-toolbar-actions {
+  margin-left: auto;
 }
 
 /* Standard data-manage table: cells never wrap, the actions column (last) hugs its button. */

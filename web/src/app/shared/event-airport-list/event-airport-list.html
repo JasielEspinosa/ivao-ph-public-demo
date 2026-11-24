@@ -1,0 +1,15 @@
+@if (airports.length > 0) {
+  <ul class="airport-list" aria-label="Airport details">
+    @for (airport of shown; track airport.icao) {
+      <li>
+        <span class="airport-list__icao">{{ airport.icao }}</span> - {{ airport.name }}
+        @if (airport.place) {
+          <span class="airport-list__place">· {{ airport.place }}</span>
+        }
+      </li>
+    }
+    @if (hiddenCount > 0) {
+      <li class="airport-list__more">+{{ hiddenCount }} more {{ hiddenCount === 1 ? 'airport' : 'airports' }}</li>
+    }
+  </ul>
+}

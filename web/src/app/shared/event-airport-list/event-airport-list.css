@@ -1,0 +1,26 @@
+/* The airport details of an event, small and muted under the line of codes. Colors come from the theme tokens. */
+.airport-list {
+  margin: 0 0 0.5rem;
+  padding: 0;
+  list-style: none;
+  color: var(--c-slate-600);
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.airport-list li + li {
+  margin-top: 0.15rem;
+}
+
+.airport-list__icao {
+  color: var(--c-slate-800);
+  font-weight: 600;
+}
+
+.airport-list__place {
+  color: var(--c-slate-500);
+}
+
+.airport-list__more {
+  font-style: italic;
+}

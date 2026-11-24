@@ -1,0 +1,92 @@
+/* The Staff cards shared by the Members and Contacts pages. Colors come from the theme tokens. */
+:host {
+  display: block;
+}
+
+.staff-section {
+  margin-bottom: 2rem;
+}
+
+.staff-section h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0 0 0.6rem;
+  color: var(--c-brand-ink);
+  font-size: 1.4rem;
+}
+
+.staff-count {
+  padding: 0.1rem 0.6rem;
+  border-radius: 999px;
+  background: var(--c-badge-bg);
+  color: var(--c-badge-ink);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.staff-empty {
+  margin: 0;
+  color: var(--c-slate-600);
+}
+
+.staff-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.staff-card {
+  min-width: 0;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--c-line-soft);
+  border-left: 4px solid var(--c-ph-gold);
+  border-radius: 8px;
+  background: var(--c-surface);
+  overflow-wrap: anywhere;
+}
+
+.staff-card p {
+  margin: 0.35rem 0 0;
+  color: var(--c-slate-700);
+  line-height: 1.5;
+}
+
+.staff-card__role {
+  margin: 0 0 0.2rem;
+  color: var(--c-brand-ink);
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.staff-card__name {
+  margin: 0;
+  color: var(--c-slate-900);
+  font-size: 1.2rem;
+}
+
+/* A description keeps the line breaks it was typed with. */
+.staff-card__description {
+  white-space: pre-line;
+}
+
+.staff-card__line a {
+  color: var(--c-link);
+  font-weight: 600;
+}
+
+.staff-card__line a:hover,
+.staff-card__line a:focus-visible {
+  color: var(--c-link-hover);
+}
+
+@media (max-width: 700px) {
+  .staff-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

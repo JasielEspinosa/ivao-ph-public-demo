@@ -4,7 +4,7 @@
 
     <div class="dashboard-header members-toolbar">
       <p>The pilots, air traffic controllers and staff of IVAO Philippines.</p>
-      <div class="menu-search">
+      <div class="menu-search menu-search--icon">
         <label class="menu-search__label" for="members-search">Search members</label>
         <input
           id="members-search"
@@ -13,6 +13,10 @@
           (input)="onSearch($any($event.target).value)"
           placeholder="Search by VID, name, country or role"
         />
+        <svg class="search-field-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <circle cx="11" cy="11" r="7" />
+          <path d="m20 20-4-4" />
+        </svg>
       </div>
     </div>
 
@@ -94,38 +98,8 @@
           </div>
         </section>
 
-        <!-- Staff -->
-        <section class="members-section" aria-labelledby="staff-title">
-          <h2 id="staff-title">
-            Staff <span class="members-count">{{ staff().length }}</span>
-          </h2>
-          <div class="table-wrap table-wrap--admin table-wrap--compact">
-            <app-table-pagination [pager]="staffPager"></app-table-pagination>
-            <table>
-              <thead>
-                <tr>
-                  <th data-disable-resize>VID</th>
-                  <th data-disable-resize>Name</th>
-                  <th data-disable-resize>Role</th>
-                  <th data-disable-resize>Country</th>
-                  <th data-disable-resize>Division</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let member of staffPager.slice(staff())">
-                  <td>{{ member.vid }}</td>
-                  <td>{{ member.name }}</td>
-                  <td>{{ member.role_description || '-' }}</td>
-                  <td>{{ member.country || '-' }}</td>
-                  <td>{{ member.division || '-' }}</td>
-                </tr>
-                <tr *ngIf="staff().length === 0">
-                  <td colspan="5">{{ messages.noRecords('Staff') }}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </section>
+        <!-- Staff: the same cards as the Contacts page -->
+        <app-staff-cards [staff]="staff()"></app-staff-cards>
       </ng-container>
     </ng-container>
   </div>

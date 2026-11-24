@@ -10,5 +10,6 @@ export const VALIDATION_MESSAGES = {
   invalidPhilippineMobile: 'Enter a valid Philippine mobile number.',
   invalidSuffix: 'Enter a valid suffix (Jr., Sr., I, II, III, IV, V, VI, VII, VIII, IX, X).',
   invalidSuffixShort: 'Enter a valid suffix',
+  invalidVid: 'Enter a valid VID (3 to 10 digits).',
   invalidYear: 'Enter a valid 4-digit year.',
 } as const;

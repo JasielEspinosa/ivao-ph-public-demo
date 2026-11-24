@@ -26,6 +26,7 @@ export class DataManagementComponent {
     manageMenuCard('/charts-manage', 'CHARTS'),
     manageMenuCard('/countries-manage', 'COUNTRIES'),
     manageMenuCard('/documents-manage', 'DOCUMENTS'),
+    manageMenuCard('/events-manage', 'EVENTS'),
   ];
 
   constructor() {

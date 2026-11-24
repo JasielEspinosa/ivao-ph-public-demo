@@ -19,13 +19,15 @@ interface AdminUserRow {
   middle_name: string | null;
   last_name: string | null;
   suffix: string | null;
+  vid: string;
+  role_title: string;
   is_active: boolean;
   is_admin: boolean;
   manage_all_data: boolean;
   manage_data_codes: string[];
 }
 
-type AdminUserColumnKey = 'login_email' | 'name' | 'is_active' | 'is_admin' | 'data_manage';
+type AdminUserColumnKey = 'login_email' | 'name' | 'vid' | 'role_title' | 'is_active' | 'is_admin' | 'data_manage';
 type SortDirection = 'asc' | 'desc';
 
 const ADMIN_USERS_API = `${environment.apiUrl.replace(/\/$/, '')}/admin-users`;
@@ -51,6 +53,8 @@ export class ManageUsersComponent implements OnInit {
   columnFilters: Record<AdminUserColumnKey, string> = {
     login_email: '',
     name: '',
+    vid: '',
+    role_title: '',
     is_active: '',
     is_admin: '',
     data_manage: '',
@@ -138,6 +142,8 @@ export class ManageUsersComponent implements OnInit {
     this.columnFilters = {
       login_email: '',
       name: '',
+      vid: '',
+      role_title: '',
       is_active: '',
       is_admin: '',
       data_manage: '',
@@ -198,6 +204,10 @@ export class ManageUsersComponent implements OnInit {
         return user.login_email || '';
       case 'name':
         return this.getDisplayName(user);
+      case 'vid':
+        return user.vid || '';
+      case 'role_title':
+        return user.role_title || '';
       case 'is_active':
         return user.is_active ? 'enabled' : 'disabled';
       case 'is_admin':

@@ -218,6 +218,158 @@
         </div>
       </div>
 
+      <div class="section-divider member-list-section">
+        <div class="inline-field choice-option">
+          <span class="permission-label choice-title">
+            <svg class="permission-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Zm-6 9a6 6 0 0 1 12 0M17 8v6m3-3h-6" />
+            </svg>
+            Add to Member List
+          </span>
+          <input type="checkbox" class="switch-input" role="switch" formControlName="add_to_member_list" />
+        </div>
+
+        <ng-container *ngIf="isAddToMemberList">
+          <div class="form-grid user-name-grid member-fields-grid">
+            <label class="uf-field" [class.uf-invalid]="showVidRequiredError() || showVidInvalidError()">
+              <span>VID <span class="required-mark">*</span></span>
+              <input
+                type="text"
+                inputmode="numeric"
+                maxlength="10"
+                formControlName="vid"
+                placeholder=" "
+                autocomplete="off"
+                autocapitalize="off"
+                autocorrect="off"
+                spellcheck="false"
+                data-lpignore="true"
+                data-1p-ignore="true"
+              />
+              <div *ngIf="showVidRequiredError()" class="inline-field-error">{{ requiredFieldMessage }}</div>
+              <div *ngIf="showVidInvalidError()" class="inline-field-error">{{ invalidVidMessage }}</div>
+            </label>
+
+            <label class="uf-field">
+              <span>Country</span>
+              <select formControlName="country_id">
+                <option [ngValue]="null">-</option>
+                <option *ngFor="let option of countryOptions" [ngValue]="option.id">{{ option.country_name }}</option>
+              </select>
+            </label>
+
+            <label class="uf-field" [class.uf-invalid]="showDivisionInvalidError()">
+              <span>Division</span>
+              <input
+                type="text"
+                maxlength="10"
+                formControlName="division"
+                placeholder=" "
+                autocomplete="off"
+                autocapitalize="off"
+                autocorrect="off"
+                spellcheck="false"
+                data-lpignore="true"
+                data-1p-ignore="true"
+              />
+            </label>
+          </div>
+
+          <div class="form-row form-row-stack member-flags">
+            <div class="inline-field choice-option">
+              <span class="permission-label choice-title">Is Pilot</span>
+              <input type="checkbox" class="switch-input" role="switch" formControlName="is_pilot" />
+            </div>
+
+            <div class="inline-field choice-option">
+              <span class="permission-label choice-title">Is ATC</span>
+              <input type="checkbox" class="switch-input" role="switch" formControlName="is_atc" />
+            </div>
+
+            <div class="inline-field choice-option">
+              <span class="permission-label choice-title">Is Staff</span>
+              <input type="checkbox" class="switch-input" role="switch" formControlName="is_staff" />
+            </div>
+
+            <!-- Staff only: "Show in Contacts List" turns the email and number on. -->
+            <div class="inline-field choice-option" *ngIf="isStaffMember">
+              <span class="permission-label choice-title">Show in Contacts List</span>
+              <input type="checkbox" class="switch-input" role="switch" formControlName="show_in_contacts" />
+            </div>
+          </div>
+
+          <div class="form-grid user-name-grid member-contact-grid" *ngIf="isStaffMember">
+            <label class="uf-field" [class.uf-invalid]="showContactError('role_title', 'required')">
+              <span>Role Title <span class="required-mark">*</span></span>
+              <input
+                type="text"
+                maxlength="255"
+                formControlName="role_title"
+                placeholder=" "
+                autocomplete="off"
+                data-lpignore="true"
+                data-1p-ignore="true"
+              />
+              <div *ngIf="showContactError('role_title', 'required')" class="inline-field-error">
+                {{ requiredFieldMessage }}
+              </div>
+            </label>
+
+            <label class="uf-field">
+              <span>Role Description</span>
+              <input
+                type="text"
+                maxlength="255"
+                formControlName="role_description"
+                placeholder=" "
+                autocomplete="off"
+                data-lpignore="true"
+                data-1p-ignore="true"
+              />
+            </label>
+          </div>
+
+          <div class="form-grid user-name-grid member-contact-grid" *ngIf="showContactFields">
+            <label class="uf-field" [class.uf-invalid]="showContactError('contact_email', 'pattern')">
+              <span>Email</span>
+              <input
+                type="text"
+                inputmode="email"
+                maxlength="255"
+                formControlName="contact_email"
+                placeholder=" "
+                autocomplete="off"
+                autocapitalize="off"
+                spellcheck="false"
+                data-lpignore="true"
+                data-1p-ignore="true"
+              />
+              <div *ngIf="showContactError('contact_email', 'pattern')" class="inline-field-error">
+                {{ invalidEmailMessage }}
+              </div>
+            </label>
+
+            <label class="uf-field" [class.uf-invalid]="showContactError('contact_number', 'pattern')">
+              <span>Number</span>
+              <input
+                type="text"
+                inputmode="tel"
+                maxlength="13"
+                formControlName="contact_number"
+                placeholder=" "
+                autocomplete="off"
+                data-lpignore="true"
+                data-1p-ignore="true"
+                (input)="onContactNumberInput($event)"
+              />
+              <div *ngIf="showContactError('contact_number', 'pattern')" class="inline-field-error">
+                {{ invalidContactNumberMessage }}
+              </div>
+            </label>
+          </div>
+        </ng-container>
+      </div>
+
       <div class="section-divider replicate-role-section">
         <div class="replicate-role-row">
           <span class="permission-label replicate-role-label choice-title">
@@ -322,25 +474,29 @@
           </svg>
           Individual Access to Data Management Pages
         </p>
-        <div class="checkbox-field checkbox-field--select-all choice-option">
+        <div class="inline-field choice-option data-page-select-all">
+          <span>Select All</span>
           <input
             type="checkbox"
+            class="switch-input"
+            role="switch"
             [checked]="isAllManagePagesSelected()"
             (change)="onSelectAllManagePages($any($event.target).checked)"
             [disabled]="form.controls.manage_all_data.value || isViewOnly"
           />
-          <span>Select All</span>
         </div>
 
-        <div class="data-pages-grid data-pages-grid--three-col">
-          <div *ngFor="let pageRecord of availableDataManagementPages" class="checkbox-field choice-option">
+        <div class="data-pages-list">
+          <div *ngFor="let pageRecord of availableDataManagementPages" class="inline-field choice-option">
+            <span>{{ pageRecord.name }}</span>
             <input
               type="checkbox"
+              class="switch-input"
+              role="switch"
               [checked]="isManageCodeChecked(pageRecord.code)"
               (change)="onManageCodeToggle(pageRecord.code, $any($event.target).checked)"
               [disabled]="form.controls.manage_all_data.value || isViewOnly"
             />
-            <span>{{ pageRecord.name }}</span>
           </div>
         </div>
       </div>

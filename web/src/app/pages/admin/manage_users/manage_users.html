@@ -41,6 +41,16 @@
               </button>
             </th>
             <th>
+              <button type="button" class="sort-header-button" (click)="toggleSort('vid')">
+                VID {{ getSortIndicator('vid') }}
+              </button>
+            </th>
+            <th>
+              <button type="button" class="sort-header-button" (click)="toggleSort('role_title')">
+                Role Title {{ getSortIndicator('role_title') }}
+              </button>
+            </th>
+            <th>
               <button type="button" class="sort-header-button" (click)="toggleSort('is_active')">
                 User Enabled {{ getSortIndicator('is_active') }}
               </button>
@@ -73,6 +83,24 @@
                 class="column-filter-input"
                 [value]="columnFilters.name"
                 (input)="setColumnFilter('name', $any($event.target).value || '')"
+                placeholder="Filter"
+              />
+            </th>
+            <th>
+              <input
+                type="text"
+                class="column-filter-input"
+                [value]="columnFilters.vid"
+                (input)="setColumnFilter('vid', $any($event.target).value || '')"
+                placeholder="Filter"
+              />
+            </th>
+            <th>
+              <input
+                type="text"
+                class="column-filter-input"
+                [value]="columnFilters.role_title"
+                (input)="setColumnFilter('role_title', $any($event.target).value || '')"
                 placeholder="Filter"
               />
             </th>
@@ -119,6 +147,8 @@
           <tr *ngFor="let user of pager.slice(filteredUsers)">
             <td>{{ user.login_email }}</td>
             <td>{{ getDisplayName(user) }}</td>
+            <td>{{ user.vid }}</td>
+            <td>{{ user.role_title }}</td>
             <td>{{ user.is_active ? 'Enabled' : 'Disabled' }}</td>
             <td>{{ user.is_admin ? 'Yes' : 'No' }}</td>
             <td>{{ getDataManageValue(user) }}</td>
@@ -133,7 +163,7 @@
             </td>
           </tr>
           <tr *ngIf="filteredUsers.length === 0">
-            <td colspan="6">{{ messages.noRecords('Users') }}</td>
+            <td colspan="8">{{ messages.noRecords('Users') }}</td>
           </tr>
         </tbody>
       </table>

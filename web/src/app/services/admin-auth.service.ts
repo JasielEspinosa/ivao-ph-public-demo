@@ -380,6 +380,7 @@ export class AdminAuthService {
       '/pilots-lounge',
       '/documents',
       '/charts',
+      '/contacts',
       '/privacy-policy',
       '/upload-file',
       '/login',

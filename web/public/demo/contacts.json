@@ -1,0 +1,57 @@
+[
+  {
+    "vid": "100100",
+    "name": "Juan Santos",
+    "first_name": "Juan",
+    "last_name": "Santos",
+    "suffix": null,
+    "role_title": "Division Director",
+    "role_description": "Leads the division and represents it to IVAO.",
+    "contact_email": "juan.santos@example.com",
+    "contact_number": "09171234501"
+  },
+  {
+    "vid": "100137",
+    "name": "Maria Reyes",
+    "first_name": "Maria",
+    "last_name": "Reyes",
+    "suffix": null,
+    "role_title": "Deputy Division Director",
+    "role_description": "Supports the Division Director and covers when they are away.",
+    "contact_email": "maria.reyes@example.com",
+    "contact_number": "09171234502"
+  },
+  {
+    "vid": "100211",
+    "name": "Ana Bautista",
+    "first_name": "Ana",
+    "last_name": "Bautista",
+    "suffix": null,
+    "role_title": "Operations Coordinator",
+    "role_description": "Looks after day-to-day air traffic control operations.",
+    "contact_email": "ana.bautista@example.com",
+    "contact_number": "09171234503"
+  },
+  {
+    "vid": "100285",
+    "name": "Sofia Garcia",
+    "first_name": "Sofia",
+    "last_name": "Garcia",
+    "suffix": null,
+    "role_title": "Events Coordinator",
+    "role_description": "Plans and runs the division events.",
+    "contact_email": "sofia.garcia@example.com",
+    "contact_number": "09171234504"
+  },
+  {
+    "vid": "100322",
+    "name": "Carlo Mendoza",
+    "first_name": "Carlo",
+    "last_name": "Mendoza",
+    "suffix": null,
+    "role_title": "Membership Coordinator",
+    "role_description": "Welcomes new members and answers membership questions.",
+    "contact_email": "carlo.mendoza@example.com",
+    "contact_number": "09171234505"
+  }
+]

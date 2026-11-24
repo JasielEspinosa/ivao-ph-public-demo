@@ -4,7 +4,7 @@
 }
 
 .members-row--vid {
-  grid-template-columns: minmax(0, 12rem);
+  grid-template-columns: minmax(0, 12rem) minmax(0, 1fr);
 }
 
 /* Suffix is half the width of the other name columns. */
@@ -16,14 +16,20 @@
   grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
 }
 
+.members-row--contact {
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+}
+
 .members-row--flags {
-  grid-template-columns: repeat(3, max-content);
+  grid-template-columns: repeat(4, max-content);
   gap: 1.5rem;
 }
 
 @media (max-width: 700px) {
+  .members-row--vid,
   .members-row--names,
-  .members-row--place {
+  .members-row--place,
+  .members-row--contact {
     grid-template-columns: minmax(0, 1fr);
   }
 

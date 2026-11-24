@@ -1,0 +1,614 @@
+<section class="page-shell data-manage-page">
+  <div class="form-shell">
+    <app-placeholder-banner-data-management> </app-placeholder-banner-data-management>
+
+    <div class="dashboard-header manage-toolbar">
+      <p>{{ page?.entry?.description }}</p>
+
+      <div class="manage-toolbar-actions">
+        <button type="button" class="universal-button universal-button--primary" (click)="openAddModal()">
+          Add Event
+        </button>
+      </div>
+    </div>
+
+    @if (isLoading) {
+      <div
+        class="route-loading-overlay route-loading-overlay--inline"
+        role="status"
+        aria-live="polite"
+        [attr.aria-label]="messages.loading('Events')"
+      >
+        <div class="route-loading-spinner"></div>
+      </div>
+    }
+
+    @if (errorMessage && !isModalOpen) {
+      <div class="status-box error" role="alert">{{ errorMessage }}</div>
+    }
+
+    @if (successMessage && !isModalOpen) {
+      <div class="status-box success" role="status">{{ successMessage }}</div>
+    }
+
+    @if (!isLoading && !(errorMessage && events.length === 0)) {
+      <!-- =========================================================
+           UPCOMING AND CURRENT EVENTS (soonest start first)
+           ========================================================= -->
+      <h2 class="events-heading">Upcoming and Current Events</h2>
+
+      <ul class="event-list">
+        @for (item of upcomingEvents; track item.id) {
+          <li class="event-row">
+            <img
+              class="event-row__image"
+              [appAuthSrc]="imageUrl(item)"
+              [appAuthFallback]="fallbackImage"
+              [appAuthAdmin]="true"
+              [alt]="'Picture of ' + item.title"
+              loading="lazy"
+            />
+
+            <div class="event-row__text">
+              <h3>{{ item.title }}</h3>
+              <p class="event-row__when">
+                @for (line of formatWhen(item.start_at, item.end_at); track $index) {
+                  {{ line }}<br />
+                }
+              </p>
+              <p><span class="event-row__label">Airports:</span> {{ formatAirports(item) }}</p>
+              <app-event-airport-list [airports]="item.airport_details"></app-event-airport-list>
+              @if (item.description) {
+                <p class="event-row__description">{{ item.description }}</p>
+              }
+            </div>
+
+            <div class="event-row__actions">
+              <button type="button" class="universal-button universal-button--edit" (click)="edit(item)">Edit</button>
+            </div>
+          </li>
+        } @empty {
+          <li class="universal-helper-text-gray">{{ messages.noRecords('upcoming or current events') }}</li>
+        }
+      </ul>
+
+      <!-- =========================================================
+           PAST EVENTS (most recently ended first)
+           ========================================================= -->
+      <div class="events-heading-row">
+        <h2 class="events-heading">Past Events</h2>
+
+        @if (archivedCount > 0) {
+          <label class="events-archived-toggle">
+            <input type="checkbox" [checked]="showArchived" (change)="showArchived = $any($event.target).checked" />
+            <span>Show archived events ({{ archivedCount }})</span>
+          </label>
+        }
+      </div>
+
+      <ul class="event-list">
+        @for (item of pastEvents.slice(0, pastLimit); track item.id) {
+          <li class="event-row" [class.event-row--archived]="!item.is_active">
+            <img
+              class="event-row__image"
+              [appAuthSrc]="imageUrl(item)"
+              [appAuthFallback]="fallbackImage"
+              [appAuthAdmin]="true"
+              [alt]="'Picture of ' + item.title"
+              loading="lazy"
+            />
+
+            <div class="event-row__text">
+              <h3>
+                {{ item.title }}
+                @if (!item.is_active) {
+                  <span class="event-row__tag">Archived</span>
+                }
+              </h3>
+              <p class="event-row__when">
+                @for (line of formatWhen(item.start_at, item.end_at); track $index) {
+                  {{ line }}<br />
+                }
+              </p>
+              <p><span class="event-row__label">Airports:</span> {{ formatAirports(item) }}</p>
+              <app-event-airport-list [airports]="item.airport_details"></app-event-airport-list>
+              @if (item.description) {
+                <p class="event-row__description">{{ item.description }}</p>
+              }
+            </div>
+
+            <div class="event-row__actions">
+              <button type="button" class="universal-button universal-button--edit" (click)="edit(item)">Edit</button>
+              <button type="button" class="universal-button universal-button--edit" (click)="clone(item)">Clone</button>
+              @if (item.is_active) {
+                <button
+                  type="button"
+                  class="universal-button universal-button--warning"
+                  (click)="setArchived(item, true)"
+                >
+                  Archive
+                </button>
+              } @else {
+                <button
+                  type="button"
+                  class="universal-button universal-button--edit"
+                  (click)="setArchived(item, false)"
+                >
+                  Unarchive
+                </button>
+              }
+            </div>
+          </li>
+        } @empty {
+          <li class="universal-helper-text-gray">{{ messages.noRecords('past events') }}</li>
+        }
+      </ul>
+
+      @if (pastEvents.length > pastLimit) {
+        <button type="button" class="universal-button universal-button--edit events-more" (click)="showMorePast()">
+          Show more past events
+        </button>
+      }
+    }
+  </div>
+</section>
+
+<!-- =========================================================
+     ADD / EDIT / CLONE MODAL
+     ========================================================= -->
+
+@if (isModalOpen) {
+  <div class="manage-modal-backdrop">
+    <div class="manage-modal-card" role="dialog" aria-modal="true" aria-label="Events Management">
+      <button
+        type="button"
+        class="universal-modal-close"
+        aria-label="Close"
+        [disabled]="isSaving"
+        (click)="closeModal()"
+      >
+        &times;
+      </button>
+
+      <h3>{{ isEditMode ? 'Edit Event' : cloneSource ? 'Clone Event' : 'Add Event' }}</h3>
+
+      <form class="manage-form universal-form" [formGroup]="form" (ngSubmit)="save()">
+        @if (isEditingPastEvent) {
+          <div class="events-notice" role="note">
+            This event has already been completed. If you change any detail except the description, you are asked to
+            confirm before saving.
+          </div>
+        }
+
+        @if (isEditingArchivedEvent) {
+          <div class="events-notice" role="note">
+            This event is archived. Saving your changes unarchives it, so it shows on the Home page again.
+          </div>
+        }
+
+        @if (cloneSource) {
+          <div class="events-notice" role="note">
+            Cloned from "{{ cloneSource.title }}". Choose the date and time of the new event; everything else can be
+            changed too.
+          </div>
+        }
+
+        <div class="manage-modal-field">
+          <label class="uf-field" for="event_title" [class.uf-invalid]="showInvalid('title')">
+            <span>
+              Event Title
+              <span class="required-mark">*</span>
+            </span>
+
+            <input id="event_title" type="text" maxlength="255" formControlName="title" placeholder=" " />
+          </label>
+
+          <small class="uf-error" *ngIf="showInvalid('title')">{{ VALIDATION_MESSAGES.required }}</small>
+        </div>
+
+        <div class="manage-modal-field">
+          <span class="manage-field-title" id="time_zone_title">Enter the date and time in</span>
+
+          <div class="manage-source-row" role="radiogroup" aria-labelledby="time_zone_title">
+            <label class="manage-active">
+              <input type="radio" formControlName="time_zone" value="PHT" />
+              <span>PHT (Philippine Time, GMT+8)</span>
+            </label>
+
+            <label class="manage-active">
+              <input type="radio" formControlName="time_zone" value="GMT" />
+              <span>GMT (Zulu, UTC)</span>
+            </label>
+          </div>
+
+          <small class="universal-helper-text-gray">
+            Changing this converts the date and time already typed. The Home page shows both GMT and PHT.
+          </small>
+        </div>
+
+        <div class="events-datetime-row">
+          <div class="manage-modal-field">
+            <label class="uf-field" for="start_date" [class.uf-invalid]="showInvalid('start_date')">
+              <span>
+                Start Date
+                <span class="required-mark">*</span>
+              </span>
+
+              <input id="start_date" type="date" formControlName="start_date" />
+            </label>
+
+            <small class="uf-error" *ngIf="showInvalid('start_date')">{{ VALIDATION_MESSAGES.required }}</small>
+          </div>
+
+          <div class="manage-modal-field">
+            <label class="uf-field" for="start_time" [class.uf-invalid]="showInvalid('start_time')">
+              <span>
+                Start Time ({{ zoneLabel }})
+                <span class="required-mark">*</span>
+              </span>
+
+              <input id="start_time" type="time" formControlName="start_time" />
+            </label>
+
+            <small class="uf-error" *ngIf="showInvalid('start_time')">{{ VALIDATION_MESSAGES.required }}</small>
+          </div>
+        </div>
+        <small class="universal-helper-text-gray" *ngIf="startHint">Start {{ startHint }}</small>
+
+        <small class="universal-helper-text-gray">
+          <button
+            type="button"
+            class="events-link-button"
+            [disabled]="!form.controls.start_date.value"
+            (click)="setEndDateToStartDate()"
+          >
+            End Date same as Start Date
+          </button>
+        </small>
+
+        <div class="events-datetime-row">
+          <div class="manage-modal-field">
+            <label
+              class="uf-field"
+              for="end_date"
+              [class.uf-invalid]="showInvalid('end_date') || (attemptedSave && !!rangeError)"
+            >
+              <span>
+                End Date
+                <span class="required-mark">*</span>
+              </span>
+
+              <input id="end_date" type="date" formControlName="end_date" [attr.min]="form.controls.start_date.value" />
+            </label>
+
+            <small class="uf-error" *ngIf="showInvalid('end_date')">{{ VALIDATION_MESSAGES.required }}</small>
+          </div>
+
+          <div class="manage-modal-field">
+            <label
+              class="uf-field"
+              for="end_time"
+              [class.uf-invalid]="showInvalid('end_time') || (attemptedSave && !!rangeError)"
+            >
+              <span>
+                End Time ({{ zoneLabel }})
+                <span class="required-mark">*</span>
+              </span>
+
+              <input id="end_time" type="time" formControlName="end_time" />
+            </label>
+
+            <small class="uf-error" *ngIf="showInvalid('end_time')">{{ VALIDATION_MESSAGES.required }}</small>
+          </div>
+        </div>
+        <small class="universal-helper-text-gray" *ngIf="endHint">End {{ endHint }}</small>
+        <small class="uf-error" *ngIf="rangeError && (attemptedSave || form.controls.end_time.touched)">{{
+          rangeError
+        }}</small>
+
+        <div class="manage-modal-field">
+          <span class="manage-field-title" id="airport_mode_title">Airports</span>
+
+          <div class="manage-source-row" role="radiogroup" aria-labelledby="airport_mode_title">
+            <label class="manage-active">
+              <input type="radio" formControlName="airport_mode" value="FROM_TO" />
+              <span>From / To</span>
+            </label>
+
+            <label class="manage-active">
+              <input type="radio" formControlName="airport_mode" value="ANY_TO" />
+              <span>Any → Fixed airport</span>
+            </label>
+
+            <label class="manage-active">
+              <input type="radio" formControlName="airport_mode" value="FROM_ANY" />
+              <span>Fixed airport → Any</span>
+            </label>
+
+            <label class="manage-active">
+              <input type="radio" formControlName="airport_mode" value="MULTIPLE" />
+              <span>Multiple airports</span>
+            </label>
+
+            <label class="manage-active">
+              <input type="radio" formControlName="airport_mode" value="ANY" />
+              <span>Any airport</span>
+            </label>
+          </div>
+        </div>
+
+        @switch (airportMode) {
+          @case ('FROM_TO') {
+            <div class="events-datetime-row">
+              <div class="manage-modal-field">
+                <label
+                  class="uf-field"
+                  for="from_icao"
+                  [class.uf-invalid]="showInvalid('from_icao') || (attemptedSave && fromToError)"
+                >
+                  <span>From Airport (ICAO)</span>
+
+                  <input
+                    id="from_icao"
+                    type="text"
+                    list="event-airports"
+                    maxlength="4"
+                    autocomplete="off"
+                    autocapitalize="characters"
+                    autocorrect="off"
+                    spellcheck="false"
+                    formControlName="from_icao"
+                    placeholder=" "
+                    (input)="onIcaoInput($any($event.target), 'from_icao')"
+                  />
+                </label>
+
+                <small class="uf-error" *ngIf="showInvalid('from_icao')">{{ invalidIcaoMessage }}</small>
+              </div>
+
+              <div class="manage-modal-field">
+                <label
+                  class="uf-field"
+                  for="to_icao"
+                  [class.uf-invalid]="showInvalid('to_icao') || (attemptedSave && fromToError)"
+                >
+                  <span>To Airport (ICAO)</span>
+
+                  <input
+                    id="to_icao"
+                    type="text"
+                    list="event-airports"
+                    maxlength="4"
+                    autocomplete="off"
+                    autocapitalize="characters"
+                    autocorrect="off"
+                    spellcheck="false"
+                    formControlName="to_icao"
+                    placeholder=" "
+                    (input)="onIcaoInput($any($event.target), 'to_icao')"
+                  />
+                </label>
+
+                <small class="uf-error" *ngIf="showInvalid('to_icao')">{{ invalidIcaoMessage }}</small>
+              </div>
+            </div>
+            <small class="universal-helper-text-gray">Enter the From airport, the To airport, or both.</small>
+            <small class="uf-error" *ngIf="attemptedSave && fromToError">{{ fromToMessage }}</small>
+          }
+          @case ('ANY_TO') {
+            <div class="manage-modal-field">
+              <label
+                class="uf-field"
+                for="to_icao"
+                [class.uf-invalid]="showInvalid('to_icao') || (attemptedSave && anyToError)"
+              >
+                <span>To Airport (ICAO)</span>
+
+                <input
+                  id="to_icao"
+                  type="text"
+                  list="event-airports"
+                  maxlength="4"
+                  autocomplete="off"
+                  autocapitalize="characters"
+                  autocorrect="off"
+                  spellcheck="false"
+                  formControlName="to_icao"
+                  placeholder=" "
+                  (input)="onIcaoInput($any($event.target), 'to_icao')"
+                />
+              </label>
+
+              <small class="uf-error" *ngIf="showInvalid('to_icao')">{{ invalidIcaoMessage }}</small>
+              <small class="uf-error" *ngIf="attemptedSave && anyToError">{{ anyToMessage }}</small>
+            </div>
+            <small class="universal-helper-text-gray"
+              >Pilots may depart from any airport and fly to this airport.</small
+            >
+          }
+          @case ('FROM_ANY') {
+            <div class="manage-modal-field">
+              <label
+                class="uf-field"
+                for="from_icao"
+                [class.uf-invalid]="showInvalid('from_icao') || (attemptedSave && fromAnyError)"
+              >
+                <span>From Airport (ICAO)</span>
+
+                <input
+                  id="from_icao"
+                  type="text"
+                  list="event-airports"
+                  maxlength="4"
+                  autocomplete="off"
+                  autocapitalize="characters"
+                  autocorrect="off"
+                  spellcheck="false"
+                  formControlName="from_icao"
+                  placeholder=" "
+                  (input)="onIcaoInput($any($event.target), 'from_icao')"
+                />
+              </label>
+
+              <small class="uf-error" *ngIf="showInvalid('from_icao')">{{ invalidIcaoMessage }}</small>
+              <small class="uf-error" *ngIf="attemptedSave && fromAnyError">{{ fromAnyMessage }}</small>
+            </div>
+            <small class="universal-helper-text-gray"
+              >Pilots depart from this airport and may fly to any airport.</small
+            >
+          }
+          @case ('MULTIPLE') {
+            <div class="manage-modal-field">
+              <div class="events-airport-add">
+                <label
+                  class="uf-field"
+                  for="airport_entry"
+                  [class.uf-invalid]="showInvalid('airport_entry') || (attemptedSave && airportListError)"
+                >
+                  <span>Planned / Preferred Airport (ICAO)</span>
+
+                  <input
+                    id="airport_entry"
+                    type="text"
+                    list="event-airports"
+                    maxlength="4"
+                    autocomplete="off"
+                    autocapitalize="characters"
+                    autocorrect="off"
+                    spellcheck="false"
+                    formControlName="airport_entry"
+                    placeholder=" "
+                    (input)="onIcaoInput($any($event.target), 'airport_entry')"
+                    (keydown.enter)="addAirport($event)"
+                  />
+                </label>
+
+                <button
+                  type="button"
+                  class="universal-button universal-button--edit"
+                  [disabled]="airportList.length >= maxAirports"
+                  (click)="addAirport()"
+                >
+                  Add Airport
+                </button>
+              </div>
+
+              @if (airportList.length > 0) {
+                <ul class="events-chips" aria-label="Airports of the event">
+                  @for (icao of airportList; track icao) {
+                    <li class="events-chip">
+                      {{ icao }}
+                      <button
+                        type="button"
+                        class="events-chip__remove"
+                        [attr.aria-label]="'Remove ' + icao"
+                        (click)="removeAirport(icao)"
+                      >
+                        &times;
+                      </button>
+                    </li>
+                  }
+                </ul>
+              }
+
+              <small class="universal-helper-text-gray">
+                Type an airport and press Add Airport (or Enter). Up to {{ maxAirports }} airports.
+              </small>
+              <small class="uf-error" *ngIf="showInvalid('airport_entry')">{{ invalidIcaoMessage }}</small>
+              <small class="uf-error" *ngIf="attemptedSave && airportListError">{{ noAirportMessage }}</small>
+            </div>
+          }
+          @default {
+            <small class="universal-helper-text-gray">
+              No airport is named: pilots and controllers may use any airport.
+            </small>
+          }
+        }
+
+        <datalist id="event-airports">
+          @for (airport of airports; track airport.icao) {
+            <option [value]="airport.icao">{{ airport.name }}</option>
+          }
+        </datalist>
+
+        <div class="manage-modal-field">
+          <span class="manage-field-title">Event Image</span>
+
+          <app-qr-upload
+            purpose="EVENTS"
+            inputId="event_image"
+            [accept]="imageAccept"
+            [file]="selectedFile"
+            [invalid]="!!imageError"
+            (fileChange)="onFileChange($event)"
+          ></app-qr-upload>
+
+          <small class="universal-helper-text-gray">{{ imageHelperText }}</small>
+          <small class="uf-error" *ngIf="imageError">{{ imageError }}</small>
+
+          @if (selectedFile && selectedPreviewUrl) {
+            <img class="events-image-preview" [src]="selectedPreviewUrl" alt="Preview of the chosen event image" />
+          } @else if (showSavedImage && imageSource) {
+            <img
+              class="events-image-preview"
+              [appAuthSrc]="imageUrl(imageSource)"
+              [appAuthFallback]="fallbackImage"
+              [appAuthAdmin]="true"
+              alt="The saved event image"
+            />
+            <small class="universal-helper-text-gray">
+              {{ cloneSource ? 'Copied from the original event.' : 'Current image.' }}
+              Choose a new file only to replace it.
+              <button type="button" class="events-link-button" (click)="setRemoveImage(true)">Remove image</button>
+            </small>
+          } @else if (removeImage) {
+            <small class="universal-helper-text-gray">
+              The image is removed when you save.
+              <button type="button" class="events-link-button" (click)="setRemoveImage(false)">Undo</button>
+            </small>
+          }
+        </div>
+
+        <div class="manage-modal-field">
+          <label class="uf-field" for="event_description" [class.uf-invalid]="showInvalid('description')">
+            <span>Event Description</span>
+
+            <textarea id="event_description" maxlength="5000" formControlName="description" placeholder=" "></textarea>
+          </label>
+          <small class="universal-helper-text-gray">Optional. Shown on the event card of the Home page.</small>
+        </div>
+
+        <div *ngIf="errorMessage" class="status-box error manage-modal-message" role="alert">
+          {{ errorMessage }}
+        </div>
+
+        <div class="manage-modal-actions">
+          <button
+            type="button"
+            class="universal-button universal-button--cancel"
+            [disabled]="isSaving"
+            (click)="closeModal()"
+          >
+            Cancel
+          </button>
+
+          <div class="manage-modal-actions-right">
+            <button
+              type="button"
+              class="universal-button universal-button--danger"
+              *ngIf="isEditMode"
+              [disabled]="isSaving"
+              (click)="deleteEvent()"
+            >
+              Remove
+            </button>
+
+            <button type="submit" class="universal-button universal-button--save" [disabled]="isSaving">
+              {{ isSaving ? 'Saving...' : isEditMode ? 'Update' : 'Add' }}
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+}

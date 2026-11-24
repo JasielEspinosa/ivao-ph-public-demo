@@ -61,12 +61,11 @@
         </div>
       </div>
 
-      <!-- No page yet: plain clickable menu text. -->
-      <a href="#" class="site-nav__link" (click)="noPageYet($event)">Contacts</a>
+      <a routerLink="/contacts" routerLinkActive="site-nav__link--active" class="site-nav__link">Contacts</a>
     </nav>
 
     <div class="site-actions">
-      <app-theme-toggle *ngIf="showThemeToggle"></app-theme-toggle>
+      <app-theme-toggle *ngIf="showThemeToggle" [showHint]="true"></app-theme-toggle>
 
       <div class="site-dropdown" *ngIf="compact()">
         <button
@@ -109,7 +108,9 @@
             >Documents</a
           >
           <a routerLink="/charts" routerLinkActive="site-dropdown__item--active" class="site-dropdown__item">Charts</a>
-          <a href="#" class="site-dropdown__item" (click)="noPageYet($event)">Contacts</a>
+          <a routerLink="/contacts" routerLinkActive="site-dropdown__item--active" class="site-dropdown__item"
+            >Contacts</a
+          >
 
           <div class="site-dropdown__heading">Rules and Policies</div>
           <a routerLink="/privacy-policy" routerLinkActive="site-dropdown__item--active" class="site-dropdown__item"

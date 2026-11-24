@@ -8,7 +8,10 @@ import { AirportPosition, PHILIPPINE_AIRPORTS } from './demo-airport-positions';
  * Public demo only: GitHub Pages has no backend, so the API calls listed here are answered
  * without one.
  *  - `DEMO_RESPONSES`: dummy JSON files in `public/demo/` (served next to the site, so the URL is
- *    relative to the page's base href).
+ *    relative to the page's base href). Every area has at least 5 dummy records.
+ *  - `DEMO_FILE_ROUTES`: the dummy files behind those records (event pictures, document and chart PDFs).
+ *  - `/events`: `public/demo/events.json` holds day offsets, not dates; `buildEvents` turns them into real
+ *    dates so Events Today, Upcoming Events and Past Events are never empty, whatever day it is.
  *  - `/pilots/online` and `/atc/online`: the live IVAO feed, read straight from the browser (the
  *    feed allows cross-origin requests) and reshaped the way the real backend does.
  *  - `/weather/:icao/metar`: the live METAR from VATSIM's public METAR service (it allows
@@ -17,6 +20,8 @@ import { AirportPosition, PHILIPPINE_AIRPORTS } from './demo-airport-positions';
  *    real backend's source (aviationweather.gov) does not, so the card says so.
  *  - `/weather/:icao/model`: the live ECMWF model data from Open-Meteo (it allows cross-origin
  *    requests), as the real backend does.
+ *  - `/admin-auth/login|session|profile`: a dummy account, so Profile Settings can be tried (see
+ *    `demoAccountResponse`).
  *  - `/weather/:icao/notam`: a snapshot of the CAAP AIS NOTAMs in `public/demo/notams.json` (the
  *    service does not allow requests from a browser). `web/scripts/fetch-demo-notams.mjs` refreshes
  *    it before each deploy; ended NOTAMs are dropped and active/upcoming is worked out here, in the
@@ -24,7 +29,20 @@ import { AirportPosition, PHILIPPINE_AIRPORTS } from './demo-airport-positions';
  */
 const DEMO_RESPONSES: Record<string, string> = {
   '/members': 'demo/members.json',
+  '/members/contacts': 'demo/contacts.json',
+  '/documents': 'demo/documents.json',
+  '/charts': 'demo/charts.json',
 };
+
+/** API file routes -> the dummy file in `public/demo/` ($1 is the record id). */
+const DEMO_FILE_ROUTES: readonly { pattern: RegExp; file: string }[] = [
+  { pattern: /^\/events\/(\d+)\/image$/, file: 'demo/events/event-$1.svg' },
+  { pattern: /^\/documents\/(\d+)\/file$/, file: 'demo/documents/document-$1.pdf' },
+  { pattern: /^\/charts\/(\d+)\/file$/, file: 'demo/charts/chart-$1.pdf' },
+];
+const EVENTS_FILE = 'demo/events.json';
+const DAY_MS = 24 * 60 * 60 * 1000;
+const PHILIPPINE_OFFSET_MS = 8 * 60 * 60 * 1000;
 
 const IVAO_WHAZZUP_API = 'https://api.ivao.aero/v2/tracker/whazzup';
 const METAR_API = 'https://metar.vatsim.net';
@@ -350,6 +368,53 @@ function toModelForecast(body: unknown) {
   };
 }
 
+interface DemoEvent {
+  id: number;
+  day_offset: number;
+  start_gmt: string;
+  end_gmt: string;
+  [field: string]: unknown;
+}
+
+/** "12:00" on the calendar day that starts at `dayStart` (UTC midnight), as an ISO string. */
+function atGmtTime(dayStart: number, time: string): number {
+  const [hours, minutes] = time.split(':').map(Number);
+  return dayStart + (hours * 60 + minutes) * 60 * 1000;
+}
+
+/**
+ * Same sections as the backend's EventsService.findPublic: "today" is the Philippine calendar day, an event that
+ * starts after today is upcoming, one that ended before today is past (most recently ended first).
+ */
+function buildEvents(snapshot: unknown) {
+  if (!Array.isArray(snapshot)) {
+    throw new Error('Unexpected events file');
+  }
+
+  const now = Date.now();
+  const todayStart = Math.floor((now + PHILIPPINE_OFFSET_MS) / DAY_MS) * DAY_MS - PHILIPPINE_OFFSET_MS;
+  const tomorrowStart = todayStart + DAY_MS;
+  // The GMT clock times of an event are on the same calendar date as its Philippine day (UTC midnight of that date).
+  const philippineDate = todayStart + PHILIPPINE_OFFSET_MS;
+
+  const rows = (snapshot as DemoEvent[]).map(({ day_offset, start_gmt, end_gmt, ...rest }) => {
+    const dayStart = philippineDate + day_offset * DAY_MS;
+    return {
+      ...rest,
+      start_at: new Date(atGmtTime(dayStart, start_gmt)).toISOString(),
+      end_at: new Date(atGmtTime(dayStart, end_gmt)).toISOString(),
+    };
+  });
+
+  const startOf = (row: { start_at: string }) => Date.parse(row.start_at);
+  const endOf = (row: { end_at: string }) => Date.parse(row.end_at);
+  return {
+    today: rows.filter((row) => startOf(row) < tomorrowStart && endOf(row) > todayStart).sort((a, b) => startOf(a) - startOf(b)),
+    upcoming: rows.filter((row) => startOf(row) >= tomorrowStart).sort((a, b) => startOf(a) - startOf(b)),
+    past: rows.filter((row) => endOf(row) <= todayStart).sort((a, b) => endOf(b) - endOf(a)),
+  };
+}
+
 let cachedFeed: { at: number; feed$: Observable<Whazzup> } | null = null;
 
 /** One shared download of the feed per WHAZZUP_TTL_MS; a failed download is not kept. */
@@ -386,13 +451,95 @@ function loadFeed(download: () => Observable<HttpEvent<unknown>>): Observable<Wh
   return entry.feed$;
 }
 
+/**
+ * Demo account (so Profile Settings can be opened): there is no backend, so any email and password
+ * logs in as a dummy non-admin user, and the profile page saves into the session that is kept in this
+ * browser's localStorage. Nothing is sent anywhere.
+ */
+const DEMO_SESSION_HOURS = 12;
+const DEMO_THEMES: readonly string[] = ['light', 'dark', 'system'];
+const DEMO_NAME_FIELDS = ['nickname', 'first_name', 'middle_name', 'last_name', 'suffix'] as const;
+
+function demoUser(loginEmail: string): Record<string, unknown> {
+  return {
+    login_email: loginEmail,
+    nickname: 'Demo',
+    first_name: 'Juan',
+    middle_name: 'Santos',
+    last_name: 'Dela Cruz',
+    suffix: null,
+    is_admin: false,
+    manage_all_data: false,
+    manage_data_codes: [],
+    ui_theme: 'light',
+  };
+}
+
+function readDemoSessionUser(): Record<string, unknown> | null {
+  try {
+    const stored = JSON.parse(localStorage.getItem(environment.sessionStorageKey) || 'null');
+    return stored?.user && typeof stored.user === 'object' ? stored.user : null;
+  } catch {
+    return null;
+  }
+}
+
+function demoAccountResponse(method: string, path: string, body: unknown): Observable<HttpEvent<unknown>> | null {
+  const ok = (payload: unknown) => of(new HttpResponse({ status: 200, body: payload }));
+  const unauthorized = () =>
+    throwError(() => new HttpErrorResponse({ status: 401, error: { message: 'Please log in again.' } }));
+
+  if (method === 'POST' && path === '/admin-auth/login') {
+    const submitted = new URLSearchParams(typeof body === 'string' ? body : '').get('login_email')?.trim();
+    const now = Date.now();
+    return ok({
+      token: 'demo-session',
+      expires_at: new Date(now + DEMO_SESSION_HOURS * 3600 * 1000).toISOString(),
+      server_time: new Date(now).toISOString(),
+      user: demoUser(submitted || 'demo@example.com'),
+    });
+  }
+
+  if (method === 'GET' && path === '/admin-auth/session') {
+    const user = readDemoSessionUser();
+    return user ? ok({ valid: true, user }) : unauthorized();
+  }
+
+  if (method === 'PUT' && path === '/admin-auth/profile') {
+    const user = readDemoSessionUser();
+    if (!user) {
+      return unauthorized();
+    }
+    const changes = (body && typeof body === 'object' ? body : {}) as Record<string, unknown>;
+    const updated: Record<string, unknown> = { ...user };
+    for (const field of DEMO_NAME_FIELDS) {
+      const value = changes[field];
+      if (typeof value === 'string') {
+        updated[field] = value.trim() || null;
+      }
+    }
+    const theme = changes['ui_theme'];
+    if (typeof theme === 'string' && DEMO_THEMES.includes(theme)) {
+      updated['ui_theme'] = theme;
+    }
+    return ok({ success: true, user: updated });
+  }
+
+  return null;
+}
+
 export const demoDataInterceptor: HttpInterceptorFn = (req, next) => {
+  const apiBase = environment.apiUrl.replace(/\/$/, '');
+  const path = req.url.startsWith(apiBase) ? req.url.slice(apiBase.length).split('?')[0] : null;
+
+  const account = path === null ? null : demoAccountResponse(req.method, path, req.body);
+  if (account !== null) {
+    return account;
+  }
+
   if (req.method !== 'GET') {
     return next(req);
   }
-
-  const apiBase = environment.apiUrl.replace(/\/$/, '');
-  const path = req.url.startsWith(apiBase) ? req.url.slice(apiBase.length).split('?')[0] : null;
 
   if (path === '/pilots/online' || path === '/atc/online') {
     // A request to another site must not carry the API credentials.
@@ -484,6 +631,20 @@ export const demoDataInterceptor: HttpInterceptorFn = (req, next) => {
         throwError(() => new HttpErrorResponse({ status: 503, statusText: 'Service Unavailable', url: METAR_API })),
       ),
     );
+  }
+
+  if (path === '/events') {
+    return next(req.clone({ url: EVENTS_FILE, headers: new HttpHeaders() })).pipe(
+      filter((event): event is HttpResponse<unknown> => event instanceof HttpResponse),
+      map((event) => new HttpResponse({ status: 200, body: buildEvents(event.body) })),
+    );
+  }
+
+  // Dummy files (event pictures, document and chart PDFs): the request keeps its response type (blob).
+  for (const route of path === null ? [] : DEMO_FILE_ROUTES) {
+    if (route.pattern.test(path!)) {
+      return next(req.clone({ url: path!.replace(route.pattern, route.file), headers: new HttpHeaders() }));
+    }
   }
 
   const file = path === null ? undefined : DEMO_RESPONSES[path];

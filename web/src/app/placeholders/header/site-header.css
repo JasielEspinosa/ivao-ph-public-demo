@@ -27,9 +27,9 @@
   );
 }
 
-/* Same width and side padding as the standard page shell, so the logo lines up with the page content below. */
+/* Spans the full width of the window. */
 .site-header__inner {
-  width: min(100%, var(--form-shell-width-standard, 1100px));
+  width: 100%;
   margin: 0 auto;
   padding: 0.35rem 1.5rem;
   box-sizing: border-box;
@@ -78,6 +78,7 @@
   min-width: 0;
   display: flex;
   align-items: center;
+  justify-content: center;
   flex-wrap: wrap;
   gap: 0.15rem;
   font-family: 'IVAO Sans', inherit, sans-serif;
@@ -344,6 +345,7 @@
     display: none;
     flex-direction: column;
     align-items: stretch;
+    justify-content: flex-start;
     gap: 0;
     padding-top: 0.25rem;
     border-top: 1px solid var(--c-line-soft);

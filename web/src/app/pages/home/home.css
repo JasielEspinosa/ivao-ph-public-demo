@@ -1,5 +1,5 @@
-/* The Home page: welcome text, upcoming events and the IVAO logos. The sections it shares with the Pilot's Lounge are in styles/styles-info-sections.css. Colors come from the theme tokens. */
-.home-sample-tag {
+/* The Home page: welcome text and the IVAO logos (the event cards are in shared/event-cards). The sections it shares with the Pilot's Lounge are in styles/styles-info-sections.css. Colors come from the theme tokens. */
+.home-section__note {
   padding: 0.15rem 0.6rem;
   border: 1px solid var(--c-line-soft);
   border-radius: 999px;
@@ -43,72 +43,6 @@
   color: var(--c-brand-ink);
   font-size: 1.1rem;
   font-weight: 700;
-}
-
-/* Upcoming events */
-.event-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1.25rem;
-}
-
-.event-card {
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  border: 1px solid var(--c-line-soft);
-  border-radius: 12px;
-  background: var(--c-surface);
-  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.06);
-}
-
-.event-card__image {
-  display: block;
-  width: 100%;
-  aspect-ratio: 16 / 9;
-  object-fit: cover;
-  background: var(--c-tint-2);
-}
-
-.event-card__body {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  padding: 1rem 1.1rem 1.1rem;
-}
-
-.event-card__date {
-  margin: 0 0 0.35rem;
-  color: var(--c-ph-red-text);
-  font-size: 0.85rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-}
-
-.event-card__title {
-  margin: 0 0 0.4rem;
-  color: var(--c-slate-900);
-  font-size: 1.15rem;
-  line-height: 1.3;
-}
-
-.event-card__summary {
-  flex: 1;
-  margin: 0 0 0.9rem;
-  font-size: 0.95rem;
-}
-
-.event-card__link {
-  align-self: flex-start;
-  color: var(--c-link);
-  font-weight: 600;
-  text-decoration: none;
-}
-
-.event-card__link:hover,
-.event-card__link:focus-visible {
-  color: var(--c-link-hover);
-  text-decoration: underline;
 }
 
 /* IVAO logos */
@@ -171,16 +105,4 @@
   color: var(--c-slate-500);
   font-size: 1.75rem;
   font-weight: 300;
-}
-
-@media (max-width: 900px) {
-  .event-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 600px) {
-  .event-grid {
-    grid-template-columns: 1fr;
-  }
 }

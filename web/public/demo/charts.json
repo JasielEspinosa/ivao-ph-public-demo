@@ -1,0 +1,52 @@
+[
+  {
+    "id": 1,
+    "airport_icao": "RPLC",
+    "chart_name": "RNAV Approach Runway 02L",
+    "description": "Instrument approach chart for Clark.",
+    "link_url": "https://example.com/charts/rplc-rnav-02l",
+    "link_is_pdf": false,
+    "file_name": null,
+    "file_size": null
+  },
+  {
+    "id": 2,
+    "airport_icao": "RPLL",
+    "chart_name": "Airport Diagram",
+    "description": "Taxiways, gates and runways of Manila.",
+    "link_url": null,
+    "link_is_pdf": false,
+    "file_name": "RPLL---Airport-Diagram.pdf",
+    "file_size": 925
+  },
+  {
+    "id": 3,
+    "airport_icao": "RPLL",
+    "chart_name": "ILS Runway 06 Approach",
+    "description": "Instrument landing system approach to runway 06.",
+    "link_url": null,
+    "link_is_pdf": false,
+    "file_name": "RPLL---ILS-Runway-06-Approach.pdf",
+    "file_size": 942
+  },
+  {
+    "id": 4,
+    "airport_icao": "RPVM",
+    "chart_name": "Airport Diagram",
+    "description": "Taxiways, apron and runway of Mactan-Cebu.",
+    "link_url": null,
+    "link_is_pdf": false,
+    "file_name": "RPVM---Airport-Diagram.pdf",
+    "file_size": 929
+  },
+  {
+    "id": 5,
+    "airport_icao": null,
+    "chart_name": "Manila FIR Enroute Chart",
+    "description": "Airways and reporting points of the Manila FIR.",
+    "link_url": null,
+    "link_is_pdf": false,
+    "file_name": "Manila-FIR-Enroute-Chart.pdf",
+    "file_size": 936
+  }
+]

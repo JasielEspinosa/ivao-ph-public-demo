@@ -30,6 +30,13 @@ export const DATA_MANAGE_PAGE_TITLES: Readonly<Record<string, PageTitleEntry>> =
       'Upload the Word, Excel and PDF documents shown on the public Documents page, and choose when they are shown.',
     tabTitle: 'IVAO Philippines - Manage Documents',
   },
+  EVENTS: {
+    title: 'Events Creation',
+    subtitle: '',
+    description:
+      'Create the events shown on the Home page (Events Today, Upcoming Events and Past Events), and archive or clone past events.',
+    tabTitle: 'IVAO Philippines - Manage Events',
+  },
   MEMBERS: {
     title: 'Members',
     subtitle: '',
