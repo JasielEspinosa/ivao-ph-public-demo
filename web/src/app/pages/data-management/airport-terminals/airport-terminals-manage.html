@@ -1,0 +1,321 @@
+<section class="page-shell data-manage-page data-manage-page--wide">
+  <div class="form-shell">
+    <app-placeholder-banner-data-management> </app-placeholder-banner-data-management>
+
+    <div class="dashboard-header manage-toolbar">
+      <p>{{ page?.entry?.description }}</p>
+
+      <div class="manage-toolbar-actions">
+        <button type="button" class="universal-button universal-button--template" (click)="exportTemplate()">
+          Export Template
+        </button>
+        <button
+          type="button"
+          class="universal-button universal-button--template"
+          (click)="openImportTemplatePicker(templateFileInput)"
+        >
+          Import Template
+        </button>
+        <input
+          #templateFileInput
+          type="file"
+          class="visually-hidden-input"
+          accept=".xlsx,.xlsm,.csv"
+          (change)="onImportTemplateSelected($event)"
+        />
+        <button type="button" class="universal-button universal-button--primary" (click)="openAddModal()">
+          Add Terminal
+        </button>
+      </div>
+    </div>
+
+    <div
+      class="route-loading-overlay route-loading-overlay--inline"
+      *ngIf="isLoading"
+      role="status"
+      aria-live="polite"
+      [attr.aria-label]="messages.loading('Terminals')"
+    >
+      <div class="route-loading-spinner"></div>
+    </div>
+
+    <app-popup-message type="error" [message]="errorMessage" (closed)="errorMessage = ''" />
+    <app-popup-message type="success" [message]="successMessage" (closed)="successMessage = ''" />
+
+    <div class="table-wrap table-wrap--admin table-wrap--compact" *ngIf="!isLoading && !loadFailed">
+      <app-table-pagination [pager]="pager"></app-table-pagination>
+      <table>
+        <thead>
+          <tr>
+            @for (column of columns; track column.key) {
+              <th>
+                <button type="button" class="sort-header-button" (click)="toggleSort(column.key)">
+                  {{ column.label }}
+                  {{ getSortIndicator(column.key) }}
+                </button>
+              </th>
+            }
+
+            <th data-disable-resize></th>
+          </tr>
+
+          <tr class="column-filter-row">
+            @for (column of columns; track column.key) {
+              <th>
+                <input
+                  type="text"
+                  class="column-filter-input"
+                  [attr.aria-label]="'Filter by ' + column.label"
+                  [value]="columnFilters[column.key]"
+                  (input)="setColumnFilter(column.key, $any($event.target).value || '')"
+                  placeholder="Filter"
+                />
+              </th>
+            }
+
+            <th>
+              <button
+                *ngIf="hasActiveFilters"
+                type="button"
+                class="universal-button universal-button--clear"
+                (click)="clearFilters()"
+              >
+                Clear
+              </button>
+            </th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let item of pager.slice(visibleTerminals)">
+            @for (column of columns; track column.key) {
+              <td [class.resizable-wrap-column]="column.key === 'airlines' || column.key === 'note'">
+                {{ cellText(item, column.key) }}
+              </td>
+            }
+
+            <td>
+              <button type="button" class="universal-button universal-button--edit" (click)="edit(item)">Edit</button>
+            </td>
+          </tr>
+
+          <tr *ngIf="visibleTerminals.length === 0">
+            <td [attr.colspan]="columns.length + 1">{{ messages.noRecords('Terminals') }}</td>
+          </tr>
+        </tbody>
+      </table>
+      <app-table-pagination [pager]="pager"></app-table-pagination>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================
+     ADD / EDIT MODAL
+     ========================================================= -->
+
+<div *ngIf="isModalOpen" class="manage-modal-backdrop">
+  <div class="manage-modal-card" role="dialog" aria-modal="true" aria-label="Airport Terminals Management">
+    <button type="button" class="universal-modal-close" aria-label="Close" [disabled]="isSaving" (click)="closeModal()">
+      &times;
+    </button>
+
+    <h3>
+      {{ isEditMode ? 'Edit Terminal' : 'Add Terminal' }}
+    </h3>
+
+    <form class="manage-form universal-form" [formGroup]="form" (ngSubmit)="save()">
+      <div class="manage-modal-field">
+        <label class="uf-field" for="airport_icao" [class.uf-invalid]="showInvalid('airport_icao')">
+          <span>
+            Airport ICAO Code
+            <span class="required-mark">*</span>
+          </span>
+
+          <input
+            id="airport_icao"
+            type="text"
+            list="terminal-airports"
+            maxlength="4"
+            autocomplete="off"
+            autocapitalize="characters"
+            autocorrect="off"
+            spellcheck="false"
+            formControlName="airport_icao"
+            placeholder=" "
+            (input)="onIcaoInput($any($event.target))"
+          />
+        </label>
+
+        <small class="uf-error" *ngIf="showInvalid('airport_icao')">
+          {{ form.controls.airport_icao.errors?.['required'] ? VALIDATION_MESSAGES.required : invalidIcaoMessage }}
+        </small>
+
+        <datalist id="terminal-airports">
+          @for (airport of airports; track airport.icao) {
+            <option [value]="airport.icao">{{ airport.name }}</option>
+          }
+        </datalist>
+      </div>
+
+      <div class="manage-modal-field">
+        <label class="uf-field" for="terminal_name" [class.uf-invalid]="showInvalid('terminal_name')">
+          <span>
+            Terminal Name
+            <span class="required-mark">*</span>
+          </span>
+
+          <input
+            id="terminal_name"
+            type="text"
+            [attr.maxlength]="maxTerminalNameLength"
+            autocomplete="off"
+            formControlName="terminal_name"
+            placeholder=" "
+          />
+        </label>
+
+        <small class="uf-error" *ngIf="showInvalid('terminal_name')">
+          {{ VALIDATION_MESSAGES.required }}
+        </small>
+      </div>
+
+      <div class="manage-modal-field">
+        <label class="uf-field" for="airlines" [class.uf-invalid]="showInvalid('airlines')">
+          <span>Airlines</span>
+
+          <textarea
+            id="airlines"
+            [attr.maxlength]="maxAirlinesLength"
+            autocapitalize="characters"
+            spellcheck="false"
+            formControlName="airlines"
+            placeholder=" "
+          ></textarea>
+        </label>
+
+        <small class="uf-error" *ngIf="showInvalid('airlines')">{{ invalidAirlinesMessage }}</small>
+        <small class="universal-helper-text-gray">
+          3-letter ICAO codes separated by commas, for example CEB, PAL. They are shown on the parking spots of this
+          terminal that have no airlines of their own.
+        </small>
+      </div>
+
+      <div class="manage-modal-field">
+        <label class="uf-field" for="note" [class.uf-invalid]="showInvalid('note')">
+          <span>Note</span>
+
+          <input id="note" type="text" [attr.maxlength]="maxNoteLength" formControlName="note" placeholder=" " />
+        </label>
+      </div>
+
+      <div class="manage-toggle-row">
+        <label class="manage-active">
+          <span> Enable this Terminal </span>
+
+          <input type="checkbox" class="switch-input" role="switch" formControlName="is_active" />
+        </label>
+      </div>
+
+      <div class="manage-modal-actions">
+        <button
+          type="button"
+          class="universal-button universal-button--cancel"
+          [disabled]="isSaving"
+          (click)="closeModal()"
+        >
+          Cancel
+        </button>
+
+        <div class="manage-modal-actions-right">
+          <button
+            type="button"
+            class="universal-button universal-button--danger"
+            *ngIf="isEditMode"
+            [disabled]="isSaving"
+            (click)="deleteTerminal()"
+          >
+            Delete
+          </button>
+
+          <button type="submit" class="universal-button universal-button--save" [disabled]="isSaving">
+            {{ isSaving ? 'Saving...' : isEditMode ? 'Update' : 'Add' }}
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div
+  *ngIf="isExportOptionsModalOpen"
+  class="template-modal-backdrop"
+  role="dialog"
+  aria-modal="true"
+  aria-label="Export template options"
+>
+  <div class="template-modal-card template-modal-card--export">
+    <button type="button" class="universal-modal-close" aria-label="Close" (click)="closeExportOptionsModal()">
+      &times;
+    </button>
+    <h3>Export Template</h3>
+    <p>{{ messages.exportChoose }}</p>
+    <div class="template-modal-actions template-modal-actions--horizontal">
+      <button type="button" class="universal-button universal-button--primary" (click)="downloadTemplateFromServer()">
+        Export Data from Server
+      </button>
+      <button type="button" class="universal-button universal-button--template" (click)="downloadTemplateFromPage()">
+        Export Data from Page
+      </button>
+    </div>
+  </div>
+</div>
+
+<div
+  *ngIf="pendingImportFile"
+  class="template-modal-backdrop"
+  role="dialog"
+  aria-modal="true"
+  aria-label="Confirm import"
+>
+  <div class="template-modal-card template-modal-card--export">
+    <h3>Import Template</h3>
+    <p>{{ messages.confirmImportReplace('terminal', pendingImportFile.name) }}</p>
+    <div class="template-modal-actions template-modal-actions--confirm">
+      <button type="button" class="universal-button universal-button--cancel" (click)="cancelImportConfirm()">
+        Cancel
+      </button>
+      <button type="button" class="universal-button universal-button--danger" (click)="confirmImportTemplate()">
+        Override
+      </button>
+    </div>
+  </div>
+</div>
+
+<div
+  *ngIf="isTemplateUploading"
+  class="template-modal-backdrop"
+  role="dialog"
+  aria-modal="true"
+  aria-label="Uploading template"
+>
+  <div class="template-modal-card">
+    <h3>Uploading</h3>
+    <p>{{ messages.uploadingTemplate }}</p>
+  </div>
+</div>
+
+<div
+  *ngIf="isTemplateUpdatedModalOpen"
+  class="template-modal-backdrop"
+  role="dialog"
+  aria-modal="true"
+  aria-label="Template updated"
+>
+  <div class="template-modal-card">
+    <h3>Template updated</h3>
+    <p>{{ messages.templateUpdated }}</p>
+    <button type="button" class="template-modal-button template-modal-button--ok" (click)="closeTemplateUpdatedModal()">
+      Ok
+    </button>
+  </div>
+</div>

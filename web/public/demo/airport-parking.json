@@ -1,0 +1,252 @@
+[
+  {
+    "id": 1,
+    "airport_icao": "RPLL",
+    "airport_name": "Ninoy Aquino International Airport",
+    "stand_name": "1",
+    "stand_type": "PARKING_STAND",
+    "latitude": 14.5068,
+    "longitude": 121.0052,
+    "source": "CAAP",
+    "note": "Demo wide-body stand.",
+    "terminal_name": "Terminal 1",
+    "shown_use": "AIRLINE",
+    "use_is_simulated": false,
+    "shown_size": "E",
+    "size_is_simulated": false,
+    "shown_airlines": [
+      {
+        "code": "XDA",
+        "name": "Demo Airways"
+      },
+      {
+        "code": "XSP",
+        "name": "Sample Pacific"
+      }
+    ],
+    "airlines_source": "TERMINAL"
+  },
+  {
+    "id": 2,
+    "airport_icao": "RPLL",
+    "airport_name": "Ninoy Aquino International Airport",
+    "stand_name": "2",
+    "stand_type": "PARKING_STAND",
+    "latitude": 14.5074,
+    "longitude": 121.0063,
+    "source": "CAAP",
+    "note": null,
+    "terminal_name": "Terminal 1",
+    "shown_use": "AIRLINE",
+    "use_is_simulated": false,
+    "shown_size": "D",
+    "size_is_simulated": false,
+    "shown_airlines": [
+      {
+        "code": "XSP",
+        "name": "Sample Pacific"
+      }
+    ],
+    "airlines_source": "SPOT"
+  },
+  {
+    "id": 3,
+    "airport_icao": "RPLL",
+    "airport_name": "Ninoy Aquino International Airport",
+    "stand_name": "24",
+    "stand_type": "PARKING_STAND",
+    "latitude": 14.5108,
+    "longitude": 121.0131,
+    "source": "OSM",
+    "note": null,
+    "terminal_name": "Terminal 2",
+    "shown_use": "AIRLINE",
+    "use_is_simulated": false,
+    "shown_size": "C",
+    "size_is_simulated": false,
+    "shown_airlines": [
+      {
+        "code": "XDA",
+        "name": "Demo Airways"
+      }
+    ],
+    "airlines_source": "TERMINAL"
+  },
+  {
+    "id": 4,
+    "airport_icao": "RPLL",
+    "airport_name": "Ninoy Aquino International Airport",
+    "stand_name": "Gate 110",
+    "stand_type": "GATE",
+    "latitude": 14.5196,
+    "longitude": 121.0143,
+    "source": "OSM",
+    "note": null,
+    "terminal_name": "Terminal 3",
+    "shown_use": "AIRLINE",
+    "use_is_simulated": false,
+    "shown_size": "C",
+    "size_is_simulated": false,
+    "shown_airlines": [
+      {
+        "code": "XDA",
+        "name": "Demo Airways"
+      },
+      {
+        "code": "XIH",
+        "name": "Island Hop Demo"
+      }
+    ],
+    "airlines_source": "TERMINAL"
+  },
+  {
+    "id": 5,
+    "airport_icao": "RPLL",
+    "airport_name": "Ninoy Aquino International Airport",
+    "stand_name": "Cargo 3",
+    "stand_type": "PARKING_STAND",
+    "latitude": 14.5126,
+    "longitude": 121.0094,
+    "source": "OTHER",
+    "note": "Demo cargo apron.",
+    "terminal_name": null,
+    "shown_use": "CARGO",
+    "use_is_simulated": false,
+    "shown_size": "E",
+    "size_is_simulated": false,
+    "shown_airlines": [
+      {
+        "code": "XCG",
+        "name": "Example Cargo"
+      }
+    ],
+    "airlines_source": "SPOT"
+  },
+  {
+    "id": 6,
+    "airport_icao": "RPLL",
+    "airport_name": "Ninoy Aquino International Airport",
+    "stand_name": "Hangar A",
+    "stand_type": "HANGAR",
+    "latitude": 14.5137,
+    "longitude": 121.0182,
+    "source": "XPLANE",
+    "note": null,
+    "terminal_name": null,
+    "shown_use": "GENERAL_AVIATION",
+    "use_is_simulated": true,
+    "shown_size": "B",
+    "size_is_simulated": true,
+    "shown_airlines": [],
+    "airlines_source": null
+  },
+  {
+    "id": 7,
+    "airport_icao": "RPVM",
+    "airport_name": "Mactan Cebu International Airport",
+    "stand_name": "3",
+    "stand_type": "PARKING_STAND",
+    "latitude": 10.3091,
+    "longitude": 123.9801,
+    "source": "CAAP",
+    "note": null,
+    "terminal_name": "Terminal 1",
+    "shown_use": "AIRLINE",
+    "use_is_simulated": false,
+    "shown_size": "C",
+    "size_is_simulated": false,
+    "shown_airlines": [
+      {
+        "code": "XDA",
+        "name": "Demo Airways"
+      },
+      {
+        "code": "XIH",
+        "name": "Island Hop Demo"
+      }
+    ],
+    "airlines_source": "TERMINAL"
+  },
+  {
+    "id": 8,
+    "airport_icao": "RPVM",
+    "airport_name": "Mactan Cebu International Airport",
+    "stand_name": "4",
+    "stand_type": "PARKING_STAND",
+    "latitude": 10.3096,
+    "longitude": 123.9809,
+    "source": "CAAP",
+    "note": null,
+    "terminal_name": "Terminal 1",
+    "shown_use": "AIRLINE",
+    "use_is_simulated": false,
+    "shown_size": "C",
+    "size_is_simulated": false,
+    "shown_airlines": [
+      {
+        "code": "XIH",
+        "name": "Island Hop Demo"
+      }
+    ],
+    "airlines_source": "SPOT"
+  },
+  {
+    "id": 9,
+    "airport_icao": "RPVM",
+    "airport_name": "Mactan Cebu International Airport",
+    "stand_name": "Gate 20",
+    "stand_type": "GATE",
+    "latitude": 10.3103,
+    "longitude": 123.9818,
+    "source": "OSM",
+    "note": null,
+    "terminal_name": "Terminal 2",
+    "shown_use": "AIRLINE",
+    "use_is_simulated": false,
+    "shown_size": "E",
+    "size_is_simulated": false,
+    "shown_airlines": [
+      {
+        "code": "XSP",
+        "name": "Sample Pacific"
+      }
+    ],
+    "airlines_source": "TERMINAL"
+  },
+  {
+    "id": 10,
+    "airport_icao": "RPVM",
+    "airport_name": "Mactan Cebu International Airport",
+    "stand_name": "GA 1",
+    "stand_type": "PARKING_STAND",
+    "latitude": 10.3072,
+    "longitude": 123.9769,
+    "source": "OSM",
+    "note": "Demo general aviation apron.",
+    "terminal_name": null,
+    "shown_use": "GENERAL_AVIATION",
+    "use_is_simulated": false,
+    "shown_size": "A",
+    "size_is_simulated": false,
+    "shown_airlines": [],
+    "airlines_source": null
+  },
+  {
+    "id": 11,
+    "airport_icao": "RPVM",
+    "airport_name": "Mactan Cebu International Airport",
+    "stand_name": "Hangar 2",
+    "stand_type": "HANGAR",
+    "latitude": 10.3064,
+    "longitude": 123.9758,
+    "source": "XPLANE",
+    "note": null,
+    "terminal_name": null,
+    "shown_use": "MILITARY",
+    "use_is_simulated": true,
+    "shown_size": "C",
+    "size_is_simulated": true,
+    "shown_airlines": [],
+    "airlines_source": null
+  }
+]

@@ -14,6 +14,7 @@ import {
   NETWORK_UNAVAILABLE_MESSAGE,
   NOT_FOUND_MESSAGE,
 } from '../../shared/submit-error-utils';
+import { PopupMessageComponent } from '../../shared/popup/popup-message';
 
 const BASIC_EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const PASSWORD_NOT_SET_CODE = 'PASSWORD_NOT_SET';
@@ -27,7 +28,7 @@ const PASSWORD_NOT_VERIFIED_MESSAGE = environment.forgotPasswordEnabled
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, PlaceholderBannerComponent],
+  imports: [PopupMessageComponent, CommonModule, ReactiveFormsModule, RouterLink, PlaceholderBannerComponent],
   templateUrl: './login.html',
   styleUrl: './login.css',
 })

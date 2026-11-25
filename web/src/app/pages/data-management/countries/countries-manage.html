@@ -39,15 +39,10 @@
       <div class="route-loading-spinner"></div>
     </div>
 
-    <div *ngIf="errorMessage && !isModalOpen" class="status-box error">
-      {{ errorMessage }}
-    </div>
+    <app-popup-message type="error" [message]="errorMessage" (closed)="errorMessage = ''" />
+    <app-popup-message type="success" [message]="successMessage" (closed)="successMessage = ''" />
 
-    <div *ngIf="successMessage && !isModalOpen" class="status-box success">
-      {{ successMessage }}
-    </div>
-
-    <div class="table-wrap table-wrap--admin table-wrap--compact" *ngIf="!isLoading && !errorMessage">
+    <div class="table-wrap table-wrap--admin table-wrap--compact" *ngIf="!isLoading && !loadFailed">
       <app-table-pagination [pager]="pager"></app-table-pagination>
       <table>
         <thead>
@@ -191,10 +186,6 @@
             <input type="checkbox" class="switch-input" role="switch" formControlName="is_active" />
           </label>
         </div>
-      </div>
-
-      <div *ngIf="errorMessage" class="status-box error manage-modal-message">
-        {{ errorMessage }}
       </div>
 
       <div class="manage-modal-actions">

@@ -1,0 +1,38 @@
+/* One link per line in the table. */
+.sceneries-table-links {
+  display: grid;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  white-space: nowrap;
+}
+
+.sceneries-table-links a {
+  color: var(--c-link);
+}
+
+.sceneries-link-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.sceneries-image-preview {
+  display: block;
+  width: 100%;
+  max-width: 24rem;
+  aspect-ratio: 16 / 9;
+  object-fit: contain;
+  border-radius: 6px;
+  background: var(--c-tint-2);
+}
+
+.sceneries-link-button {
+  border: 0;
+  padding: 0;
+  background: none;
+  color: var(--c-link);
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}

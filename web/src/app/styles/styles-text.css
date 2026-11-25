@@ -27,6 +27,17 @@
   transform: none !important;
 }
 
+/* The warning under the event approver switches (Members and Manage User pages). */
+.event-approver-note {
+  display: block;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--c-warning-line);
+  border-radius: 8px;
+  background: var(--c-warning-tint);
+  color: var(--c-slate-900);
+  font-size: 0.92rem;
+}
+
 .choice-title {
   display: block;
   margin: 0 0 0.75rem;

@@ -2,6 +2,8 @@
   <div class="form-shell">
     <app-placeholder-banner title="Upload File" subheading="IVAO PHILIPPINES"></app-placeholder-banner>
 
+    <app-popup-message type="error" [message]="sendError()" (closed)="sendError.set('')" />
+
     <div class="upload-card">
       @switch (state()) {
         @case ('loading') {

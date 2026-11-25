@@ -9,11 +9,12 @@ import { finalize, take } from 'rxjs';
 import { PlaceholderBannerComponent } from '../../../placeholders/banner/placeholder-banner';
 import { AdminAuthService } from '../../../services/admin-auth.service';
 import { NETWORK_UNAVAILABLE_MESSAGE, getServerStatusMessage } from '../../../shared/submit-error-utils';
+import { PopupMessageComponent } from '../../../shared/popup/popup-message';
 
 @Component({
   selector: 'app-set-password',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, PlaceholderBannerComponent],
+  imports: [PopupMessageComponent, CommonModule, ReactiveFormsModule, PlaceholderBannerComponent],
   templateUrl: './set-password.html',
   styleUrl: './set-password.css',
 })

@@ -32,12 +32,14 @@
     <nav *ngIf="!compact()" id="site-nav" class="site-nav" [class.site-nav--open]="menuOpen()" aria-label="Main menu">
       <a routerLink="/home" routerLinkActive="site-nav__link--active" class="site-nav__link">Home</a>
       <a routerLink="/pilots-lounge" routerLinkActive="site-nav__link--active" class="site-nav__link">Pilot's Lounge</a>
+      <a routerLink="/atc-lounge" routerLinkActive="site-nav__link--active" class="site-nav__link">ATC Lounge</a>
       <a href="https://webeye.ivao.aero/" target="_blank" rel="noopener noreferrer" class="site-nav__link"
         >Live Traffic</a
       >
       <a routerLink="/members" routerLinkActive="site-nav__link--active" class="site-nav__link">Members</a>
       <a routerLink="/documents" routerLinkActive="site-nav__link--active" class="site-nav__link">Documents</a>
       <a routerLink="/charts" routerLinkActive="site-nav__link--active" class="site-nav__link">Charts</a>
+      <a routerLink="/sceneries" routerLinkActive="site-nav__link--active" class="site-nav__link">Sceneries</a>
 
       <div class="site-dropdown">
         <button
@@ -66,6 +68,9 @@
 
     <div class="site-actions">
       <app-theme-toggle *ngIf="showThemeToggle" [showHint]="true"></app-theme-toggle>
+
+      <!-- Only for event approvers: the events waiting for their approval. -->
+      <app-approval-notifications (opened)="closeAll()"></app-approval-notifications>
 
       <div class="site-dropdown" *ngIf="compact()">
         <button
@@ -98,6 +103,9 @@
           <a routerLink="/pilots-lounge" routerLinkActive="site-dropdown__item--active" class="site-dropdown__item"
             >Pilot's Lounge</a
           >
+          <a routerLink="/atc-lounge" routerLinkActive="site-dropdown__item--active" class="site-dropdown__item"
+            >ATC Lounge</a
+          >
           <a href="https://webeye.ivao.aero/" target="_blank" rel="noopener noreferrer" class="site-dropdown__item"
             >Live Traffic</a
           >
@@ -108,6 +116,9 @@
             >Documents</a
           >
           <a routerLink="/charts" routerLinkActive="site-dropdown__item--active" class="site-dropdown__item">Charts</a>
+          <a routerLink="/sceneries" routerLinkActive="site-dropdown__item--active" class="site-dropdown__item"
+            >Sceneries</a
+          >
           <a routerLink="/contacts" routerLinkActive="site-dropdown__item--active" class="site-dropdown__item"
             >Contacts</a
           >

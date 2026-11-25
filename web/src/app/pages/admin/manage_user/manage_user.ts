@@ -8,8 +8,12 @@ import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
 
 import { PlaceholderBannerAdminComponent } from '../../../placeholders/banner/placeholder-banner-admin';
 import { AdminAuthService } from '../../../services/admin-auth.service';
+import { eitherContactRequired } from '../../../shared/either-contact-required';
+import { ApproverType, toApproverType } from '../../../shared/event-approver';
 import { scrollToFirstValidationError } from '../../../shared/form-validation-scroll';
 import { sanitizePhilippineContactNumber } from '../../../shared/philippine-contact-number';
+import { PopupMessageComponent } from '../../../shared/popup/popup-message';
+import { PopupService } from '../../../shared/popup/popup.service';
 import { VALIDATION_MESSAGES } from '../../../shared/validation-messages';
 import { VALIDATION_PATTERNS } from '../../../shared/validation-patterns';
 import { environment } from '../../../../environments/environment';
@@ -44,6 +48,8 @@ interface AdminUserDetails {
   is_pilot?: boolean;
   is_atc?: boolean;
   is_staff?: boolean;
+  approver_type?: ApproverType;
+  can_edit_on_approval?: boolean;
   show_in_contacts?: boolean;
   role_title?: string;
   role_description?: string;
@@ -64,7 +70,7 @@ const REPLICATE_MAX_RESULTS = 10;
 @Component({
   selector: 'app-manage-user',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, PlaceholderBannerAdminComponent],
+  imports: [CommonModule, ReactiveFormsModule, PlaceholderBannerAdminComponent, PopupMessageComponent],
   templateUrl: './manage_user.html',
   styleUrls: ['./manage_user.css', './manage_user-fields.css'],
 })
@@ -76,6 +82,7 @@ export class ManageUserComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly title = inject(Title);
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
+  private readonly popups = inject(PopupService);
   private readonly document = inject(DOCUMENT);
   readonly requiredFieldMessage = VALIDATION_MESSAGES.required;
   readonly invalidSuffixMessage = VALIDATION_MESSAGES.invalidSuffixShort;
@@ -83,6 +90,7 @@ export class ManageUserComponent implements OnInit {
   readonly suffixPattern = new RegExp(VALIDATION_PATTERNS.suffix);
   readonly invalidEmailMessage = VALIDATION_MESSAGES.invalidEmail;
   readonly invalidContactNumberMessage = VALIDATION_MESSAGES.invalidPhilippineContactNumber;
+  readonly contactRequiredMessage = VALIDATION_MESSAGES.contactEmailOrNumber;
 
   readonly form = this.fb.nonNullable.group({
     login_email: ['', [Validators.required, this.loginEmailOrAdminValidator]],
@@ -104,7 +112,12 @@ export class ManageUserComponent implements OnInit {
     is_pilot: [false],
     is_atc: [false],
     is_staff: [false],
-    // Staff only: the four fields below apply (and Role Title is required) while "Show in Contacts List" is on.
+    // Staff and the "admin" user only: whether the user approves new events. At most one of the two is on.
+    is_required_approver: [false],
+    is_optional_approver: [false],
+    // Approvers only: may change an event's details while approving it.
+    can_edit_on_approval: [false],
+    // Staff only: Role Title is required for staff. While "Show in Contacts List" is on, an email or a number is too.
     show_in_contacts: [false],
     role_title: ['', [Validators.maxLength(255)]],
     role_description: ['', [Validators.maxLength(255)]],
@@ -138,6 +151,7 @@ export class ManageUserComponent implements OnInit {
   selectedReplicateUser: AdminUserSummary | null = null;
   showReplicateResults = false;
   replicateMessage = '';
+  replicateError = '';
   private replicateCandidates: AdminUserSummary[] = [];
   private replicateCandidatesLoaded = false;
   private readonly replicateSearchInput$ = new Subject<string>();
@@ -163,8 +177,26 @@ export class ManageUserComponent implements OnInit {
       this.updateContactFieldValidators();
     });
 
+    // Required and Optional exclude each other: switching one on switches the other off.
+    const { is_required_approver, is_optional_approver } = this.form.controls;
+    for (const [toggle, other] of [
+      [is_required_approver, is_optional_approver],
+      [is_optional_approver, is_required_approver],
+    ]) {
+      toggle.valueChanges.subscribe((isOn) => {
+        if (isOn) {
+          other.setValue(false);
+        }
+      });
+    }
+
     this.form.controls.is_staff.valueChanges.subscribe(() => this.updateContactFieldValidators());
     this.form.controls.show_in_contacts.valueChanges.subscribe(() => this.updateContactFieldValidators());
+
+    // Email or Number: filling in one clears the "required" error of the other.
+    const { contact_email, contact_number } = this.form.controls;
+    contact_email.valueChanges.subscribe(() => contact_number.updateValueAndValidity({ emitEvent: false }));
+    contact_number.valueChanges.subscribe(() => contact_email.updateValueAndValidity({ emitEvent: false }));
 
     this.loadCountryOptions();
 
@@ -215,9 +247,35 @@ export class ManageUserComponent implements OnInit {
     return this.isStaffMember && Boolean(this.form.controls.show_in_contacts.value);
   }
 
+  /**
+   * The "admin" user has the approver switches even when not a staff member; as staff they show with the other staff
+   * settings instead.
+   */
+  get showAdminApproverToggles(): boolean {
+    return this.isProtectedAdminEditRecord() && !this.isStaffMember;
+  }
+
+  /** One of the two approver switches is on: "Edit Events Before Approving" shows. */
+  get isEventApproverChosen(): boolean {
+    const value = this.form.getRawValue();
+    return this.isStaffMember && (value.is_required_approver || value.is_optional_approver);
+  }
+
+  /** An approver who cannot sign in cannot approve: the form says so. */
+  get showApproverDisabledNote(): boolean {
+    return this.isEventApproverChosen && !this.form.getRawValue().is_active;
+  }
+
   showContactError(controlName: 'role_title' | 'contact_email' | 'contact_number', error: string): boolean {
     const control = this.form.controls[controlName];
     return Boolean(control.errors?.[error]) && (control.touched || this.submitAttempted);
+  }
+
+  /** Asked for after both fields were visited (or on save), not while moving from Email to Number. */
+  showContactRequiredError(): boolean {
+    const { contact_email, contact_number } = this.form.controls;
+    const isVisited = this.submitAttempted || (contact_email.touched && contact_number.touched);
+    return isVisited && Boolean(contact_email.errors?.['contactRequired']);
   }
 
   onContactNumberInput(event: Event): void {
@@ -253,7 +311,8 @@ export class ManageUserComponent implements OnInit {
     vid.updateValueAndValidity({ emitEvent: false });
   }
 
-  // Role Title is required for staff, and the email and number are checked while they are shown.
+  // Role Title is required for staff. While the email and number are shown, one of them is required and both are
+  // checked.
   private updateContactFieldValidators(): void {
     const { role_title, role_description, contact_email, contact_number } = this.form.controls;
     const isShown = this.showContactFields;
@@ -263,10 +322,16 @@ export class ManageUserComponent implements OnInit {
     );
     contact_email.setValidators(
       isShown
-        ? [Validators.maxLength(255), Validators.pattern(VALIDATION_PATTERNS.email)]
+        ? [
+            eitherContactRequired('contact_number'),
+            Validators.maxLength(255),
+            Validators.pattern(VALIDATION_PATTERNS.email),
+          ]
         : [Validators.maxLength(255)],
     );
-    contact_number.setValidators(isShown ? [Validators.pattern(VALIDATION_PATTERNS.contactNumber_ph)] : []);
+    contact_number.setValidators(
+      isShown ? [eitherContactRequired('contact_email'), Validators.pattern(VALIDATION_PATTERNS.contactNumber_ph)] : [],
+    );
 
     for (const control of [role_title, role_description, contact_email, contact_number]) {
       control.updateValueAndValidity({ emitEvent: false });
@@ -432,7 +497,7 @@ export class ManageUserComponent implements OnInit {
             return;
           }
 
-          this.replicateMessage = 'Unable to load users to replicate.';
+          this.replicateError = 'Unable to load users to replicate.';
           this.changeDetectorRef.detectChanges();
         },
       });
@@ -485,6 +550,9 @@ export class ManageUserComponent implements OnInit {
       is_pilot,
       is_atc,
       is_staff,
+      is_required_approver,
+      is_optional_approver,
+      can_edit_on_approval,
       show_in_contacts,
       role_title,
       role_description,
@@ -495,9 +563,17 @@ export class ManageUserComponent implements OnInit {
     const addToMemberList = userValues.add_to_member_list;
     // The role only applies to staff, the email and number to staff shown in the Contacts list: hidden fields are not saved.
     const showContact = is_staff && show_in_contacts;
+    const isAdminRecord = this.isProtectedAdminEditRecord();
+    const approverType = toApproverType(
+      this.isStaffMember || isAdminRecord,
+      is_required_approver,
+      is_optional_approver,
+    );
     const payload = {
       ...userValues,
       manage_data_codes: Array.from(this.selectedManageCodes),
+      // Sent for the "admin" user even while it is not in the member list.
+      ...(isAdminRecord ? { approver_type: approverType } : {}),
       // The member fields are sent only while "Add to Member List" is on.
       ...(addToMemberList
         ? {
@@ -507,6 +583,8 @@ export class ManageUserComponent implements OnInit {
             is_pilot,
             is_atc,
             is_staff,
+            approver_type: approverType,
+            can_edit_on_approval: is_staff && approverType !== 'NONE' && can_edit_on_approval,
             show_in_contacts: showContact,
             role_title: is_staff ? role_title.trim() : '',
             role_description: is_staff ? role_description.trim() : '',
@@ -555,17 +633,24 @@ export class ManageUserComponent implements OnInit {
       });
   }
 
-  deleteUser(): void {
+  async deleteUser(): Promise<void> {
     if (!this.isEditMode) {
       return;
     }
 
-    const shouldDelete = window.confirm('Delete this user?');
+    const shouldDelete = await this.popups.ask({
+      title: 'Delete User',
+      message: 'Delete this user?',
+      confirmLabel: 'Delete',
+      danger: true,
+    });
     if (!shouldDelete) {
       return;
     }
 
     this.isSaving = true;
+    this.feedbackMessage = '';
+    this.changeDetectorRef.detectChanges();
     this.http
       .delete(`${ADMIN_USERS_API}/${encodeURIComponent(this.originalLoginEmail)}`, {
         headers: this.authService.getAdminApiHeaders(),
@@ -587,14 +672,17 @@ export class ManageUserComponent implements OnInit {
     return this.isEditMode && !this.isProtectedAdminEditRecord() && !this.isViewOnly;
   }
 
-  resetPassword(): void {
+  async resetPassword(): Promise<void> {
     if (!this.isEditMode || this.isResettingPassword) {
       return;
     }
 
-    const shouldReset = window.confirm(
-      "Clear this user's password? They will be required to set a new password on their next login.",
-    );
+    const shouldReset = await this.popups.ask({
+      title: 'Clear Password',
+      message: "Clear this user's password? They will be required to set a new password on their next login.",
+      confirmLabel: 'Clear Password',
+      danger: true,
+    });
     if (!shouldReset) {
       return;
     }
@@ -602,6 +690,7 @@ export class ManageUserComponent implements OnInit {
     this.isResettingPassword = true;
     this.showPasswordResetNotice = false;
     this.feedbackMessage = '';
+    this.changeDetectorRef.detectChanges();
 
     this.http
       .post(
@@ -615,7 +704,7 @@ export class ManageUserComponent implements OnInit {
         next: () => {
           this.isResettingPassword = false;
           this.form.controls.login_password.setValue('');
-          this.triggerPasswordResetNotice();
+          this.showPasswordResetNotice = true;
           this.changeDetectorRef.detectChanges();
         },
         error: (error: HttpErrorResponse) => {
@@ -654,16 +743,6 @@ export class ManageUserComponent implements OnInit {
     this.isPasswordPeekActive = false;
     this.form.controls.login_password.setValue('');
     this.form.controls.login_password.disable({ emitEvent: false });
-  }
-
-  private triggerPasswordResetNotice(): void {
-    this.showPasswordResetNotice = false;
-    this.changeDetectorRef.detectChanges();
-
-    setTimeout(() => {
-      this.showPasswordResetNotice = true;
-      this.changeDetectorRef.detectChanges();
-    });
   }
 
   activatePasswordPeek(event: PointerEvent): void {
@@ -799,6 +878,9 @@ export class ManageUserComponent implements OnInit {
             is_pilot: Boolean(user.is_pilot),
             is_atc: Boolean(user.is_atc),
             is_staff: Boolean(user.is_staff),
+            is_required_approver: user.approver_type === 'REQUIRED',
+            is_optional_approver: user.approver_type === 'OPTIONAL',
+            can_edit_on_approval: Boolean(user.can_edit_on_approval),
             show_in_contacts: Boolean(user.show_in_contacts),
             role_title: user.role_title || '',
             role_description: user.role_description || '',

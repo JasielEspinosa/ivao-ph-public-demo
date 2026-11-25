@@ -129,6 +129,18 @@ function phtTime(instant: Date): string {
     .replace(/\s/g, ' ');
 }
 
+/** A moment something was done, in Philippine Time: "Nov 30, 2026, 08:00 PM PHT". */
+export function formatPhtMoment(moment: string): string {
+  const instant = new Date(moment);
+  const date = new Intl.DateTimeFormat('en-US', {
+    timeZone: PHT_TIME_ZONE,
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  }).format(instant);
+  return `${date}, ${phtTime(instant)} PHT`;
+}
+
 /**
  * When an event happens, as lines of text: the GMT date and time first (IVAO works in Zulu time), then Philippine Time.
  *  - "November 30, 2026 (Monday)", "1200Z - 1600Z", "Nov 30, 08:00 PM - Dec 1, 12:00 AM PHT"

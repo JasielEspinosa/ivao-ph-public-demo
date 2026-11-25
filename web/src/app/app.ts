@@ -11,21 +11,18 @@ import {
 import { Subscription, filter } from 'rxjs';
 import { SiteFooterComponent } from './placeholders/footer/site-footer';
 import { SiteHeaderComponent } from './placeholders/header/site-header';
-import { environment } from '../environments/environment';
 import { AdminAuthService } from './services/admin-auth.service';
 import { AppVersionService } from './services/app-version.service';
 import { ThemeService } from './services/theme.service';
+import { getAuthHeader } from './shared/auth-header';
 import { installAutoTrimInputs } from './shared/auto-trim-inputs';
+import { PopupHostComponent } from './shared/popup/popup-host';
 
-export function getAuthHeader(): string {
-  const username = environment.apiAuth.username;
-  const password = environment.apiAuth.password;
-  return `Basic ${btoa(`${username}:${password}`)}`;
-}
+export { getAuthHeader };
 
 @Component({
   selector: 'app-root',
-  imports: [CommonModule, RouterOutlet, SiteHeaderComponent, SiteFooterComponent],
+  imports: [CommonModule, RouterOutlet, SiteHeaderComponent, SiteFooterComponent, PopupHostComponent],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })

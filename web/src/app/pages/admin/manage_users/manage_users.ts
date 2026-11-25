@@ -10,6 +10,7 @@ import { DATA_MANAGE_MESSAGES } from '../../../shared/data-manage-messages';
 import { NETWORK_UNAVAILABLE_MESSAGE } from '../../../shared/submit-error-utils';
 import { TablePagination, TablePaginationComponent } from '../../../shared/table-pagination/table-pagination';
 import { environment } from '../../../../environments/environment';
+import { PopupMessageComponent } from '../../../shared/popup/popup-message';
 
 interface AdminUserRow {
   login_email: string;
@@ -35,7 +36,7 @@ const ADMIN_USERS_API = `${environment.apiUrl.replace(/\/$/, '')}/admin-users`;
 @Component({
   selector: 'app-manage-users',
   standalone: true,
-  imports: [CommonModule, TablePaginationComponent, PlaceholderBannerAdminComponent],
+  imports: [PopupMessageComponent, CommonModule, TablePaginationComponent, PlaceholderBannerAdminComponent],
   templateUrl: './manage_users.html',
   styleUrl: './manage_users.css',
 })

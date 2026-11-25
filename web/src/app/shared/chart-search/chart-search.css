@@ -1,0 +1,35 @@
+/* The Charts search results. The section, form and card styles are in styles/styles-info-sections.css. */
+:host {
+  display: block;
+}
+
+.chart-list,
+.chart-sources {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chart-list li,
+.chart-sources li {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--c-line-soft);
+}
+
+.chart-list li:last-child,
+.chart-sources li:last-child {
+  border-bottom: 0;
+}
+
+.chart-list a,
+.chart-sources a,
+.weather-report__none a {
+  color: var(--c-link);
+  font-weight: 600;
+}
+
+.chart-sources span {
+  display: block;
+  color: var(--c-slate-600);
+  font-size: 0.9rem;
+}

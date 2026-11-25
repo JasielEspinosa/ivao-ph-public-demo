@@ -1,0 +1,127 @@
+/* The approval notifications: the bell button of the header and the events listed in its window (the window itself is
+   in approval-notifications-window.css). The host adds no box, so the header has no empty gap for other users. */
+:host {
+  display: contents;
+}
+
+/* Matches the theme switch next to it. The room on its right keeps the count clear of the user menu button. */
+.approvals-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 0.5rem;
+  padding: 0.25rem;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--c-brand-ink);
+  cursor: pointer;
+}
+
+.approvals-button:hover,
+.approvals-button:focus-visible {
+  background: var(--c-slate-100);
+}
+
+.approvals-badge {
+  position: absolute;
+  top: -6px;
+  right: -7px;
+  box-sizing: border-box;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: #b42318;
+  color: #ffffff;
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 17px;
+  text-align: center;
+}
+
+.approvals-list {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.approval {
+  display: grid;
+  grid-template-columns: 13rem minmax(0, 1fr);
+  align-items: start;
+  gap: 1rem;
+  padding: 0.85rem;
+  border: 1px solid var(--c-line);
+  border-radius: 8px;
+  background: var(--c-surface);
+}
+
+.approval__image {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: 6px;
+  background: var(--c-tint-2);
+}
+
+.approval__text h4 {
+  margin: 0.4rem 0 0.25rem;
+  color: var(--c-brand-ink);
+  overflow-wrap: anywhere;
+}
+
+.approval__text p {
+  margin: 0 0 0.3rem;
+  color: var(--c-slate-700);
+  overflow-wrap: anywhere;
+}
+
+.approval__text .approval__when {
+  color: var(--c-ph-red-text);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+/* A description keeps the line breaks it was typed with. */
+.approval__text .approval__description {
+  white-space: pre-line;
+}
+
+.approval__tag {
+  display: inline-block;
+  padding: 0.05rem 0.5rem;
+  border: 1px solid var(--c-warning-line);
+  border-radius: 999px;
+  background: var(--c-warning-tint);
+  color: var(--c-slate-900);
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.approval__tag--approved {
+  border-color: var(--c-brand-ink);
+  background: var(--c-tint-2);
+}
+
+.approval__approve {
+  min-width: 105px;
+  margin-top: 0.5rem;
+}
+
+/* Phones have less room in the header. */
+@media (max-width: 480px) {
+  .approvals-button {
+    margin-right: 0.375rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .approval {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

@@ -1,0 +1,455 @@
+<section class="page-shell data-manage-page data-manage-page--full">
+  <div class="form-shell">
+    <app-placeholder-banner-data-management> </app-placeholder-banner-data-management>
+
+    <div class="dashboard-header manage-toolbar">
+      <p>{{ page?.entry?.description }}</p>
+
+      <div class="manage-toolbar-actions">
+        <button type="button" class="universal-button universal-button--template" (click)="exportTemplate()">
+          Export Template
+        </button>
+        <button
+          type="button"
+          class="universal-button universal-button--template"
+          (click)="openImportTemplatePicker(templateFileInput)"
+        >
+          Import Template
+        </button>
+        <input
+          #templateFileInput
+          type="file"
+          class="visually-hidden-input"
+          accept=".xlsx,.xlsm,.csv"
+          (change)="onImportTemplateSelected($event)"
+        />
+        <button type="button" class="universal-button universal-button--primary" (click)="openAddModal()">
+          Add Parking Spot
+        </button>
+      </div>
+    </div>
+
+    <div
+      class="route-loading-overlay route-loading-overlay--inline"
+      *ngIf="isLoading"
+      role="status"
+      aria-live="polite"
+      [attr.aria-label]="messages.loading('Parking Spots')"
+    >
+      <div class="route-loading-spinner"></div>
+    </div>
+
+    <app-popup-message type="error" [message]="errorMessage" (closed)="errorMessage = ''" />
+    <app-popup-message type="success" [message]="successMessage" (closed)="successMessage = ''" />
+
+    <div class="table-wrap table-wrap--admin table-wrap--compact" *ngIf="!isLoading && !loadFailed">
+      <app-table-pagination [pager]="pager"></app-table-pagination>
+      <table>
+        <thead>
+          <tr>
+            @for (column of columns; track column.key) {
+              <th>
+                <button type="button" class="sort-header-button" (click)="toggleSort(column.key)">
+                  {{ column.label }}
+                  {{ getSortIndicator(column.key) }}
+                </button>
+              </th>
+            }
+
+            <th data-disable-resize></th>
+          </tr>
+
+          <tr class="column-filter-row">
+            @for (column of columns; track column.key) {
+              <th>
+                <input
+                  type="text"
+                  class="column-filter-input"
+                  [attr.aria-label]="'Filter by ' + column.label"
+                  [value]="columnFilters[column.key]"
+                  (input)="setColumnFilter(column.key, $any($event.target).value || '')"
+                  placeholder="Filter"
+                />
+              </th>
+            }
+
+            <th>
+              <button
+                *ngIf="hasActiveFilters"
+                type="button"
+                class="universal-button universal-button--clear"
+                (click)="clearFilters()"
+              >
+                Clear
+              </button>
+            </th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let item of pager.slice(visibleSpots)">
+            @for (column of columns; track column.key) {
+              <td
+                [class.resizable-wrap-column]="
+                  column.key === 'note' || column.key === 'airlines' || column.key === 'shown_airlines'
+                "
+              >
+                {{ cellText(item, column.key) }}
+              </td>
+            }
+
+            <td>
+              <button type="button" class="universal-button universal-button--edit" (click)="edit(item)">Edit</button>
+            </td>
+          </tr>
+
+          <tr *ngIf="visibleSpots.length === 0">
+            <td [attr.colspan]="columns.length + 1">{{ messages.noRecords('Parking Spots') }}</td>
+          </tr>
+        </tbody>
+      </table>
+      <app-table-pagination [pager]="pager"></app-table-pagination>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================
+     ADD / EDIT MODAL
+     ========================================================= -->
+
+<div *ngIf="isModalOpen" class="manage-modal-backdrop">
+  <div class="manage-modal-card" role="dialog" aria-modal="true" aria-label="Airport Parking Management">
+    <button type="button" class="universal-modal-close" aria-label="Close" [disabled]="isSaving" (click)="closeModal()">
+      &times;
+    </button>
+
+    <h3>
+      {{ isEditMode ? 'Edit Parking Spot' : 'Add Parking Spot' }}
+    </h3>
+
+    <form class="manage-form universal-form" [formGroup]="form" (ngSubmit)="save()">
+      <div class="manage-modal-field">
+        <label class="uf-field" for="airport_icao" [class.uf-invalid]="showInvalid('airport_icao')">
+          <span>
+            Airport ICAO Code
+            <span class="required-mark">*</span>
+          </span>
+
+          <input
+            id="airport_icao"
+            type="text"
+            list="parking-airports"
+            maxlength="4"
+            autocomplete="off"
+            autocapitalize="characters"
+            autocorrect="off"
+            spellcheck="false"
+            formControlName="airport_icao"
+            placeholder=" "
+            (input)="onIcaoInput($any($event.target))"
+          />
+        </label>
+
+        <small class="uf-error" *ngIf="showInvalid('airport_icao')">
+          {{ form.controls.airport_icao.errors?.['required'] ? VALIDATION_MESSAGES.required : invalidIcaoMessage }}
+        </small>
+
+        <datalist id="parking-airports">
+          @for (airport of airports; track airport.icao) {
+            <option [value]="airport.icao">{{ airport.name }}</option>
+          }
+        </datalist>
+      </div>
+
+      <div class="manage-modal-field">
+        <label class="uf-field" for="stand_name" [class.uf-invalid]="showInvalid('stand_name')">
+          <span>
+            Stand Name
+            <span class="required-mark" *ngIf="form.controls.is_active.value">*</span>
+          </span>
+
+          <input
+            id="stand_name"
+            type="text"
+            [attr.maxlength]="maxStandNameLength"
+            autocomplete="off"
+            formControlName="stand_name"
+            placeholder=" "
+          />
+        </label>
+
+        <small class="uf-error" *ngIf="showInvalid('stand_name')">
+          {{ VALIDATION_MESSAGES.required }}
+        </small>
+      </div>
+
+      <div class="manage-modal-field">
+        <label class="uf-field" for="stand_type" [class.uf-invalid]="showInvalid('stand_type')">
+          <span>
+            Type
+            <span class="required-mark">*</span>
+          </span>
+
+          <select id="stand_type" formControlName="stand_type">
+            @for (type of standTypes; track type.value) {
+              <option [value]="type.value">{{ type.label }}</option>
+            }
+          </select>
+        </label>
+      </div>
+
+      <div class="manage-modal-field">
+        <label class="uf-field" for="source" [class.uf-invalid]="showInvalid('source')">
+          <span>
+            Source
+            <span class="required-mark">*</span>
+          </span>
+
+          <select id="source" formControlName="source" [class.is-placeholder]="!form.controls.source.value">
+            <option value="" disabled></option>
+            @for (source of sources; track source.value) {
+              <option [value]="source.value">{{ source.label }}</option>
+            }
+          </select>
+        </label>
+
+        <small class="uf-error" *ngIf="showInvalid('source')">
+          {{ VALIDATION_MESSAGES.required }}
+        </small>
+        <small class="universal-helper-text-gray">
+          Where the position comes from. An X-Plane (simulator) spot is hidden on the public page while an enabled spot
+          from another source has the same name or is at the same place.
+        </small>
+      </div>
+
+      <div class="manage-modal-field">
+        <label class="uf-field" for="latitude" [class.uf-invalid]="showInvalid('latitude')">
+          <span>
+            Latitude
+            <span class="required-mark">*</span>
+          </span>
+
+          <input
+            id="latitude"
+            type="text"
+            inputmode="decimal"
+            autocomplete="off"
+            formControlName="latitude"
+            placeholder=" "
+          />
+        </label>
+
+        <small class="uf-error" *ngIf="showInvalid('latitude')">
+          {{ form.controls.latitude.errors?.['required'] ? VALIDATION_MESSAGES.required : invalidLatitudeMessage }}
+        </small>
+      </div>
+
+      <div class="manage-modal-field">
+        <label class="uf-field" for="longitude" [class.uf-invalid]="showInvalid('longitude')">
+          <span>
+            Longitude
+            <span class="required-mark">*</span>
+          </span>
+
+          <input
+            id="longitude"
+            type="text"
+            inputmode="decimal"
+            autocomplete="off"
+            formControlName="longitude"
+            placeholder=" "
+          />
+        </label>
+
+        <small class="uf-error" *ngIf="showInvalid('longitude')">
+          {{ form.controls.longitude.errors?.['required'] ? VALIDATION_MESSAGES.required : invalidLongitudeMessage }}
+        </small>
+      </div>
+
+      <div class="manage-modal-field">
+        <label class="uf-field" for="terminal_name">
+          <span>Terminal</span>
+
+          <select id="terminal_name" formControlName="terminal_name">
+            <option value="">No terminal</option>
+            @for (name of terminalOptions; track name) {
+              <option [value]="name">{{ name }}</option>
+            }
+          </select>
+        </label>
+        <small class="universal-helper-text-gray">
+          The terminals of the airport, from Data Management &gt; Airport Terminals.
+        </small>
+      </div>
+
+      <div class="manage-modal-field">
+        <label class="uf-field" for="stand_use">
+          <span>Use</span>
+
+          <select id="stand_use" formControlName="stand_use">
+            <option value="">Not set</option>
+            @for (use of standUses; track use.value) {
+              <option [value]="use.value">{{ use.label }}</option>
+            }
+          </select>
+        </label>
+      </div>
+
+      <div class="manage-modal-field">
+        <label class="uf-field" for="aircraft_size">
+          <span>Largest Aircraft Size</span>
+
+          <select id="aircraft_size" formControlName="aircraft_size">
+            <option value="">Not set</option>
+            @for (size of aircraftSizes; track size.value) {
+              <option [value]="size.value">{{ size.label }}</option>
+            }
+          </select>
+        </label>
+      </div>
+
+      <div class="manage-modal-field">
+        <label class="uf-field" for="airlines" [class.uf-invalid]="showInvalid('airlines')">
+          <span>Airlines of this Spot</span>
+
+          <input
+            id="airlines"
+            type="text"
+            [attr.maxlength]="maxAirlinesLength"
+            autocomplete="off"
+            autocapitalize="characters"
+            spellcheck="false"
+            formControlName="airlines"
+            placeholder=" "
+          />
+        </label>
+
+        <small class="uf-error" *ngIf="showInvalid('airlines')">{{ invalidAirlinesMessage }}</small>
+        <small class="universal-helper-text-gray">
+          3-letter ICAO codes separated by commas, for example CEB, PAL. Leave empty to show the airlines of the
+          terminal, or else those of the simulator.
+          @if (editingSimulatorAirlines) {
+            X-Plane airlines of this spot: {{ editingSimulatorAirlines }}.
+          }
+        </small>
+      </div>
+
+      <div class="manage-modal-field">
+        <label class="uf-field" for="note" [class.uf-invalid]="showInvalid('note')">
+          <span>Note</span>
+
+          <input id="note" type="text" [attr.maxlength]="maxNoteLength" formControlName="note" placeholder=" " />
+        </label>
+      </div>
+
+      <div class="manage-toggle-row">
+        <label class="manage-active">
+          <span> Enable this Parking Spot </span>
+
+          <input type="checkbox" class="switch-input" role="switch" formControlName="is_active" />
+        </label>
+      </div>
+
+      <div class="manage-modal-actions">
+        <button
+          type="button"
+          class="universal-button universal-button--cancel"
+          [disabled]="isSaving"
+          (click)="closeModal()"
+        >
+          Cancel
+        </button>
+
+        <div class="manage-modal-actions-right">
+          <button
+            type="button"
+            class="universal-button universal-button--danger"
+            *ngIf="isEditMode"
+            [disabled]="isSaving"
+            (click)="deleteSpot()"
+          >
+            Delete
+          </button>
+
+          <button type="submit" class="universal-button universal-button--save" [disabled]="isSaving">
+            {{ isSaving ? 'Saving...' : isEditMode ? 'Update' : 'Add' }}
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div
+  *ngIf="isExportOptionsModalOpen"
+  class="template-modal-backdrop"
+  role="dialog"
+  aria-modal="true"
+  aria-label="Export template options"
+>
+  <div class="template-modal-card template-modal-card--export">
+    <button type="button" class="universal-modal-close" aria-label="Close" (click)="closeExportOptionsModal()">
+      &times;
+    </button>
+    <h3>Export Template</h3>
+    <p>{{ messages.exportChoose }}</p>
+    <div class="template-modal-actions template-modal-actions--horizontal">
+      <button type="button" class="universal-button universal-button--primary" (click)="downloadTemplateFromServer()">
+        Export Data from Server
+      </button>
+      <button type="button" class="universal-button universal-button--template" (click)="downloadTemplateFromPage()">
+        Export Data from Page
+      </button>
+    </div>
+  </div>
+</div>
+
+<div
+  *ngIf="pendingImportFile"
+  class="template-modal-backdrop"
+  role="dialog"
+  aria-modal="true"
+  aria-label="Confirm import"
+>
+  <div class="template-modal-card template-modal-card--export">
+    <h3>Import Template</h3>
+    <p>{{ messages.confirmImportReplace('parking spot', pendingImportFile.name) }}</p>
+    <div class="template-modal-actions template-modal-actions--confirm">
+      <button type="button" class="universal-button universal-button--cancel" (click)="cancelImportConfirm()">
+        Cancel
+      </button>
+      <button type="button" class="universal-button universal-button--danger" (click)="confirmImportTemplate()">
+        Override
+      </button>
+    </div>
+  </div>
+</div>
+
+<div
+  *ngIf="isTemplateUploading"
+  class="template-modal-backdrop"
+  role="dialog"
+  aria-modal="true"
+  aria-label="Uploading template"
+>
+  <div class="template-modal-card">
+    <h3>Uploading</h3>
+    <p>{{ messages.uploadingTemplate }}</p>
+  </div>
+</div>
+
+<div
+  *ngIf="isTemplateUpdatedModalOpen"
+  class="template-modal-backdrop"
+  role="dialog"
+  aria-modal="true"
+  aria-label="Template updated"
+>
+  <div class="template-modal-card">
+    <h3>Template updated</h3>
+    <p>{{ messages.templateUpdated }}</p>
+    <button type="button" class="template-modal-button template-modal-button--ok" (click)="closeTemplateUpdatedModal()">
+      Ok
+    </button>
+  </div>
+</div>

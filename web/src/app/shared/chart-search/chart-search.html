@@ -1,0 +1,109 @@
+<section class="home-section" id="charts" aria-labelledby="charts-title">
+  <div class="home-section__header">
+    <h2 id="charts-title">Charts</h2>
+  </div>
+
+  <form class="universal-form weather-form" novalidate (submit)="$event.preventDefault(); searchCharts()">
+    <label class="uf-field weather-form__field">
+      <span>Type in the airport ICAO code</span>
+      <input
+        type="text"
+        list="charts-airports"
+        maxlength="4"
+        placeholder=" "
+        autocomplete="off"
+        autocapitalize="characters"
+        autocorrect="off"
+        spellcheck="false"
+        data-lpignore="true"
+        data-1p-ignore="true"
+        [value]="chartsIcao()"
+        (input)="onChartsIcaoInput($any($event.target))"
+      />
+      <datalist id="charts-airports">
+        <option *ngFor="let airport of airports" [value]="airport.icao">{{ airport.name }}</option>
+      </datalist>
+    </label>
+    <button type="submit" class="universal-submit-btn weather-form__button">Search charts</button>
+  </form>
+
+  <div class="weather-status" aria-live="polite">
+    <p class="status-box error" *ngIf="chartsError()">{{ chartsError() }}</p>
+  </div>
+
+  <div class="weather-reports" *ngIf="chartsShownIcao() as icao">
+    <article class="weather-report weather-report--wide">
+      <h3>
+        Charts <span class="weather-report__icao">{{ icao }}</span>
+        <ng-container *ngIf="chartsAirportName()"> - {{ chartsAirportName() }}</ng-container>
+      </h3>
+
+      <ng-container *ngIf="chartGroups().length; else noCharts">
+        <ng-container *ngFor="let group of chartGroups()">
+          <h4>{{ group.type }}</h4>
+          <ul class="chart-list">
+            <li *ngFor="let chart of group.charts">
+              <a [href]="chart.file" target="_blank" rel="noopener noreferrer">{{ chart.title }}</a>
+            </li>
+          </ul>
+        </ng-container>
+      </ng-container>
+      <ng-template #noCharts>
+        <div aria-live="polite">
+          @switch (chartsPage()) {
+            @case ('checking') {
+              <p class="weather-report__none">Checking for charts of {{ icao }}...</p>
+            }
+            @case ('available') {
+              @if (onChartsPage) {
+                <p class="weather-report__none">
+                  The charts of {{ icao }} are
+                  <a [href]="'#' + airportChartsAnchor(icao)" (click)="scrollOnPage($event, airportChartsAnchor(icao))"
+                    >listed below on this page</a
+                  >.
+                </p>
+              } @else {
+                <p class="weather-report__none">
+                  Charts of {{ icao }} are available. Please visit the
+                  <a routerLink="/charts" [fragment]="airportChartsAnchor(icao)">Charts page</a> to view them.
+                </p>
+              }
+            }
+            @case ('others') {
+              @if (onChartsPage) {
+                <p class="weather-report__none">
+                  No charts found for {{ icao }}. See the other charts
+                  <a [href]="'#' + chartListAnchor" (click)="scrollOnPage($event, chartListAnchor)"
+                    >listed below on this page</a
+                  >.
+                </p>
+              } @else {
+                <p class="weather-report__none">
+                  No charts found for {{ icao }}. Please visit the <a routerLink="/charts">Charts page</a> to see the
+                  available charts.
+                </p>
+              }
+            }
+            @case ('unknown') {
+              <p class="weather-report__none">Unable to check for charts of {{ icao }}. Please search again.</p>
+            }
+            @default {
+              <p class="weather-report__none">No charts of {{ icao }} are kept on this site yet.</p>
+            }
+          }
+        </div>
+      </ng-template>
+
+      <h4>Find the charts of {{ icao }}</h4>
+      <ul class="chart-sources">
+        <li *ngFor="let source of chartSources">
+          <a [href]="source.url(icao)" target="_blank" rel="noopener noreferrer">{{ source.name }}</a>
+          <span>{{ source.description }}</span>
+        </li>
+      </ul>
+      <p class="home-note">
+        For flight simulation, not for real-world navigation. Always use the charts of the current AIRAC cycle.
+      </p>
+    </article>
+  </div>
+</section>

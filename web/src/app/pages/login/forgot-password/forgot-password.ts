@@ -9,14 +9,17 @@ import { Subscription, finalize, interval, take } from 'rxjs';
 import { PlaceholderBannerComponent } from '../../../placeholders/banner/placeholder-banner';
 import { AdminAuthService } from '../../../services/admin-auth.service';
 import { NETWORK_UNAVAILABLE_MESSAGE, getServerStatusMessage } from '../../../shared/submit-error-utils';
+import { PopupMessageComponent } from '../../../shared/popup/popup-message';
+import { PopupTone } from '../../../shared/popup/popup.service';
 
+const CANCELLED_MESSAGE = 'Request cancelled.';
 const SEND_DELAY_SECONDS = 3;
 const BASIC_EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 @Component({
   selector: 'app-forgot-password',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, PlaceholderBannerComponent],
+  imports: [PopupMessageComponent, CommonModule, ReactiveFormsModule, PlaceholderBannerComponent],
   templateUrl: './forgot-password.html',
   styleUrl: './forgot-password.css',
 })
@@ -73,12 +76,20 @@ export class ForgotPasswordComponent implements OnDestroy {
     this.requestSub?.unsubscribe();
     this.countdown = 0;
     this.setLoading(false);
-    this.setFeedbackMessage('Request cancelled.', false);
+    this.setFeedbackMessage(CANCELLED_MESSAGE, false);
   }
 
   ngOnDestroy(): void {
     this.countdownSub?.unsubscribe();
     this.requestSub?.unsubscribe();
+  }
+
+  /** What the popup of the message looks like: cancelling is not an error. */
+  get feedbackTone(): PopupTone {
+    if (this.isSuccess) {
+      return 'success';
+    }
+    return this.feedbackMessage === CANCELLED_MESSAGE ? 'info' : 'error';
   }
 
   private startCountdown(): void {

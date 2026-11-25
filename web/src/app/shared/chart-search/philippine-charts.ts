@@ -33,11 +33,6 @@ export interface ChartSource {
 
 export const CHART_SOURCES: readonly ChartSource[] = [
   {
-    name: 'CAAP eAIP (official)',
-    description: 'The Philippine AIP of the Aeronautical Information Service. Needs a CAAP AIS account.',
-    url: () => 'https://ais.caap.gov.ph/aip',
-  },
-  {
     name: 'Navigraph',
     description: 'Airport page with a chart preview. Full charts need a Navigraph subscription.',
     url: (icao) => `https://navigraph.com/airport/${icao}`,
@@ -46,5 +41,10 @@ export const CHART_SOURCES: readonly ChartSource[] = [
     name: 'SkyVector',
     description: 'Airport information, runways and frequencies on a free map.',
     url: (icao) => `https://skyvector.com/airport/${icao}`,
+  },
+  {
+    name: 'CAAP eAIP (official)',
+    description: 'The Philippine AIP of the Aeronautical Information Service. Needs a CAAP AIS account.',
+    url: () => 'https://ais.caap.gov.ph/aip',
   },
 ];

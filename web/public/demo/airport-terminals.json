@@ -1,0 +1,74 @@
+[
+  {
+    "id": 1,
+    "airport_icao": "RPLL",
+    "terminal_name": "Terminal 1",
+    "airlines": [
+      {
+        "code": "XDA",
+        "name": "Demo Airways"
+      },
+      {
+        "code": "XSP",
+        "name": "Sample Pacific"
+      }
+    ],
+    "note": "Demo international terminal."
+  },
+  {
+    "id": 2,
+    "airport_icao": "RPLL",
+    "terminal_name": "Terminal 2",
+    "airlines": [
+      {
+        "code": "XDA",
+        "name": "Demo Airways"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": 3,
+    "airport_icao": "RPLL",
+    "terminal_name": "Terminal 3",
+    "airlines": [
+      {
+        "code": "XDA",
+        "name": "Demo Airways"
+      },
+      {
+        "code": "XIH",
+        "name": "Island Hop Demo"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": 4,
+    "airport_icao": "RPVM",
+    "terminal_name": "Terminal 1",
+    "airlines": [
+      {
+        "code": "XDA",
+        "name": "Demo Airways"
+      },
+      {
+        "code": "XIH",
+        "name": "Island Hop Demo"
+      }
+    ],
+    "note": "Demo domestic terminal."
+  },
+  {
+    "id": 5,
+    "airport_icao": "RPVM",
+    "terminal_name": "Terminal 2",
+    "airlines": [
+      {
+        "code": "XSP",
+        "name": "Sample Pacific"
+      }
+    ],
+    "note": null
+  }
+]

@@ -1,0 +1,44 @@
+/* Leaflet builds the map's elements itself, so its parts are reached with ::ng-deep (always under :host). */
+:host {
+  display: block;
+}
+
+/* isolation keeps Leaflet's high z-index layers under the header menus and popups. */
+.parking-map {
+  isolation: isolate;
+  height: min(32rem, 70vh);
+  border: 1px solid var(--c-line);
+  border-radius: 8px;
+  background: var(--c-tint-2);
+}
+
+:host ::ng-deep .leaflet-tile-pane {
+  filter: var(--c-map-tile-filter);
+}
+
+:host ::ng-deep .parking-spot {
+  stroke: var(--c-map-spot-real);
+  fill: var(--c-map-spot-real);
+}
+
+:host ::ng-deep .parking-spot--simulator {
+  stroke: var(--c-map-spot-simulator);
+  fill: var(--c-map-spot-simulator);
+}
+
+:host ::ng-deep .leaflet-popup-content-wrapper,
+:host ::ng-deep .leaflet-popup-tip,
+:host ::ng-deep .leaflet-tooltip,
+:host ::ng-deep .leaflet-bar a,
+:host ::ng-deep .leaflet-control-attribution {
+  background: var(--c-surface);
+  color: var(--c-slate-900);
+}
+
+:host ::ng-deep .leaflet-container a {
+  color: var(--c-link);
+}
+
+:host ::ng-deep .leaflet-container .leaflet-bar a {
+  color: var(--c-slate-900);
+}

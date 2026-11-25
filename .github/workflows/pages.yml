@@ -7,10 +7,6 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
-  schedule:
-    # 08:00, 14:00 and 20:00 Philippine time, i.e. between 8 AM and 11 PM.
-    - cron: '0 8,14,20 * * *'
-      timezone: 'Asia/Manila'
 
 permissions:
   contents: read

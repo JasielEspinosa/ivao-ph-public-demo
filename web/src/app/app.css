@@ -42,9 +42,20 @@
   background: var(--c-brand-hover);
 }
 
+/* The Home page has the announcements button in the corner (48px); the back-to-top button sits above it, centred on it. */
+.has-announcement-btn .back-to-top {
+  right: 1.625rem;
+  bottom: 5.25rem;
+}
+
 @media (max-width: 600px) {
   .back-to-top {
     right: 0.75rem;
     bottom: 0.75rem;
+  }
+
+  .has-announcement-btn .back-to-top {
+    right: 0.875rem;
+    bottom: 4.5rem;
   }
 }

@@ -84,7 +84,7 @@
   font-family: 'IVAO Sans', inherit, sans-serif;
 }
 
-/* Eight menu entries (Charts included) have to fit the standard 1100px header in one row, hence the tight side padding. */
+/* Ten menu entries (ATC Lounge included) have to fit the header in one row, hence the tight side padding. */
 .site-nav__link {
   position: relative;
   padding: 0.55rem 0.5rem;
@@ -383,5 +383,74 @@
 @media (max-width: 420px) {
   .site-user {
     max-width: 8.5rem;
+  }
+}
+
+/* Narrower than 1366px the menu needs smaller entries to stay in one row; event approvers have a notification button as
+   well, so their entries are tighter still. */
+@media (min-width: 901px) and (max-width: 1365px) {
+  .site-header__inner {
+    padding-inline: 1rem;
+    gap: 0.5rem;
+  }
+
+  .site-nav {
+    gap: 0;
+  }
+
+  .site-nav__link {
+    padding-inline: 0.3rem;
+    font-size: 0.9rem;
+  }
+
+  .site-header__inner:has(.has-approvals-button) .site-nav__link {
+    padding-inline: 0.35rem;
+  }
+
+  .site-header__inner:has(.has-approvals-button) .site-actions {
+    gap: 0.35rem;
+  }
+}
+
+/* The narrowest widths of the one-row menu. */
+@media (min-width: 901px) and (max-width: 1239px) {
+  .site-header .site-header__inner {
+    padding-inline: 0.75rem;
+    gap: 0.35rem;
+  }
+
+  .site-header .site-actions {
+    gap: 0.35rem;
+  }
+
+  .site-header:not(.site-header--compact) .site-logo__img {
+    height: 56px;
+    margin: -2px 0;
+  }
+
+  .site-nav .site-nav__link,
+  .site-header .site-header__inner:has(.has-approvals-button) .site-nav__link {
+    padding-inline: 0.15rem;
+    font-size: 0.82rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .site-header__inner:has(.has-approvals-button) {
+    padding-inline: 0.75rem;
+  }
+
+  .site-header__inner:has(.has-approvals-button) .site-actions {
+    gap: 0.25rem;
+  }
+
+  .site-header__inner:has(.has-approvals-button) .site-user {
+    max-width: 5rem;
+    padding-inline: 0.5rem;
+  }
+
+  .site-header:not(.site-header--compact) .site-header__inner:has(.has-approvals-button) .site-logo__img {
+    height: 52px;
+    margin: 0;
   }
 }

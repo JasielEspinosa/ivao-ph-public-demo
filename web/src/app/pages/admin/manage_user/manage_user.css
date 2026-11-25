@@ -29,7 +29,6 @@
 .manage-user-form .user-name-grid .uf-field > span {
   position: absolute;
   left: 0.85rem;
-  top: 50%;
   transform: translateY(-50%);
   z-index: 1;
   margin: 0;
@@ -229,6 +228,16 @@
 .member-list-section .member-flags {
   margin-top: 1rem;
   padding-left: 2.25rem;
+}
+
+/* The explanation and warning under the two event approver switches. */
+.member-flags > small {
+  max-width: 40rem;
+}
+
+/* A clear gap before the next switch. */
+.member-flags > small:last-of-type {
+  margin-bottom: 0.5rem;
 }
 
 @media (max-width: 900px) {

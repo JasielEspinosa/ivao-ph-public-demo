@@ -1,7 +1,7 @@
 // Public demo only: downloads the Philippine NOTAMs from CAAP AIS into public/demo/notams.json.
 //
 // The demo has no backend, and the CAAP service sends no CORS headers, so the browser cannot read it directly.
-// The deploy workflow runs this script before every build (and on a schedule), so the demo shows recent NOTAMs.
+// The deploy workflow runs this script before every build, so each deploy shows the NOTAMs of that moment.
 // When the download fails, the snapshot already in public/demo/notams.json is kept and the script still succeeds.
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';

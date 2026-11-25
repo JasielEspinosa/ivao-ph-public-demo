@@ -41,11 +41,11 @@
         <h2 id="events-today-title">Events Today</h2>
       </div>
 
-      @if (errorMessage()) {
-        <div class="status-box error" role="alert">{{ errorMessage() }}</div>
-      } @else if (isLoading()) {
+      <app-popup-message type="error" [message]="errorMessage()" />
+
+      @if (isLoading()) {
         <p class="universal-helper-text-gray" role="status">{{ messages.loading('Events') }}...</p>
-      } @else {
+      } @else if (!errorMessage()) {
         <app-event-cards
           [events]="events().today"
           section="today"
@@ -106,3 +106,73 @@
     </section>
   </div>
 </section>
+
+<button
+  type="button"
+  class="home-announcement-btn"
+  aria-label="Announcements"
+  title="Announcements"
+  (click)="openAnnouncements()"
+>
+  <svg
+    viewBox="0 0 24 24"
+    width="22"
+    height="22"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    aria-hidden="true"
+  >
+    <path d="m3 11 18-5v12L3 14v-3z" />
+    <path d="M11.6 16.8a3 3 0 1 1-5.8-1.6" />
+  </svg>
+</button>
+
+@if (showAnnouncements()) {
+  <div class="home-modal-backdrop" (click)="closeAnnouncements()">
+    <div
+      class="home-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="announcement-title"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="home-modal-header">
+        <h3 id="announcement-title">What's New in IVAO Philippines</h3>
+        <p>Here are the latest updates and improvements to the website.</p>
+      </div>
+      <div class="home-modal-body">
+        @let groups = visibleAnnouncements();
+        @for (group of groups; track group.title) {
+          <section>
+            <h4>{{ group.title }}</h4>
+            @if (group.items?.length) {
+              <ul>
+                @for (item of group.items; track item.text) {
+                  <li>{{ item.text }}</li>
+                }
+              </ul>
+            }
+            @for (category of group.categories; track category.title) {
+              <h5>{{ category.title }}</h5>
+              <ul>
+                @for (item of category.items; track item.text) {
+                  <li>{{ item.text }}</li>
+                }
+              </ul>
+            }
+          </section>
+        } @empty {
+          <p>There are no updates for you yet.</p>
+        }
+      </div>
+      <div class="home-modal-footer">
+        <button type="button" class="universal-button universal-button--cancel" (click)="closeAnnouncements()">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+}

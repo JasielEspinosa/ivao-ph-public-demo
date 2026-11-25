@@ -19,8 +19,17 @@
       <div class="route-loading-spinner"></div>
     </div>
 
+    <app-popup-message type="error" [message]="feedbackMessage" (closed)="feedbackMessage = ''" />
+    <app-popup-message
+      type="success"
+      [message]="showPasswordResetNotice ? 'Password has been reset.' : ''"
+      (closed)="showPasswordResetNotice = false"
+    />
+    <app-popup-message type="success" [message]="replicateMessage" (closed)="replicateMessage = ''" />
+    <app-popup-message type="error" [message]="replicateError" (closed)="replicateError = ''" />
+
     <form
-      class="manage-user-form"
+      class="manage-user-form universal-form"
       [formGroup]="form"
       (ngSubmit)="save()"
       *ngIf="!isLoading"
@@ -108,8 +117,6 @@
           <div *ngIf="showLoginPasswordRequiredError()" class="inline-field-error">{{ requiredFieldMessage }}</div>
         </label>
       </div>
-
-      <p *ngIf="showPasswordResetNotice" class="password-reset-notice" role="status">Password has been reset.</p>
 
       <div class="section-divider user-name-section">
         <div class="user-name-section__header">
@@ -218,6 +225,30 @@
         </div>
       </div>
 
+      <!-- The two event approver switches (at most one on), used here and among the staff settings below. -->
+      <ng-template #approverToggles>
+        <div class="inline-field choice-option">
+          <span class="permission-label choice-title">Required Event Approver</span>
+          <input type="checkbox" class="switch-input" role="switch" formControlName="is_required_approver" />
+        </div>
+
+        <div class="inline-field choice-option">
+          <span class="permission-label choice-title">Optional Event Approver</span>
+          <input type="checkbox" class="switch-input" role="switch" formControlName="is_optional_approver" />
+        </div>
+
+        <small class="universal-helper-text-gray">
+          While there is a Required approver, a new event is shown only once it is approved. One approval from any
+          approver, Required or Optional, is enough, and the others are notified. With only Optional approvers, events
+          do not wait. Choose one, or leave both off.
+        </small>
+      </ng-template>
+
+      <!-- "admin" user only: it can approve events without being a staff member. -->
+      <div class="section-divider form-row form-row-stack member-flags" *ngIf="showAdminApproverToggles">
+        <ng-container *ngTemplateOutlet="approverToggles"></ng-container>
+      </div>
+
       <div class="section-divider member-list-section">
         <div class="inline-field choice-option">
           <span class="permission-label choice-title">
@@ -290,12 +321,6 @@
               <span class="permission-label choice-title">Is Staff</span>
               <input type="checkbox" class="switch-input" role="switch" formControlName="is_staff" />
             </div>
-
-            <!-- Staff only: "Show in Contacts List" turns the email and number on. -->
-            <div class="inline-field choice-option" *ngIf="isStaffMember">
-              <span class="permission-label choice-title">Show in Contacts List</span>
-              <input type="checkbox" class="switch-input" role="switch" formControlName="show_in_contacts" />
-            </div>
           </div>
 
           <div class="form-grid user-name-grid member-contact-grid" *ngIf="isStaffMember">
@@ -329,8 +354,36 @@
             </label>
           </div>
 
+          <!-- Staff only: the event approver switches (at most one on), the same setting as on the Members page, then
+               "Show in Contacts List", which turns the email and number on. -->
+          <div class="form-row form-row-stack member-flags" *ngIf="isStaffMember">
+            <ng-container *ngTemplateOutlet="approverToggles"></ng-container>
+
+            <div class="inline-field choice-option" *ngIf="isEventApproverChosen">
+              <span class="permission-label choice-title">Edit Events Before Approving</span>
+              <input type="checkbox" class="switch-input" role="switch" formControlName="can_edit_on_approval" />
+            </div>
+
+            <small class="universal-helper-text-gray" *ngIf="isEventApproverChosen">
+              An approver without "Events" access to Data Management can only view and approve events. Switch this on to
+              also let them change an event's details while approving it; the changes are saved only when they approve.
+            </small>
+
+            <small class="event-approver-note" role="note" *ngIf="showApproverDisabledNote">
+              This user is not enabled, so they cannot approve events. Switch on "User Enabled".
+            </small>
+
+            <div class="inline-field choice-option">
+              <span class="permission-label choice-title">Show in Contacts List</span>
+              <input type="checkbox" class="switch-input" role="switch" formControlName="show_in_contacts" />
+            </div>
+          </div>
+
           <div class="form-grid user-name-grid member-contact-grid" *ngIf="showContactFields">
-            <label class="uf-field" [class.uf-invalid]="showContactError('contact_email', 'pattern')">
+            <label
+              class="uf-field"
+              [class.uf-invalid]="showContactRequiredError() || showContactError('contact_email', 'pattern')"
+            >
               <span>Email</span>
               <input
                 type="text"
@@ -344,12 +397,18 @@
                 data-lpignore="true"
                 data-1p-ignore="true"
               />
+              <div *ngIf="showContactRequiredError()" class="inline-field-error">
+                {{ contactRequiredMessage }}
+              </div>
               <div *ngIf="showContactError('contact_email', 'pattern')" class="inline-field-error">
                 {{ invalidEmailMessage }}
               </div>
             </label>
 
-            <label class="uf-field" [class.uf-invalid]="showContactError('contact_number', 'pattern')">
+            <label
+              class="uf-field"
+              [class.uf-invalid]="showContactRequiredError() || showContactError('contact_number', 'pattern')"
+            >
               <span>Number</span>
               <input
                 type="text"
@@ -362,6 +421,9 @@
                 data-1p-ignore="true"
                 (input)="onContactNumberInput($event)"
               />
+              <div *ngIf="showContactRequiredError()" class="inline-field-error">
+                {{ contactRequiredMessage }}
+              </div>
               <div *ngIf="showContactError('contact_number', 'pattern')" class="inline-field-error">
                 {{ invalidContactNumberMessage }}
               </div>
@@ -420,13 +482,7 @@
             Replicate Role
           </button>
         </div>
-
-        <p class="form-feedback form-feedback--success replicate-role-message" *ngIf="replicateMessage" role="status">
-          {{ replicateMessage }}
-        </p>
       </div>
-
-      <div *ngIf="feedbackMessage" class="status-box error" role="alert">{{ feedbackMessage }}</div>
 
       <div class="section-divider">
         <div class="button-row" style="margin-top: 0">
@@ -500,8 +556,6 @@
           </div>
         </div>
       </div>
-
-      <div *ngIf="feedbackMessage" class="status-box error" role="alert">{{ feedbackMessage }}</div>
 
       <div class="button-row">
         <button type="button" class="universal-button universal-button--cancel" (click)="cancel()">

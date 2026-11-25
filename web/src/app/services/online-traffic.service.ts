@@ -168,9 +168,9 @@ const ATC_UNAVAILABLE_MESSAGE =
 const PILOTS_UNAVAILABLE_MESSAGE = 'The online pilots are not available right now. Please try again in a few moments.';
 
 /**
- * The online pilots and controllers, shared by every page that shows them (Home and Pilot's Lounge), so the list
- * loaded on one page is the list on the other and is not fetched twice. The minute refresh runs only while at least
- * one page shows the lists (see `acquire`).
+ * The online pilots and controllers, shared by every page that shows them (Home, Pilot's Lounge and ATC Lounge), so
+ * a list loaded on one page is the list on the others and is not fetched twice. The minute refresh runs only while at
+ * least one page shows the lists (see `acquire`).
  */
 @Injectable({ providedIn: 'root' })
 export class OnlineTrafficService {

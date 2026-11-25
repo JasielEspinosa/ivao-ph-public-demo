@@ -1,0 +1,52 @@
+<p class="cropper__title">{{ label }}</p>
+
+<div
+  #frame
+  class="cropper__frame"
+  [class.cropper__frame--portrait]="guide === 'portrait'"
+  [style.aspect-ratio]="aspect"
+  tabindex="0"
+  role="group"
+  [attr.aria-label]="label + ': drag or use the arrow keys to move, plus and minus to zoom'"
+  (pointerdown)="startDrag($event)"
+  (pointermove)="moveDrag($event)"
+  (pointerup)="endDrag()"
+  (pointercancel)="endDrag()"
+  (keydown)="onKey($event)"
+>
+  <img
+    class="cropper__image"
+    [src]="image.src"
+    alt=""
+    draggable="false"
+    [style.width.%]="placement.width"
+    [style.height.%]="placement.height"
+    [style.left.%]="placement.left"
+    [style.top.%]="placement.top"
+  />
+
+  @if (guide === 'portrait') {
+    <!-- Eyes one third down; the head takes a little over 40% of the height. -->
+    <svg class="cropper__guide" viewBox="0 0 80 100" aria-hidden="true" focusable="false">
+      <ellipse cx="40" cy="32" rx="16" ry="22" />
+      <path d="M4 100c2-24 14-32 28-37M76 100c-2-24-14-32-28-37" />
+      <path d="M18 31h44" />
+    </svg>
+  } @else {
+    <span class="cropper__circle" aria-hidden="true"></span>
+  }
+</div>
+
+<label class="cropper__zoom">
+  <span>Zoom</span>
+  <input
+    type="range"
+    min="1"
+    step="0.01"
+    [max]="maxZoom"
+    [value]="zoom"
+    [disabled]="disabled || maxZoom <= 1"
+    [attr.aria-label]="'Zoom of ' + label"
+    (input)="setZoom(+$any($event.target).value)"
+  />
+</label>

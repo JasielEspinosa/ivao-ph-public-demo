@@ -1,0 +1,219 @@
+<section class="home-section" id="airport-parking" aria-labelledby="airport-parking-title">
+  <div class="home-section__header">
+    <h2 id="airport-parking-title">Airport Parking</h2>
+  </div>
+  <p>
+    Aircraft parking stands, hangars and terminal gates of the Philippine airports, and the airlines that use them. For
+    flight simulation only, not for real-world navigation.
+  </p>
+
+  <app-popup-message type="error" [message]="errorMessage()" />
+
+  @if (isLoading()) {
+    <p class="universal-helper-text-gray" role="status">{{ messages.loading('Parking Spots') }}...</p>
+  } @else if (!errorMessage() && airports().length === 0) {
+    <p class="universal-helper-text-gray">{{ messages.noRecords('Parking Spots') }}</p>
+  } @else if (airports().length > 0) {
+    <!-- The same search as Charts and Weather (styles-info-sections.css). -->
+    <form class="universal-form weather-form" novalidate (submit)="$event.preventDefault(); searchAirport()">
+      <label class="uf-field weather-form__field">
+        <span>Type in the airport ICAO code</span>
+        <input
+          id="parking-icao"
+          type="text"
+          list="parking-airports"
+          maxlength="4"
+          placeholder=" "
+          autocomplete="off"
+          autocapitalize="characters"
+          autocorrect="off"
+          spellcheck="false"
+          data-lpignore="true"
+          data-1p-ignore="true"
+          [value]="typedIcao()"
+          (input)="onIcaoInput($any($event.target))"
+        />
+        <datalist id="parking-airports">
+          @for (airport of airports(); track airport.icao) {
+            <option [value]="airport.icao">{{ airport.name }}</option>
+          }
+        </datalist>
+      </label>
+      <button type="submit" class="universal-submit-btn weather-form__button">Show parking</button>
+    </form>
+
+    <div class="weather-status" aria-live="polite">
+      @if (icaoError()) {
+        <p class="status-box error">{{ icaoError() }}</p>
+      } @else if (shownIcao() && airportSpots().length === 0) {
+        <p class="status-box">No parking spots are listed for {{ shownIcao() }}.</p>
+      }
+    </div>
+
+    @if (airportSpots().length > 0) {
+      <div class="parking-page">
+        <h3 class="parking-heading">
+          Parking <span class="weather-report__icao">{{ shownIcao() }}</span>
+          @if (airportName()) {
+            - {{ airportName() }}
+          }
+        </h3>
+
+        @if (airportNote()) {
+          <p class="parking-airport-note" role="note">{{ airportNote() }}</p>
+        }
+
+        @if (airportTerminals().length > 0) {
+          <section class="parking-terminals" aria-labelledby="parking-terminals-title">
+            <h4 id="parking-terminals-title">Airlines by terminal</h4>
+            @for (terminal of airportTerminals(); track terminal.id) {
+              <details class="parking-terminal" [open]="expandTerminals">
+                <summary>
+                  <h5>{{ terminal.terminal_name }}</h5>
+                  - {{ terminal.airlines.length }} {{ terminal.airlines.length === 1 ? 'airline' : 'airlines' }}
+                </summary>
+                <ul class="parking-airlines">
+                  @for (airline of terminal.airlines; track airline.code) {
+                    <li>{{ airlineLabel(airline) }}</li>
+                  } @empty {
+                    <li>No airlines are listed.</li>
+                  }
+                </ul>
+                @if (terminal.note) {
+                  <p class="universal-helper-text-gray">{{ terminal.note }}</p>
+                }
+              </details>
+            }
+          </section>
+        }
+
+        @if (airportAirlines().length > 0) {
+          <div class="universal-form parking-airline-filter">
+            <label class="uf-field" for="parking-airline">
+              <span>Airline</span>
+              <select id="parking-airline" (change)="selectAirline($any($event.target).value)">
+                <option value="" [selected]="!selectedAirline()">All airlines</option>
+                @for (airline of airportAirlines(); track airline.code) {
+                  <option [value]="airline.code" [selected]="airline.code === selectedAirline()">
+                    {{ airlineLabel(airline) }}
+                  </option>
+                }
+              </select>
+            </label>
+          </div>
+        }
+
+        <ul class="parking-legend" aria-label="Map legend">
+          <li><span class="parking-dot"></span> Real-world data</li>
+          @if (simulatorCount() > 0) {
+            <li><span class="parking-dot parking-dot--simulator"></span> Simulator data (X-Plane)</li>
+          }
+          <li><span class="parking-dot parking-dot--gate"></span> Ring: terminal gate (door)</li>
+        </ul>
+
+        <app-parking-map [spots]="airlineSpots()" [focused]="focused()" />
+
+        <div class="universal-input-field">
+          <label for="parking-search">Search this airport</label>
+          <input
+            id="parking-search"
+            type="search"
+            autocomplete="off"
+            placeholder="Stand, terminal, airline, use, source or note"
+            [value]="searchTerm()"
+            (input)="onSearch($any($event.target).value)"
+          />
+        </div>
+
+        <div class="table-wrap table-wrap--compact parking-table">
+          <app-table-pagination [pager]="pager"></app-table-pagination>
+          <table>
+            <thead>
+              <tr>
+                <th>Stand</th>
+                <th>Terminal</th>
+                <th>Type</th>
+                <th>Use</th>
+                <th>Size</th>
+                <th>Airlines</th>
+                <th>Source</th>
+                <th>Coordinates</th>
+                <th>Note</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (spot of pager.slice(listedSpots()); track spot.id) {
+                <tr>
+                  <td>
+                    <button type="button" class="parking-stand" title="Show on the map" (click)="showOnMap(spot)">
+                      {{ spot.stand_name }}
+                    </button>
+                  </td>
+                  <td>{{ spot.terminal_name }}</td>
+                  <td>{{ standTypeLabel(spot.stand_type) }}</td>
+                  <td>
+                    {{ useLabel(spot.shown_use) }}
+                    @if (spot.use_is_simulated) {
+                      <small class="parking-from">simulator data</small>
+                    }
+                  </td>
+                  <td>
+                    {{ spot.shown_size }}
+                    @if (spot.size_is_simulated) {
+                      <small class="parking-from">simulator data</small>
+                    }
+                  </td>
+                  <td class="parking-codes">
+                    @if (spot.shown_airlines.length > airlinesInACell) {
+                      <details>
+                        <summary>{{ spot.shown_airlines.length }} airlines</summary>
+                        @for (airline of spot.shown_airlines; track airline.code) {
+                          <abbr [title]="airline.name">{{ airline.code }}</abbr
+                          >{{ ' ' }}
+                        }
+                      </details>
+                    } @else {
+                      @for (airline of spot.shown_airlines; track airline.code) {
+                        <abbr [title]="airline.name">{{ airline.code }}</abbr
+                        >{{ ' ' }}
+                      }
+                    }
+                    @if (spot.airlines_source) {
+                      <small class="parking-from">{{ airlinesSourceLabel(spot.airlines_source) }}</small>
+                    }
+                  </td>
+                  <td>
+                    <span class="parking-dot" [class.parking-dot--simulator]="isSimulator(spot.source)"></span>
+                    {{ sourceLabel(spot.source) }}
+                  </td>
+                  <td>{{ spot.latitude.toFixed(6) }}, {{ spot.longitude.toFixed(6) }}</td>
+                  <td class="parking-note">{{ spot.note }}</td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="9">{{ messages.noRecords('Parking Spots') }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+          <app-table-pagination [pager]="pager"></app-table-pagination>
+        </div>
+      </div>
+    }
+
+    <p class="home-note parking-credits">
+      Airline assignments change: check with the airline or the airport. The airlines of a terminal are shown on each of
+      its stands; this is not a stand allocation.
+    </p>
+    <p class="home-note parking-credits">
+      Real-world data from
+      <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer"
+        >OpenStreetMap contributors</a
+      >
+      (Open Database License) and IVAO Philippines staff; terminal airlines from the airport operators. Where it is
+      incomplete, simulator data from the
+      <a href="https://gateway.x-plane.com/" target="_blank" rel="noopener noreferrer">X-Plane Scenery Gateway</a>
+      (GNU General Public License) is shown, and it may differ from the real airport and from other simulators.
+    </p>
+  }
+</section>

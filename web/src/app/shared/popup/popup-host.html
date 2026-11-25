@@ -1,0 +1,49 @@
+@for (popup of shown(); track popup.id) {
+  <dialog
+    #dialog
+    class="popup popup--{{ popup.kind }}"
+    role="alertdialog"
+    aria-labelledby="popup-title"
+    aria-describedby="popup-message"
+    (cancel)="$event.preventDefault(); popups.close(popup, false)"
+    (close)="popups.close(popup, false)"
+  >
+    <h3 id="popup-title" class="popup__title">{{ popup.title }}</h3>
+    <p id="popup-message" class="popup__message">{{ popup.message }}</p>
+
+    @if (popup.kind === 'question') {
+      <!-- Cancel comes first and has the focus, so a stray Enter never deletes anything. -->
+      <div class="popup__actions popup__actions--question">
+        <button
+          type="button"
+          class="universal-button universal-button--cancel popup__cancel"
+          autofocus
+          (click)="popups.close(popup, false)"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          class="universal-button popup__confirm"
+          [class.universal-button--primary]="!popup.danger && !popup.success"
+          [class.universal-button--template]="popup.success"
+          [class.popup__confirm--danger]="popup.danger"
+          (click)="popups.close(popup, true)"
+        >
+          {{ popup.confirmLabel }}
+        </button>
+      </div>
+    } @else {
+      <div class="popup__actions">
+        <button
+          type="button"
+          class="universal-button universal-button--primary popup__ok"
+          autofocus
+          (click)="popups.close(popup, false)"
+        >
+          {{ popup.confirmLabel }}
+        </button>
+      </div>
+    }
+  </dialog>
+}

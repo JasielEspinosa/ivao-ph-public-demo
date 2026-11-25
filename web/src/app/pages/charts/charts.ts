@@ -1,33 +1,26 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, Injector, OnInit, afterNextRender, computed, inject, signal } from '@angular/core';
 import { Title } from '@angular/platform-browser';
+import { ActivatedRoute } from '@angular/router';
 
-import { environment } from '../../../environments/environment';
 import { getAuthHeader } from '../../app';
 import { PlaceholderBannerComponent } from '../../placeholders/banner/placeholder-banner';
+import { ChartSearchComponent } from '../../shared/chart-search/chart-search';
 import { DATA_MANAGE_MESSAGES } from '../../shared/data-manage-messages';
 import { FileActionsComponent } from '../../shared/file-actions/file-actions';
 import { getLinkHost } from '../../shared/link-url';
 import { PHILIPPINE_AIRPORTS } from '../../shared/philippine-airports';
+import {
+  CHARTS_API,
+  CHART_LIST_ANCHOR,
+  PublicChart,
+  airportChartsAnchor,
+  scrollToAnchor,
+} from '../../shared/public-charts';
 import { PublicFileService } from '../../shared/public-file.service';
 import { buildSubmitErrorMessage } from '../../shared/submit-error-utils';
 import { formatFileSize } from '../../shared/upload-files';
-
-/** A chart as the public API returns it: enabled charts only. */
-interface PublicChart {
-  id: number;
-  /** Empty for a chart that belongs to no single airport. */
-  airport_icao: string | null;
-  chart_name: string;
-  description: string | null;
-  /** The page a link chart opens in a new tab; null for a chart that holds a PDF. */
-  link_url: string | null;
-  /** The link points to a PDF: it can be downloaded (the server fetches it) as well as opened. */
-  link_is_pdf: boolean;
-  /** The file fields are null for a link. */
-  file_name: string | null;
-  file_size: number | null;
-}
+import { PopupMessageComponent } from '../../shared/popup/popup-message';
 
 interface AirportCharts {
   /** '' for the charts without an airport. */
@@ -37,13 +30,11 @@ interface AirportCharts {
   charts: PublicChart[];
 }
 
-const CHARTS_API = `${environment.apiUrl.replace(/\/$/, '')}/charts`;
-
-/** Public list of the airport charts managed on Data Management > Charts, grouped by airport. */
+/** Public Charts page: the Charts search, then the airport charts managed on Data Management > Charts, by airport. */
 @Component({
   selector: 'app-charts',
   standalone: true,
-  imports: [PlaceholderBannerComponent, FileActionsComponent],
+  imports: [PopupMessageComponent, PlaceholderBannerComponent, ChartSearchComponent, FileActionsComponent],
   template: `
     <section class="page-shell">
       <div class="form-shell">
@@ -53,9 +44,9 @@ const CHARTS_API = `${environment.apiUrl.replace(/\/$/, '')}/charts`;
           <p>Airport charts of the Philippines, shared by IVAO Philippines.</p>
         </div>
 
-        @if (errorMessage()) {
-          <div class="status-box error" role="alert">{{ errorMessage() }}</div>
-        }
+        <app-popup-message type="error" [message]="errorMessage()" />
+
+        <app-chart-search class="home-content" [onChartsPage]="true"></app-chart-search>
 
         @if (isLoading()) {
           <p class="universal-helper-text-gray" role="status">{{ messages.loading('Charts') }}...</p>
@@ -63,50 +54,52 @@ const CHARTS_API = `${environment.apiUrl.replace(/\/$/, '')}/charts`;
           <p class="universal-helper-text-gray">{{ messages.noRecords('Charts') }}</p>
         }
 
-        @for (airport of airports(); track airport.icao) {
-          <h2 class="charts-airport">
-            @if (airport.icao) {
-              {{ airport.icao }}
-              @if (airport.name) {
-                <span class="charts-airport__name">- {{ airport.name }}</span>
+        <div class="charts-list" [id]="chartListAnchor">
+          @for (airport of airports(); track airport.icao) {
+            <h2 class="charts-airport" [attr.id]="airport.icao ? airportChartsAnchor(airport.icao) : null">
+              @if (airport.icao) {
+                {{ airport.icao }}
+                @if (airport.name) {
+                  <span class="charts-airport__name">- {{ airport.name }}</span>
+                }
+              } @else {
+                Other Charts
               }
-            } @else {
-              Other Charts
-            }
-          </h2>
+            </h2>
 
-          <ul class="file-list">
-            @for (chart of airport.charts; track chart.id) {
-              <li class="file-item">
-                <div class="file-item__text">
-                  <h3 class="charts-chart">
-                    @if (chart.link_url) {
-                      <a [href]="chart.link_url" target="_blank" rel="noopener noreferrer">{{ chart.chart_name }}</a>
-                    } @else {
-                      <a
-                        href="#"
-                        (click)="$event.preventDefault(); open(chart, 'view')"
-                        [attr.aria-disabled]="busyId() === chart.id"
-                        >{{ chart.chart_name }}</a
-                      >
+            <ul class="file-list">
+              @for (chart of airport.charts; track chart.id) {
+                <li class="file-item">
+                  <div class="file-item__text">
+                    <h3 class="charts-chart">
+                      @if (chart.link_url) {
+                        <a [href]="chart.link_url" target="_blank" rel="noopener noreferrer">{{ chart.chart_name }}</a>
+                      } @else {
+                        <a
+                          href="#"
+                          (click)="$event.preventDefault(); open(chart, 'view')"
+                          [attr.aria-disabled]="busyId() === chart.id"
+                          >{{ chart.chart_name }}</a
+                        >
+                      }
+                    </h3>
+                    @if (chart.description) {
+                      <p>{{ chart.description }}</p>
                     }
-                  </h3>
-                  @if (chart.description) {
-                    <p>{{ chart.description }}</p>
-                  }
-                  <p>{{ describe(chart) }}</p>
-                </div>
-                <app-file-actions
-                  label="chart"
-                  [canDownload]="!chart.link_url || chart.link_is_pdf"
-                  [busy]="busyId() === chart.id"
-                  (view)="open(chart, 'view')"
-                  (download)="open(chart, 'download')"
-                ></app-file-actions>
-              </li>
-            }
-          </ul>
-        }
+                    <p>{{ describe(chart) }}</p>
+                  </div>
+                  <app-file-actions
+                    label="chart"
+                    [canDownload]="!chart.link_url || chart.link_is_pdf"
+                    [busy]="busyId() === chart.id"
+                    (view)="open(chart, 'view')"
+                    (download)="open(chart, 'download')"
+                  ></app-file-actions>
+                </li>
+              }
+            </ul>
+          }
+        </div>
       </div>
     </section>
   `,
@@ -115,6 +108,12 @@ const CHARTS_API = `${environment.apiUrl.replace(/\/$/, '')}/charts`;
       margin: 1.5rem 0 0.75rem;
       color: var(--c-brand-ink);
       font-size: 1.3rem;
+    }
+
+    /* Keeps what is scrolled to clear of the floating header. */
+    .charts-list,
+    .charts-airport {
+      scroll-margin-top: 5rem;
     }
 
     .charts-airport__name {
@@ -141,8 +140,12 @@ export class ChartsComponent implements OnInit {
   private readonly title = inject(Title);
   private readonly http = inject(HttpClient);
   private readonly publicFiles = inject(PublicFileService);
+  private readonly route = inject(ActivatedRoute);
+  private readonly injector = inject(Injector);
 
   readonly messages = DATA_MANAGE_MESSAGES;
+  readonly airportChartsAnchor = airportChartsAnchor;
+  readonly chartListAnchor = CHART_LIST_ANCHOR;
 
   readonly isLoading = signal(true);
   readonly errorMessage = signal('');
@@ -178,6 +181,7 @@ export class ChartsComponent implements OnInit {
         next: (rows) => {
           this.charts.set(Array.isArray(rows) ? rows : []);
           this.isLoading.set(false);
+          this.scrollToLinkedAirport();
         },
         error: (error) => {
           this.errorMessage.set(
@@ -186,6 +190,14 @@ export class ChartsComponent implements OnInit {
           this.isLoading.set(false);
         },
       });
+  }
+
+  /** A link to one airport's charts (/charts#airport-RPLL) is scrolled to here: the list loads after the page. */
+  private scrollToLinkedAirport(): void {
+    const anchor = this.route.snapshot.fragment;
+    if (anchor) {
+      afterNextRender(() => scrollToAnchor(anchor), { injector: this.injector });
+    }
   }
 
   /** "PDF - 1.2 MB", or "Link - example.com" for a chart that points to a page. */

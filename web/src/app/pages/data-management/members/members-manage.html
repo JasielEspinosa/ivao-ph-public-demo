@@ -39,15 +39,10 @@
       <div class="route-loading-spinner"></div>
     </div>
 
-    <div *ngIf="errorMessage && !isModalOpen" class="status-box error">
-      {{ errorMessage }}
-    </div>
+    <app-popup-message type="error" [message]="errorMessage" (closed)="errorMessage = ''" />
+    <app-popup-message type="success" [message]="successMessage" (closed)="successMessage = ''" />
 
-    <div *ngIf="successMessage && !isModalOpen" class="status-box success">
-      {{ successMessage }}
-    </div>
-
-    <div class="table-wrap table-wrap--admin table-wrap--compact" *ngIf="!isLoading && !errorMessage">
+    <div class="table-wrap table-wrap--admin table-wrap--compact" *ngIf="!isLoading && !loadFailed">
       <app-table-pagination [pager]="pager"></app-table-pagination>
       <table>
         <thead>
@@ -223,7 +218,24 @@
         </div>
       </div>
 
-      <!-- Staff only: the role fields, then "Show in Contacts List", which turns the email and number on. -->
+      <div class="manage-form-row members-row members-row--real-world">
+        <div class="manage-toggle-row">
+          <label class="manage-active">
+            <span>Real-World Pilot</span>
+            <input type="checkbox" class="switch-input" role="switch" formControlName="is_real_world_pilot" />
+          </label>
+        </div>
+
+        <div class="manage-toggle-row">
+          <label class="manage-active">
+            <span>Real-World ATC</span>
+            <input type="checkbox" class="switch-input" role="switch" formControlName="is_real_world_atc" />
+          </label>
+        </div>
+      </div>
+
+      <!-- Staff only: the role fields, the event approver toggles (at most one on), then "Show in Contacts List", which
+           turns the email and number on. -->
       <ng-container *ngIf="form.controls.is_staff.value">
         <div class="manage-form-row manage-form-row--stack">
           <div class="manage-modal-field">
@@ -250,6 +262,53 @@
           </div>
         </div>
 
+        <div class="members-approver">
+          <div class="manage-form-row members-row members-row--approver">
+            <div class="manage-toggle-row">
+              <label class="manage-active">
+                <span>Required Event Approver</span>
+                <input type="checkbox" class="switch-input" role="switch" formControlName="is_required_approver" />
+              </label>
+            </div>
+
+            <div class="manage-toggle-row">
+              <label class="manage-active">
+                <span>Optional Event Approver</span>
+                <input type="checkbox" class="switch-input" role="switch" formControlName="is_optional_approver" />
+              </label>
+            </div>
+          </div>
+
+          <small class="universal-helper-text-gray">
+            While there is a Required approver, a new event is shown only once it is approved. One approval from any
+            approver, Required or Optional, is enough, and the others are notified. With only Optional approvers, events
+            do not wait. Choose one, or leave both off.
+          </small>
+
+          @if (isEventApproverChosen) {
+            <div class="manage-form-row members-row members-row--approver">
+              <div class="manage-toggle-row">
+                <label class="manage-active">
+                  <span>Edit Events Before Approving</span>
+                  <input type="checkbox" class="switch-input" role="switch" formControlName="can_edit_on_approval" />
+                </label>
+              </div>
+            </div>
+
+            <small class="universal-helper-text-gray">
+              An approver without "Events" access to Data Management can only view and approve events. Switch this on to
+              also let them change an event's details while approving it; the changes are saved only when they approve.
+            </small>
+          }
+
+          @if (showNoAccountNote) {
+            <small class="event-approver-note" role="note">
+              This member has no active user account, so they cannot approve events. Link one in Manage User with "Add
+              to Member List".
+            </small>
+          }
+        </div>
+
         <div class="manage-form-row members-row">
           <div class="manage-toggle-row">
             <label class="manage-active">
@@ -262,7 +321,11 @@
 
       <div class="manage-form-row members-row members-row--contact" *ngIf="showContactFields">
         <div class="manage-modal-field">
-          <label class="uf-field" for="contact_email" [class.uf-invalid]="showInvalid('contact_email')">
+          <label
+            class="uf-field"
+            for="contact_email"
+            [class.uf-invalid]="showContactRequiredError || showContactPatternError('contact_email')"
+          >
             <span>Email</span>
             <input
               id="contact_email"
@@ -273,11 +336,20 @@
               placeholder=" "
             />
           </label>
-          <small class="uf-error" *ngIf="showInvalid('contact_email')">{{ VALIDATION_MESSAGES.invalidEmail }}</small>
+          <small class="uf-error" *ngIf="showContactRequiredError">
+            {{ VALIDATION_MESSAGES.contactEmailOrNumber }}
+          </small>
+          <small class="uf-error" *ngIf="showContactPatternError('contact_email')">
+            {{ VALIDATION_MESSAGES.invalidEmail }}
+          </small>
         </div>
 
         <div class="manage-modal-field">
-          <label class="uf-field" for="contact_number" [class.uf-invalid]="showInvalid('contact_number')">
+          <label
+            class="uf-field"
+            for="contact_number"
+            [class.uf-invalid]="showContactRequiredError || showContactPatternError('contact_number')"
+          >
             <span>Number</span>
             <input
               id="contact_number"
@@ -289,14 +361,13 @@
               (input)="onContactNumberInput($event)"
             />
           </label>
-          <small class="uf-error" *ngIf="showInvalid('contact_number')">
+          <small class="uf-error" *ngIf="showContactRequiredError">
+            {{ VALIDATION_MESSAGES.contactEmailOrNumber }}
+          </small>
+          <small class="uf-error" *ngIf="showContactPatternError('contact_number')">
             {{ VALIDATION_MESSAGES.invalidPhilippineContactNumber }}
           </small>
         </div>
-      </div>
-
-      <div *ngIf="errorMessage" class="status-box error manage-modal-message">
-        {{ errorMessage }}
       </div>
 
       <div class="manage-modal-actions">

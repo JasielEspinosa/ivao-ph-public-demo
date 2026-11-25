@@ -16,6 +16,8 @@ import { ThemeService } from '../../services/theme.service';
 import { NETWORK_UNAVAILABLE_MESSAGE } from '../../shared/submit-error-utils';
 import { VALIDATION_MESSAGES } from '../../shared/validation-messages';
 import { VALIDATION_PATTERNS } from '../../shared/validation-patterns';
+import { PopupMessageComponent } from '../../shared/popup/popup-message';
+import { ProfilePhotoComponent } from './profile-photo/profile-photo';
 
 type PasswordField = 'current_password' | 'new_password' | 'confirm_password';
 
@@ -52,7 +54,13 @@ function passwordChangeValidator(group: AbstractControl): ValidationErrors | nul
 @Component({
   selector: 'app-profile-settings',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, PlaceholderBannerComponent],
+  imports: [
+    PopupMessageComponent,
+    CommonModule,
+    ReactiveFormsModule,
+    PlaceholderBannerComponent,
+    ProfilePhotoComponent,
+  ],
   templateUrl: './profile-settings.html',
   styleUrl: './profile-settings.css',
 })

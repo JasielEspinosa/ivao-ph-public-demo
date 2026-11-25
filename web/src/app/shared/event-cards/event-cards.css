@@ -146,9 +146,8 @@
   }
 }
 
-/* A past event is a little faded: the picture only, so the text stays readable. */
-.event-card--past .event-card__image,
-.event-modal__image--past {
+/* A past event is a little faded: the picture only, so the text stays readable. The large view shows the original colours. */
+.event-card--past .event-card__image {
   filter: grayscale(0.6);
 }
 

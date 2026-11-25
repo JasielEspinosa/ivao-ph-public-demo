@@ -92,17 +92,11 @@
         <a routerLink="/forgot-password" [queryParams]="{ email: form.controls.login_email.value }">Forgot password?</a>
       </p>
 
-      <div class="uf-feedback">
-        <p
-          class="feedback"
-          [class.success]="isSuccess"
-          [class.error]="!isSuccess"
-          *ngIf="feedbackMessage"
-          style="margin: 0.75rem 0 0 0"
-        >
-          {{ feedbackMessage }}
-        </p>
-      </div>
+      <app-popup-message
+        [type]="isSuccess ? 'success' : 'error'"
+        [message]="feedbackMessage"
+        (closed)="feedbackMessage = ''"
+      />
     </form>
   </div>
 </section>

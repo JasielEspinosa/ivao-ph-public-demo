@@ -1,0 +1,210 @@
+<section class="home-shell">
+  <div class="form-shell">
+    <app-placeholder-banner-admin
+      title="Manage Integrations"
+      subtitle=""
+      [showBackLink]="true"
+      backLinkRoute="/admin-settings"
+      backLinkText="← Back to Admin Settings"
+    ></app-placeholder-banner-admin>
+
+    <div class="dashboard-header">
+      <p>Set where the event reminders are posted: a Discord channel and a Facebook Page.</p>
+    </div>
+
+    <div
+      class="route-loading-overlay route-loading-overlay--inline"
+      *ngIf="isLoading"
+      role="status"
+      aria-live="polite"
+      [attr.aria-label]="messages.loading('Integration settings')"
+    >
+      <div class="route-loading-spinner"></div>
+    </div>
+
+    <app-popup-message type="error" [message]="errorMessage" (closed)="errorMessage = ''" />
+    <app-popup-message type="success" [message]="successMessage" (closed)="successMessage = ''" />
+
+    <div class="integration-setting" *ngIf="!isLoading">
+      <h2 class="integration-setting__heading">Discord</h2>
+      <label class="universal-password-field" [class.uf-invalid]="showInvalidError('discord_webhook_url')">
+        <span>Discord Webhook URL</span>
+        <div class="password-peek-field">
+          <div class="password-input-wrap">
+            <input
+              [type]="peekedField === 'discord_webhook_url' ? 'text' : 'password'"
+              [value]="values.discord_webhook_url"
+              [disabled]="isSaving"
+              placeholder="https://discord.com/api/webhooks/..."
+              autocomplete="off"
+              autocapitalize="off"
+              autocorrect="off"
+              spellcheck="false"
+              data-lpignore="true"
+              data-1p-ignore="true"
+              (input)="onInput('discord_webhook_url', $any($event.target).value)"
+            />
+            <button
+              type="button"
+              class="password-peek-button"
+              aria-label="Press and hold to show the Discord webhook URL"
+              [disabled]="isSaving"
+              (pointerdown)="activatePeek('discord_webhook_url', $event)"
+              (pointerup)="deactivatePeek()"
+              (pointerleave)="deactivatePeek()"
+              (pointercancel)="deactivatePeek()"
+              (lostpointercapture)="deactivatePeek()"
+              (blur)="deactivatePeek()"
+              (keydown)="onPeekKeydown('discord_webhook_url', $event)"
+              (keyup)="onPeekKeyup($event)"
+            >
+              <svg
+                *ngIf="peekedField !== 'discord_webhook_url'"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+                focusable="false"
+              >
+                <path
+                  d="M2 12c2.2-3.8 5.5-6 10-6s7.8 2.2 10 6c-2.2 3.8-5.5 6-10 6s-7.8-2.2-10-6Zm10 3.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4Z"
+                />
+                <path d="M4 20 20 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+              </svg>
+              <svg
+                *ngIf="peekedField === 'discord_webhook_url'"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+                focusable="false"
+              >
+                <path
+                  d="M2 12c2.2-3.8 5.5-6 10-6s7.8 2.2 10 6c-2.2 3.8-5.5 6-10 6s-7.8-2.2-10-6Zm10 3.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4Z"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div *ngIf="showInvalidError('discord_webhook_url')" class="inline-field-error">
+          {{ invalidDiscordWebhookUrlMessage }}
+        </div>
+      </label>
+      <p class="universal-helper-text-gray integration-setting__hint">
+        Event reminders are posted to this Discord channel. Leave it empty to switch Discord off.
+      </p>
+
+      <h2 class="integration-setting__heading integration-setting__heading--spaced">Facebook Page</h2>
+      <label
+        class="universal-input-field"
+        [class.uf-invalid]="showInvalidError('facebook_page_id') || showRequiredError('facebook_page_id')"
+      >
+        <span>Facebook Page ID</span>
+        <input
+          type="text"
+          inputmode="numeric"
+          [value]="values.facebook_page_id"
+          [disabled]="isSaving"
+          placeholder="123456789012345"
+          autocomplete="off"
+          autocapitalize="off"
+          autocorrect="off"
+          spellcheck="false"
+          data-lpignore="true"
+          data-1p-ignore="true"
+          (input)="onInput('facebook_page_id', $any($event.target).value)"
+        />
+        <div *ngIf="showInvalidError('facebook_page_id')" class="inline-field-error">
+          {{ invalidFacebookPageIdMessage }}
+        </div>
+        <div *ngIf="showRequiredError('facebook_page_id')" class="inline-field-error">{{ requiredFieldMessage }}</div>
+      </label>
+
+      <label
+        class="universal-password-field integration-setting__field"
+        [class.uf-invalid]="
+          showInvalidError('facebook_page_access_token') || showRequiredError('facebook_page_access_token')
+        "
+      >
+        <span>Facebook Page Access Token</span>
+        <div class="password-peek-field">
+          <div class="password-input-wrap">
+            <input
+              [type]="peekedField === 'facebook_page_access_token' ? 'text' : 'password'"
+              [value]="values.facebook_page_access_token"
+              [disabled]="isSaving"
+              autocomplete="new-password"
+              autocapitalize="off"
+              autocorrect="off"
+              spellcheck="false"
+              data-lpignore="true"
+              data-1p-ignore="true"
+              (input)="onInput('facebook_page_access_token', $any($event.target).value)"
+            />
+            <button
+              type="button"
+              class="password-peek-button"
+              aria-label="Press and hold to show the Facebook Page access token"
+              [disabled]="isSaving"
+              (pointerdown)="activatePeek('facebook_page_access_token', $event)"
+              (pointerup)="deactivatePeek()"
+              (pointerleave)="deactivatePeek()"
+              (pointercancel)="deactivatePeek()"
+              (lostpointercapture)="deactivatePeek()"
+              (blur)="deactivatePeek()"
+              (keydown)="onPeekKeydown('facebook_page_access_token', $event)"
+              (keyup)="onPeekKeyup($event)"
+            >
+              <svg
+                *ngIf="peekedField !== 'facebook_page_access_token'"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+                focusable="false"
+              >
+                <path
+                  d="M2 12c2.2-3.8 5.5-6 10-6s7.8 2.2 10 6c-2.2 3.8-5.5 6-10 6s-7.8-2.2-10-6Zm10 3.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4Z"
+                />
+                <path d="M4 20 20 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+              </svg>
+              <svg
+                *ngIf="peekedField === 'facebook_page_access_token'"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+                focusable="false"
+              >
+                <path
+                  d="M2 12c2.2-3.8 5.5-6 10-6s7.8 2.2 10 6c-2.2 3.8-5.5 6-10 6s-7.8-2.2-10-6Zm10 3.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4Z"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div *ngIf="showInvalidError('facebook_page_access_token')" class="inline-field-error">
+          {{ invalidFacebookPageAccessTokenMessage }}
+        </div>
+        <div *ngIf="showRequiredError('facebook_page_access_token')" class="inline-field-error">
+          {{ requiredFieldMessage }}
+        </div>
+      </label>
+      <p class="universal-helper-text-gray integration-setting__hint">
+        Event reminders are also posted to this Facebook Page. Fill in both the Page ID and the access token, or leave
+        both empty to switch Facebook off.
+      </p>
+
+      <div class="integration-setting__actions">
+        <button
+          type="button"
+          class="universal-button universal-button--cancel"
+          [disabled]="isSaving || !hasChanges"
+          (click)="cancel()"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          class="universal-button universal-button--save"
+          [disabled]="isSaving || !hasChanges"
+          (click)="save()"
+        >
+          {{ isSaving ? 'Saving...' : 'Save' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</section>

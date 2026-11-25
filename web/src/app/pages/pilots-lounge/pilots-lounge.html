@@ -6,6 +6,7 @@
       <a href="#flight-plan" (click)="scrollToSection($event, 'flight-plan')">File a Flight Plan</a>
       <a href="#charts" (click)="scrollToSection($event, 'charts')">Charts</a>
       <a href="#weather" (click)="scrollToSection($event, 'weather')">Weather &amp; NOTAMs</a>
+      <a href="#airport-parking" (click)="scrollToSection($event, 'airport-parking')">Airport Parking</a>
       <a href="#online-pilots" (click)="scrollToSection($event, 'online-pilots')">Online Pilots</a>
       <a href="#online-atc" (click)="scrollToSection($event, 'online-atc')">Online Air Traffic Controllers</a>
     </nav>
@@ -65,8 +66,19 @@
         </form>
 
         <div class="weather-status" aria-live="polite">
-          <p class="status-box error" *ngIf="simbrief.error()">{{ simbrief.error() }}</p>
+          <p class="status-box error" *ngIf="simbrief.lookupError()">{{ simbrief.lookupError() }}</p>
         </div>
+        <app-popup-message type="error" [message]="simbrief.error()" (closed)="simbrief.error.set('')" />
+        <app-popup-message
+          type="success"
+          [message]="copyState() === 'copied' ? 'Flight plan copied.' : ''"
+          (closed)="copyState.set('idle')"
+        />
+        <app-popup-message
+          type="error"
+          [message]="copyState() === 'failed' ? copyFailedMessage : ''"
+          (closed)="copyState.set('idle')"
+        />
 
         <div class="weather-reports" *ngIf="simbrief.flightPlan() as plan">
           <article class="weather-report weather-report--wide lounge-ofp-card" id="ofp-card">
@@ -114,13 +126,6 @@
                 <button type="button" class="universal-button universal-button--primary" (click)="copyIcaoText()">
                   Copy ICAO flight plan
                 </button>
-                <div class="lounge-copy-status" aria-live="polite">
-                  <p class="status-box success" *ngIf="copyState() === 'copied'">Flight plan copied.</p>
-                  <p class="status-box error" *ngIf="copyState() === 'failed'">
-                    It could not be copied automatically. Click the text above, select all (Ctrl+A) and copy it
-                    (Ctrl+C).
-                  </p>
-                </div>
               </div>
 
               <h4>2. Open IVAO and paste it</h4>
@@ -149,76 +154,11 @@
       </div>
     </section>
 
-    <section class="home-section" id="charts" aria-labelledby="charts-title">
-      <div class="home-section__header">
-        <h2 id="charts-title">Charts</h2>
-      </div>
-
-      <form class="universal-form weather-form" novalidate (submit)="$event.preventDefault(); searchCharts()">
-        <label class="uf-field weather-form__field">
-          <span>Type in the airport ICAO code</span>
-          <input
-            type="text"
-            list="charts-airports"
-            maxlength="4"
-            placeholder=" "
-            autocomplete="off"
-            autocapitalize="characters"
-            autocorrect="off"
-            spellcheck="false"
-            data-lpignore="true"
-            data-1p-ignore="true"
-            [value]="chartsIcao()"
-            (input)="onChartsIcaoInput($any($event.target))"
-          />
-          <datalist id="charts-airports">
-            <option *ngFor="let airport of airports" [value]="airport.icao">{{ airport.name }}</option>
-          </datalist>
-        </label>
-        <button type="submit" class="universal-submit-btn weather-form__button">Search charts</button>
-      </form>
-
-      <div class="weather-status" aria-live="polite">
-        <p class="status-box error" *ngIf="chartsError()">{{ chartsError() }}</p>
-      </div>
-
-      <div class="weather-reports" *ngIf="chartsShownIcao() as icao">
-        <article class="weather-report weather-report--wide">
-          <h3>
-            Charts <span class="weather-report__icao">{{ icao }}</span>
-            <ng-container *ngIf="chartsAirportName()"> - {{ chartsAirportName() }}</ng-container>
-          </h3>
-
-          <ng-container *ngIf="chartGroups().length; else noCharts">
-            <ng-container *ngFor="let group of chartGroups()">
-              <h4>{{ group.type }}</h4>
-              <ul class="chart-list">
-                <li *ngFor="let chart of group.charts">
-                  <a [href]="chart.file" target="_blank" rel="noopener noreferrer">{{ chart.title }}</a>
-                </li>
-              </ul>
-            </ng-container>
-          </ng-container>
-          <ng-template #noCharts>
-            <p class="weather-report__none">No charts of {{ icao }} are kept on this site yet.</p>
-          </ng-template>
-
-          <h4>Find the charts of {{ icao }}</h4>
-          <ul class="chart-sources">
-            <li *ngFor="let source of chartSources">
-              <a [href]="source.url(icao)" target="_blank" rel="noopener noreferrer">{{ source.name }}</a>
-              <span>{{ source.description }}</span>
-            </li>
-          </ul>
-          <p class="home-note">
-            For flight simulation on the IVAO network only, not for real-world navigation. Always use the charts of the
-            current AIRAC cycle.
-          </p>
-        </article>
-      </div>
-    </section>
+    <app-chart-search></app-chart-search>
 
     <app-weather></app-weather>
+
+    <app-parking-search></app-parking-search>
 
     <app-online-traffic></app-online-traffic>
   </div>

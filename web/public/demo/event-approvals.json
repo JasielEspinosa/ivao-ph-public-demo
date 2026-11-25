@@ -1,0 +1,157 @@
+[
+  {
+    "id": 101,
+    "title": "Davao Morning Departures",
+    "day_offset": 6,
+    "start_gmt": "00:00",
+    "end_gmt": "03:00",
+    "airport_mode": "FROM_ANY",
+    "from_icao": "RPMD",
+    "to_icao": null,
+    "airport_icaos": [],
+    "airport_details": [
+      {
+        "icao": "RPMD",
+        "name": "Francisco Bangoy International Airport",
+        "place": "Davao City, Philippines"
+      }
+    ],
+    "description": "An early start from Davao to anywhere in the region.",
+    "has_image": true,
+    "updated_at": "2026-11-24T00:00:00.000Z",
+    "requested_at": "2026-11-24T00:00:00.000Z",
+    "is_reapproval": false,
+    "needs_approval": true,
+    "approval_pending": true,
+    "approval_waiting_for": [
+      "Juan Dela Cruz",
+      "Maria Reyes"
+    ],
+    "approval_approved_by": []
+  },
+  {
+    "id": 102,
+    "title": "Palawan Weekend Fly-in",
+    "day_offset": 12,
+    "start_gmt": "08:00",
+    "end_gmt": "11:00",
+    "airport_mode": "ANY_TO",
+    "from_icao": null,
+    "to_icao": "RPVP",
+    "airport_icaos": [],
+    "airport_details": [
+      {
+        "icao": "RPVP",
+        "name": "Puerto Princesa International Airport",
+        "place": "Puerto Princesa, Philippines"
+      }
+    ],
+    "description": "Fly in from anywhere and spend the weekend in Palawan.",
+    "has_image": true,
+    "updated_at": "2026-11-24T00:00:00.000Z",
+    "requested_at": "2026-11-24T00:00:00.000Z",
+    "is_reapproval": true,
+    "needs_approval": true,
+    "approval_pending": true,
+    "approval_waiting_for": [
+      "Juan Dela Cruz",
+      "Maria Reyes"
+    ],
+    "approval_approved_by": []
+  },
+  {
+    "id": 103,
+    "title": "Southern Sunset Flight",
+    "day_offset": 17,
+    "start_gmt": "09:00",
+    "end_gmt": "11:30",
+    "airport_mode": "FROM_TO",
+    "from_icao": "RPMD",
+    "to_icao": "RPMZ",
+    "airport_icaos": [],
+    "airport_details": [
+      {
+        "icao": "RPMD",
+        "name": "Francisco Bangoy International Airport",
+        "place": "Davao City, Philippines"
+      },
+      {
+        "icao": "RPMZ",
+        "name": "Zamboanga International Airport",
+        "place": "Zamboanga City, Philippines"
+      }
+    ],
+    "description": "A short evening flight from Davao to Zamboanga.",
+    "has_image": true,
+    "updated_at": "2026-11-24T00:00:00.000Z",
+    "requested_at": "2026-11-24T00:00:00.000Z",
+    "is_reapproval": false,
+    "needs_approval": true,
+    "approval_pending": true,
+    "approval_waiting_for": [
+      "Juan Dela Cruz",
+      "Maria Reyes"
+    ],
+    "approval_approved_by": []
+  },
+  {
+    "id": 104,
+    "title": "Subic Seaplane Social",
+    "day_offset": 24,
+    "start_gmt": "02:00",
+    "end_gmt": "05:00",
+    "airport_mode": "ANY",
+    "from_icao": null,
+    "to_icao": null,
+    "airport_icaos": [],
+    "airport_details": [],
+    "description": "A casual get-together around Subic Bay, any aircraft welcome.",
+    "has_image": true,
+    "updated_at": "2026-11-24T00:00:00.000Z",
+    "requested_at": "2026-11-24T00:00:00.000Z",
+    "is_reapproval": false,
+    "needs_approval": false,
+    "approval_pending": false,
+    "approval_waiting_for": [],
+    "approval_approved_by": [
+      "Maria Reyes"
+    ]
+  },
+  {
+    "id": 105,
+    "title": "Iloilo Group Flight",
+    "day_offset": 31,
+    "start_gmt": "10:00",
+    "end_gmt": "13:00",
+    "airport_mode": "MULTIPLE",
+    "from_icao": null,
+    "to_icao": null,
+    "airport_icaos": [
+      "RPVI",
+      "RPVM"
+    ],
+    "airport_details": [
+      {
+        "icao": "RPVI",
+        "name": "Iloilo International Airport",
+        "place": "Cabatuan, Philippines"
+      },
+      {
+        "icao": "RPVM",
+        "name": "Mactan Cebu International Airport",
+        "place": "Lapu-Lapu City, Philippines"
+      }
+    ],
+    "description": "A group flight between Iloilo and Mactan-Cebu.",
+    "has_image": true,
+    "updated_at": "2026-11-24T00:00:00.000Z",
+    "requested_at": "2026-11-24T00:00:00.000Z",
+    "is_reapproval": false,
+    "needs_approval": false,
+    "approval_pending": false,
+    "approval_waiting_for": [],
+    "approval_approved_by": [
+      "Carlo Mendoza"
+    ]
+  }
+]

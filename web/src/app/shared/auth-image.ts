@@ -2,8 +2,8 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Directive, ElementRef, Input, OnChanges, OnDestroy, inject } from '@angular/core';
 import { Subscription } from 'rxjs';
 
-import { getAuthHeader } from '../app';
 import { AdminAuthService } from '../services/admin-auth.service';
+import { getAuthHeader } from './auth-header';
 
 /**
  * Shows a picture of the API in an `<img>`. The API asks for a login of the site itself (and, for the Data Management

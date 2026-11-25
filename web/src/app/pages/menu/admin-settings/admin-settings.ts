@@ -23,6 +23,11 @@ export class AdminSettingsComponent {
   /** Admin-only pages, in display order. */
   readonly cards: readonly AdminSettingsCard[] = [
     {
+      title: 'Manage Integrations',
+      description: 'Set the Discord webhook and the Facebook Page where the event reminders are posted.',
+      route: '/admin/manage_integrations',
+    },
+    {
       title: 'Manage Users',
       description: 'Add and manage the users who can sign in, and choose which data management pages each can open.',
       route: '/admin/manage_users',

@@ -7,6 +7,7 @@ import { firstValueFrom } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { getAuthHeader } from '../../app';
 import { PlaceholderBannerComponent } from '../../placeholders/banner/placeholder-banner';
+import { PopupMessageComponent } from '../../shared/popup/popup-message';
 import { NETWORK_UNAVAILABLE_MESSAGE, getServerStatusMessage } from '../../shared/submit-error-utils';
 import { UploadRules, getUploadFileError } from '../../shared/upload-files';
 
@@ -22,7 +23,7 @@ type UploadPageState = 'loading' | 'ready' | 'uploading' | 'done' | 'expired' | 
 @Component({
   selector: 'app-upload-file',
   standalone: true,
-  imports: [PlaceholderBannerComponent],
+  imports: [PlaceholderBannerComponent, PopupMessageComponent],
   templateUrl: './upload-file.html',
   styleUrl: './upload-file.css',
 })
@@ -36,7 +37,10 @@ export class UploadFilePageComponent implements OnInit {
   readonly uploadAccept = signal('');
   readonly uploadHelperText = signal('');
   readonly fileName = signal('');
+  /** The page could not be loaded, or the chosen file cannot be sent: shown on the page. */
   readonly errorMessage = signal('');
+  /** Sending the file failed: shown in a popup. */
+  readonly sendError = signal('');
 
   private token = '';
   private file: File | null = null;
@@ -105,6 +109,7 @@ export class UploadFilePageComponent implements OnInit {
     }
 
     this.errorMessage.set('');
+    this.sendError.set('');
     this.state.set('uploading');
     const formData = new FormData();
     formData.append('file', this.file);
@@ -124,7 +129,7 @@ export class UploadFilePageComponent implements OnInit {
       }
 
       // The page stays usable (back to "ready") so the user can pick another file and try again.
-      this.errorMessage.set(
+      this.sendError.set(
         status === 0
           ? NETWORK_UNAVAILABLE_MESSAGE
           : (getServerStatusMessage(status) ??

@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { Observable, catchError, finalize, map, of, retry, shareReplay, tap, throwError, timeout, timer } from 'rxjs';
 
 import { environment } from '../../environments/environment';
-import { getAuthHeader } from '../app';
+import { getAuthHeader } from '../shared/auth-header';
 
 export type ThemePreference = 'light' | 'dark' | 'system';
 
@@ -20,8 +20,14 @@ export interface AdminSessionUser {
   is_admin: boolean;
   manage_all_data: boolean;
   manage_data_codes: string[];
+  /** Set as an event approver (Members / Manage User page): may open Events Creation to approve events. */
+  is_event_approver: boolean;
+  /** "Edit Events Before Approving": an approver who may change an event's details while approving it. */
+  can_edit_events_on_approval: boolean;
   /** Null when the stored session predates the theme setting; the next session refresh fills it in. */
   ui_theme: ThemePreference | null;
+  /** Null without a profile photo; changes with every upload. */
+  photo_version: string | null;
 }
 
 /** Fields left out are kept as stored, so a theme-only save does not touch the name or password. */
@@ -35,6 +41,11 @@ export interface OwnProfilePayload {
   current_password?: string;
   new_password?: string;
   confirm_password?: string;
+}
+
+interface ProfileApiResponse {
+  success: boolean;
+  user: AdminSessionUser;
 }
 
 interface LoginApiResponse {
@@ -311,21 +322,38 @@ export class AdminAuthService {
   /** Saves the logged-in user's own name details (and password, when given) and refreshes the stored session. */
   updateOwnProfile(payload: OwnProfilePayload): Observable<AdminSessionUser> {
     return this.http
-      .put<{ success: boolean; user: AdminSessionUser }>(`${environment.adminAuthApi}/profile`, payload, {
+      .put<ProfileApiResponse>(`${environment.adminAuthApi}/profile`, payload, { headers: this.getAdminApiHeaders() })
+      .pipe(map((response) => this.storeSessionUser(response.user)));
+  }
+
+  /** Uploads the logged-in user's profile photo: the head to chest (4:5) and profile picture (1:1) JPEG files. */
+  uploadOwnPhoto(portrait: Blob, avatar: Blob): Observable<AdminSessionUser> {
+    const body = new FormData();
+    body.append('portrait', portrait, 'portrait.jpg');
+    body.append('avatar', avatar, 'avatar.jpg');
+
+    return this.http
+      .put<ProfileApiResponse>(`${environment.adminAuthApi}/profile/photo`, body, {
         headers: this.getAdminApiHeaders(),
       })
-      .pipe(
-        map((response) => {
-          const user = this.normalizeSessionUser(response.user);
-          if (this.ensureActiveSession()) {
-            this.session = { ...this.session!, user };
-            this.persistSession();
-            this.notifySessionChanged();
-          }
+      .pipe(map((response) => this.storeSessionUser(response.user)));
+  }
 
-          return user;
-        }),
-      );
+  removeOwnPhoto(): Observable<AdminSessionUser> {
+    return this.http
+      .delete<ProfileApiResponse>(`${environment.adminAuthApi}/profile/photo`, { headers: this.getAdminApiHeaders() })
+      .pipe(map((response) => this.storeSessionUser(response.user)));
+  }
+
+  private storeSessionUser(rawUser: AdminSessionUser): AdminSessionUser {
+    const user = this.normalizeSessionUser(rawUser);
+    if (this.ensureActiveSession()) {
+      this.session = { ...this.session!, user };
+      this.persistSession();
+      this.notifySessionChanged();
+    }
+
+    return user;
   }
 
   hasAdminRole(): boolean {
@@ -333,20 +361,37 @@ export class AdminAuthService {
     return Boolean(user?.is_admin);
   }
 
-  /** True when the user may open at least one data management page (all of them, or any individual page code). */
+  /**
+   * True when the user may open at least one data management page (all of them, any individual page code, or Events
+   * Creation as an event approver).
+   */
   hasDataManagementAccess(): boolean {
     const user = this.getCurrentUser();
     if (!user) {
       return false;
     }
 
-    if (user.is_admin || user.manage_all_data) {
+    if (user.is_admin || user.manage_all_data || user.is_event_approver) {
       return true;
     }
 
     return this.normalizeCodes(user.manage_data_codes).length > 0;
   }
 
+  /**
+   * Whether the page opens at all: with the access to manage it, or, for Events Creation, as an event approver (who can
+   * only view and approve there).
+   */
+  canOpenDataManagementPage(pageCode: string): boolean {
+    const isEvents = (pageCode || '').trim().toUpperCase() === 'EVENTS';
+    return this.canAccessDataManagementCode(pageCode) || (isEvents && !!this.getCurrentUser()?.is_event_approver);
+  }
+
+  canEditEventsOnApproval(): boolean {
+    return !!this.getCurrentUser()?.can_edit_events_on_approval;
+  }
+
+  /** Whether the user may manage the page's records (add, change, remove). */
   canAccessDataManagementCode(pageCode: string): boolean {
     const user = this.getCurrentUser();
     if (!user) {
@@ -378,8 +423,10 @@ export class AdminAuthService {
       '/home',
       '/members',
       '/pilots-lounge',
+      '/atc-lounge',
       '/documents',
       '/charts',
+      '/sceneries',
       '/contacts',
       '/privacy-policy',
       '/upload-file',
@@ -530,7 +577,10 @@ export class AdminAuthService {
       is_admin: Boolean(rawUser?.is_admin),
       manage_all_data: Boolean(rawUser?.manage_all_data),
       manage_data_codes: this.normalizeCodes(rawUser?.manage_data_codes),
+      is_event_approver: Boolean(rawUser?.is_event_approver),
+      can_edit_events_on_approval: Boolean(rawUser?.can_edit_events_on_approval),
       ui_theme: THEME_PREFERENCES.includes(rawUser?.ui_theme) ? rawUser.ui_theme : null,
+      photo_version: rawUser?.photo_version ?? null,
     };
   }
 }

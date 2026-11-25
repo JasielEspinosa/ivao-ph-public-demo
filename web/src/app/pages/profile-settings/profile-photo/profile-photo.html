@@ -1,0 +1,79 @@
+<div class="profile-avatar">
+  <span aria-hidden="true">{{ initials }}</span>
+  @if (photoUrl) {
+    <img [appAuthSrc]="photoUrl" [appAuthAdmin]="true" alt="" />
+  }
+</div>
+
+<div class="profile-photo-actions">
+  <div class="profile-photo-actions__buttons">
+    <button type="button" class="universal-button universal-button--edit" [disabled]="isBusy()" (click)="file.click()">
+      {{ photoUrl ? 'Change Photo' : 'Upload Photo' }}
+    </button>
+    @if (photoUrl) {
+      <button type="button" class="universal-button universal-button--remove" [disabled]="isBusy()" (click)="remove()">
+        Remove
+      </button>
+    }
+  </div>
+  <p class="profile-photo-actions__hint">{{ helperText }}</p>
+  <input #file type="file" hidden data-testid="profile-photo-file" [accept]="accept" (change)="chooseFile(file)" />
+</div>
+
+<app-popup-message type="success" [message]="successMessage()" (closed)="successMessage.set('')" />
+<app-popup-message type="error" [message]="errorMessage()" (closed)="errorMessage.set('')" />
+
+@if (picture(); as image) {
+  <div
+    class="template-modal-backdrop"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Adjust your photo"
+    (keydown.escape)="cancel()"
+  >
+    <div #dialog class="template-modal-card photo-window" tabindex="-1">
+      <button type="button" class="universal-modal-close" aria-label="Close" [disabled]="isBusy()" (click)="cancel()">
+        &times;
+      </button>
+      <h3>Adjust Your Photo</h3>
+      <p>
+        Drag each picture to move it and use the slider to zoom. If you are listed as staff, everyone can see the Head
+        to chest picture on the Members page and, if you are in the Contacts list, the Profile picture on the Contacts
+        page.
+      </p>
+
+      <div class="photo-window__croppers">
+        <app-photo-cropper
+          #portraitCropper
+          label="Head to chest (4:5)"
+          guide="portrait"
+          [image]="image"
+          [aspect]="portraitAspect"
+          [disabled]="isBusy()"
+        />
+        <app-photo-cropper
+          #avatarCropper
+          label="Profile picture (1:1)"
+          guide="circle"
+          [image]="image"
+          [aspect]="avatarAspect"
+          [disabled]="isBusy()"
+        />
+      </div>
+
+      <div class="template-modal-actions template-modal-actions--confirm">
+        <button
+          type="button"
+          class="universal-button universal-button--cancel"
+          [disabled]="isBusy()"
+          (click)="cancel()"
+        >
+          Cancel
+        </button>
+        <button type="button" class="universal-button universal-button--save" [disabled]="isBusy()" (click)="save()">
+          {{ isBusy() ? 'Saving...' : 'Save' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

@@ -5,8 +5,9 @@ import { map } from 'rxjs';
 import { AdminAuthService } from '../services/admin-auth.service';
 
 /**
- * Data Management pages. The route's `manageCode` (e.g. MEMBERS) must be one the user may open; the Data Management
- * menu itself (no manageCode) opens only for a user with access to at least one page. Visitors go to the login page.
+ * Data Management pages. The route's `manageCode` (e.g. MEMBERS) must be one the user may open (event approvers may
+ * also open EVENTS); the Data Management menu itself (no manageCode) opens only for a user with access to at least one
+ * page. Visitors go to the login page.
  */
 export const dataManagementAccessGuard: CanActivateFn = (route) => {
   const authService = inject(AdminAuthService);
@@ -22,7 +23,7 @@ export const dataManagementAccessGuard: CanActivateFn = (route) => {
       }
 
       const hasAccess = manageCode
-        ? authService.canAccessDataManagementCode(manageCode)
+        ? authService.canOpenDataManagementPage(manageCode)
         : authService.hasDataManagementAccess();
 
       return hasAccess ? true : router.createUrlTree(['/home']);

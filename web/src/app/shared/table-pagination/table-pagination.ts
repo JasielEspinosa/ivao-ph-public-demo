@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 
 export const TABLE_PAGE_SIZE_OPTIONS = [10, 25, 50, 100] as const;
 const DEFAULT_PAGE_SIZE = 25;
@@ -85,6 +85,9 @@ export class TablePagination {
   standalone: true,
   imports: [CommonModule],
   templateUrl: './table-pagination.html',
+  // The pager is one object that changes in place (filtering, searching, the other pagination bar of the table), which the
+  // default OnPush strategy would not see: check it whenever the page that holds it is checked.
+  changeDetection: ChangeDetectionStrategy.Eager,
 })
 export class TablePaginationComponent {
   @Input({ required: true }) pager!: TablePagination;

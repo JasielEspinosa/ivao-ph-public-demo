@@ -37,12 +37,21 @@ export const EVENT_IMAGE_RULES: UploadRules = {
   maxBytes: 2 * 1024 * 1024,
   typeMessage: 'The event image must be a JPG, PNG or WebP file.',
   sizeMessage: 'The event image must be 2 MB or smaller.',
-  helperText: 'Recommended: 16:9 ratio (1280 x 720 px), JPG, PNG or WebP, up to 2 MB',
+  helperText: 'Recommended: 16:9 ratio (1920 x 1080 px), JPG, PNG or WebP, up to 2 MB',
+};
+
+/** A scenery's picture is small (kept in the database) and of any shape. The backend checks type and size again. */
+export const SCENERY_IMAGE_RULES: UploadRules = {
+  extensions: ['jpg', 'jpeg', 'png', 'webp'],
+  maxBytes: 2 * 1024 * 1024,
+  typeMessage: 'The scenery image must be a JPG, PNG or WebP file.',
+  sizeMessage: 'The scenery image must be 2 MB or smaller.',
+  helperText: 'Optional. JPG, PNG or WebP, up to 2 MB (a 16:9 screenshot fits best)',
 };
 
 /** The picture must be at least this wide (px) to stay sharp on a large screen. */
 export const EVENT_IMAGE_MIN_WIDTH = 640;
-export const EVENT_IMAGE_RATIO_MESSAGE = 'The event image must have a 16:9 ratio, for example 1280 x 720 pixels.';
+export const EVENT_IMAGE_RATIO_MESSAGE = 'The event image must have a 16:9 ratio, for example 1920 x 1080 pixels.';
 export const EVENT_IMAGE_SMALL_MESSAGE = `The event image must be at least ${EVENT_IMAGE_MIN_WIDTH} pixels wide.`;
 export const EVENT_IMAGE_UNREADABLE_MESSAGE = 'The event image could not be read. Choose another file.';
 

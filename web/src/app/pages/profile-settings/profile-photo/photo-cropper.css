@@ -1,0 +1,89 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  min-width: 0;
+}
+
+.cropper__title {
+  margin: 0;
+  color: var(--c-slate-900);
+  font-weight: 600;
+}
+
+/* The side margins left on a phone are where the window can still be scrolled: dragging in the frame moves the picture. */
+.cropper__frame {
+  position: relative;
+  width: min(100%, 17rem);
+  overflow: hidden;
+  border: 1px solid var(--c-line);
+  border-radius: 8px;
+  background: var(--c-slate-100);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.cropper__frame--portrait {
+  width: min(100%, 16rem);
+}
+
+.cropper__frame:active {
+  cursor: grabbing;
+}
+
+.cropper__frame:focus-visible {
+  outline: 3px solid var(--c-link);
+  outline-offset: 2px;
+}
+
+.cropper__image {
+  position: absolute;
+  max-width: none;
+  max-height: none;
+  pointer-events: none;
+}
+
+/* The guides lie over a photo, so they stay white with a dark shadow in both themes. */
+.cropper__guide,
+.cropper__circle {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.cropper__guide {
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: #ffffff;
+  stroke-width: 0.6;
+  stroke-dasharray: 2.5 2;
+  filter: drop-shadow(0 0 1px rgb(0 0 0 / 80%));
+}
+
+.cropper__circle {
+  border: 1px dashed #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 0 0 100vmax rgb(0 0 0 / 50%);
+}
+
+.cropper__zoom {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: min(100%, 16rem);
+  color: var(--c-slate-700);
+  font-size: 0.9rem;
+}
+
+.cropper__zoom input {
+  flex: 1;
+  min-width: 0;
+  cursor: pointer;
+}
+
+.cropper__zoom input:disabled {
+  cursor: not-allowed;
+}

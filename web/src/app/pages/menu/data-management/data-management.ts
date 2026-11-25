@@ -23,10 +23,13 @@ export class DataManagementComponent {
   // Codes match the manageCode of each route (app.routes.ts) and the data management pages in backend/scripts.
   readonly cards = [
     manageMenuCard('/members-manage', 'MEMBERS'),
+    manageMenuCard('/airport-parking-manage', 'AIRPORT_PARKING'),
+    manageMenuCard('/airport-terminals-manage', 'AIRPORT_TERMINALS'),
     manageMenuCard('/charts-manage', 'CHARTS'),
     manageMenuCard('/countries-manage', 'COUNTRIES'),
     manageMenuCard('/documents-manage', 'DOCUMENTS'),
     manageMenuCard('/events-manage', 'EVENTS'),
+    manageMenuCard('/sceneries-manage', 'SCENERIES'),
   ];
 
   constructor() {
@@ -37,7 +40,7 @@ export class DataManagementComponent {
     const query = this.searchTerm.trim().toLocaleLowerCase();
 
     return [...this.cards]
-      .filter((card) => this.authService.canAccessDataManagementCode(card.code))
+      .filter((card) => this.authService.canOpenDataManagementPage(card.code))
       .filter(
         (card) => !query || `${card.title} ${card.subtitle} ${card.description}`.toLocaleLowerCase().includes(query),
       )

@@ -6,10 +6,11 @@
       backLinkRoute="/home"
     ></app-placeholder-banner>
 
-    <div *ngIf="successMessage" class="status-box success" role="status">{{ successMessage }}</div>
+    <app-popup-message type="success" [message]="successMessage" (closed)="successMessage = ''" />
+    <app-popup-message type="error" [message]="isEditing ? errorMessage : ''" (closed)="errorMessage = ''" />
 
     <div class="profile-hero">
-      <div class="profile-avatar" aria-hidden="true">{{ initials }}</div>
+      <app-profile-photo [initials]="initials" />
       <div class="profile-hero__details">
         <h2 class="profile-hero__name">{{ fullName }}</h2>
         <p class="profile-hero__email">{{ loginEmail }}</p>
@@ -354,8 +355,6 @@
           </div>
         </ng-container>
       </section>
-
-      <div *ngIf="isEditing && errorMessage" class="status-box error" role="alert">{{ errorMessage }}</div>
 
       <div *ngIf="isEditing" class="profile-actions">
         <button

@@ -1,5 +1,6 @@
 export const VALIDATION_MESSAGES = {
   required: 'This field is required.',
+  contactEmailOrNumber: 'Enter an Email or a Number.',
   emailMaxLength: 'Email address must not exceed 255 characters.',
   futureDate: 'Date must not be in the future.',
   futureYear: 'Year must not exceed the current year.',
@@ -8,6 +9,9 @@ export const VALIDATION_MESSAGES = {
   invalidEmail: 'Please enter a valid email address.',
   invalidName: 'Enter a valid name',
   invalidPhilippineMobile: 'Enter a valid Philippine mobile number.',
+  invalidDiscordWebhookUrl: 'Enter a valid Discord webhook URL (https://discord.com/api/webhooks/<id>/<token>).',
+  invalidFacebookPageAccessToken: 'Enter a valid Facebook Page access token.',
+  invalidFacebookPageId: 'Enter a valid Facebook Page ID (digits only).',
   invalidSuffix: 'Enter a valid suffix (Jr., Sr., I, II, III, IV, V, VI, VII, VIII, IX, X).',
   invalidSuffixShort: 'Enter a valid suffix',
   invalidVid: 'Enter a valid VID (3 to 10 digits).',

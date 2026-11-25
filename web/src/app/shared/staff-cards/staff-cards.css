@@ -49,6 +49,65 @@
   overflow-wrap: anywhere;
 }
 
+/* The head to chest picture (4:5); its room is kept while it loads. */
+.staff-card__photo {
+  display: block;
+  width: 100%;
+  max-width: 12rem;
+  height: auto;
+  aspect-ratio: 4 / 5;
+  margin: 0 auto 0.85rem;
+  border-radius: 6px;
+  background: var(--c-slate-100);
+  object-fit: cover;
+}
+
+/* With the round picture, it sits to the left of the details, so the cards are wider. */
+.staff-grid--circle {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 24rem), 1fr));
+}
+
+.staff-grid--circle .staff-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.25rem;
+}
+
+.staff-grid--circle .staff-card__details {
+  flex: 1;
+  min-width: 0;
+}
+
+/* The round profile picture, in the same design as the one on Profile Settings. The margin leaves room for the ring. */
+.staff-card__avatar {
+  position: relative;
+  flex: 0 0 96px;
+  display: grid;
+  place-items: center;
+  width: 96px;
+  height: 96px;
+  margin: 5px 0 5px 5px;
+  border-radius: 50%;
+  background: var(--c-brand-2);
+  color: #ffffff;
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  box-shadow:
+    0 0 0 4px var(--c-surface),
+    0 0 0 5px var(--c-line);
+}
+
+/* Covers the initials once the picture has loaded. */
+.staff-card__avatar img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
 .staff-card p {
   margin: 0.35rem 0 0;
   color: var(--c-slate-700);
@@ -88,5 +147,19 @@
 @media (max-width: 700px) {
   .staff-grid {
     grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* A smaller picture on a phone leaves the details enough room. */
+@media (max-width: 480px) {
+  .staff-grid--circle .staff-card {
+    gap: 1rem;
+  }
+
+  .staff-card__avatar {
+    flex-basis: 64px;
+    width: 64px;
+    height: 64px;
+    font-size: 1.35rem;
   }
 }

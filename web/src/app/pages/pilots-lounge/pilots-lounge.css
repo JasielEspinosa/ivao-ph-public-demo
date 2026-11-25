@@ -1,22 +1,9 @@
-/* Pilot's Lounge: the flight plan buttons and the Charts search results. The sections shared with Home are in styles/styles-info-sections.css. */
+/* Pilot's Lounge: the flight plan buttons and card. The sections shared with other pages are in styles/styles-info-sections.css. */
 .lounge-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.75rem;
-}
-
-/* The copy result sits to the right of the "Copy ICAO flight plan" button, level with it. */
-.lounge-actions {
   align-items: center;
-}
-
-.lounge-copy-status:empty {
-  display: none;
-}
-
-.lounge-copy-status .status-box {
-  margin: 0;
-  padding: 0.65rem 1rem;
+  gap: 0.75rem;
 }
 
 .lounge-actions .universal-button {
@@ -69,34 +56,4 @@
 
 .lounge-ofp__route {
   grid-column: 1 / -1;
-}
-
-.chart-list,
-.chart-sources {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.chart-list li,
-.chart-sources li {
-  padding: 0.5rem 0;
-  border-bottom: 1px solid var(--c-line-soft);
-}
-
-.chart-list li:last-child,
-.chart-sources li:last-child {
-  border-bottom: 0;
-}
-
-.chart-list a,
-.chart-sources a {
-  color: var(--c-link);
-  font-weight: 600;
-}
-
-.chart-sources span {
-  display: block;
-  color: var(--c-slate-600);
-  font-size: 0.9rem;
 }

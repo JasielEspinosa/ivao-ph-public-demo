@@ -66,6 +66,12 @@
   /* Flag red used as text color: the true red in the light theme, a lighter tone in the dark theme for readable contrast */
   --c-ph-red-text: #ce1126;
 
+  /* The Airport Parking map. Its tiles stay light in both themes (dimmed in the dark one), so the marker colors do not
+     change with the theme. */
+  --c-map-tile-filter: none;
+  --c-map-spot-real: #0038a8;
+  --c-map-spot-simulator: #d9480f;
+
   /* Admin banner accents (blue shades per page; the banner mixes them into --c-surface, so they follow the theme) */
   --c-banner-users-a: #1565c0;
   --c-banner-users-b: #42a5f5;
@@ -186,6 +192,8 @@ html[data-theme='dark'] {
   --c-danger-bright: #f87171;
   --c-success-bright: #4ade80;
   --c-warning: #fbbf24;
+
+  --c-map-tile-filter: brightness(0.75) saturate(0.8);
 
   /* Existing shared tokens */
   --validation-error-color: #ff6b81;

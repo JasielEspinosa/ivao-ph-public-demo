@@ -11,6 +11,7 @@ import { getLinkHost } from '../../shared/link-url';
 import { PublicFileService } from '../../shared/public-file.service';
 import { buildSubmitErrorMessage } from '../../shared/submit-error-utils';
 import { formatFileSize, formatIsoDate, getFileExtension } from '../../shared/upload-files';
+import { PopupMessageComponent } from '../../shared/popup/popup-message';
 
 /** A document managed on Data Management > Documents, as the public API returns it (enabled and valid today only). */
 interface UploadedDocument {
@@ -47,7 +48,7 @@ const FILE_TYPE_LABELS: Readonly<Record<string, string>> = {
 @Component({
   selector: 'app-documents',
   standalone: true,
-  imports: [PlaceholderBannerComponent, FileActionsComponent],
+  imports: [PopupMessageComponent, PlaceholderBannerComponent, FileActionsComponent],
   template: `
     <section class="page-shell">
       <div class="form-shell">
@@ -57,9 +58,7 @@ const FILE_TYPE_LABELS: Readonly<Record<string, string>> = {
           <p>Official documents of IVAO Philippines.</p>
         </div>
 
-        @if (errorMessage()) {
-          <div class="status-box error" role="alert">{{ errorMessage() }}</div>
-        }
+        <app-popup-message type="error" [message]="errorMessage()" />
 
         @if (isLoading()) {
           <p class="universal-helper-text-gray" role="status">{{ messages.loading('Documents') }}...</p>

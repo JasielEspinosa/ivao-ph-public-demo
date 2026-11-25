@@ -4,20 +4,22 @@ import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/ro
 import { filter } from 'rxjs';
 
 import { AdminAuthService } from '../../services/admin-auth.service';
+import { ApprovalNotificationsComponent } from '../../shared/approval-notifications/approval-notifications';
 import { ThemeToggleComponent } from '../../shared/theme-toggle/theme-toggle';
 
 /** How far the page is scrolled (px) before the header switches to its compact mode. */
 const COMPACT_SCROLL_OFFSET = 40;
 
 /**
- * The site header on every page: IVAO Philippines logo (links to ivao.aero), the main menu, the theme switch, and
- * Log-In (visitors) or the user menu with Log-Out (signed-in users). Profile Settings, Data Management and Admin
- * Settings appear in the user menu only, and only for the users who may open them.
+ * The site header on every page: IVAO Philippines logo (links to ivao.aero), the main menu, the theme switch, the
+ * notification button (event approvers only), and Log-In (visitors) or the user menu with Log-Out (signed-in users).
+ * Profile Settings, Data Management and Admin Settings appear in the user menu only, and only for the users who may
+ * open them.
  */
 @Component({
   selector: 'app-site-header',
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterLinkActive, ThemeToggleComponent],
+  imports: [CommonModule, RouterLink, RouterLinkActive, ThemeToggleComponent, ApprovalNotificationsComponent],
   templateUrl: './site-header.html',
   styleUrl: './site-header.css',
 })
@@ -34,7 +36,10 @@ export class SiteHeaderComponent implements AfterViewInit {
   readonly rulesOpen = signal(false);
   readonly userMenuOpen = signal(false);
 
-  /** Scrolled down: the header is cut in the center and only the logo, theme switch and one dropdown with every menu stay. */
+  /**
+   * Scrolled down: the header is cut in the center and only the logo, theme switch, notification button and one dropdown
+   * with every menu stay.
+   */
   readonly compact = signal(false);
   readonly compactMenuOpen = signal(false);
 
@@ -103,7 +108,7 @@ export class SiteHeaderComponent implements AfterViewInit {
     this.updateCompact();
   }
 
-  private closeAll(): void {
+  closeAll(): void {
     this.menuOpen.set(false);
     this.rulesOpen.set(false);
     this.userMenuOpen.set(false);

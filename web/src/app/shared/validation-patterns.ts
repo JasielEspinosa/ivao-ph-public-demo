@@ -1,5 +1,9 @@
 export const VALIDATION_PATTERNS = {
   email: '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$',
+  discordWebhookUrl:
+    '^https://(?:(?:ptb|canary)\\.)?discord(?:app)?\\.com/api/webhooks/\\d{5,30}/[A-Za-z0-9_-]{10,200}$',
+  facebookPageId: '^\\d{5,30}$',
+  facebookPageAccessToken: '^[A-Za-z0-9_.-]{20,500}$',
   mobileNumber_ph: '^\\+63 9[0-9]{2} [0-9]{3} [0-9]{4}$',
   contactNumber_ph: '^(?:(?:0|\\+63)(?:9[0-9]{9}|[2-9][0-9]{8})|9[0-9]{9})$',
   landlineNumber_ph: '^(?:0|\\+63)[2-9][0-9]{8}$',

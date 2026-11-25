@@ -1,4 +1,4 @@
-/* Sections shared by the Home and Pilot's Lounge pages: section headings, online tables, the weather and charts lookups. Colors come from the theme tokens. */
+/* Sections shared by the Home, Pilot's Lounge, ATC Lounge and Charts pages: section headings, online tables, the weather, charts and parking lookups. Colors come from the theme tokens. */
 .home-content {
   font-family: 'IVAO Sans', inherit, sans-serif;
   color: var(--c-slate-800);

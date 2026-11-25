@@ -6,6 +6,8 @@ import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, Va
 import { environment } from '../../../../environments/environment';
 import { PlaceholderBannerDataManagementComponent } from '../../../placeholders/banner/placeholder-banner-data-management';
 import { AdminAuthService } from '../../../services/admin-auth.service';
+import { PopupMessageComponent } from '../../../shared/popup/popup-message';
+import { PopupService } from '../../../shared/popup/popup.service';
 import { DATA_MANAGE_MESSAGES } from '../../../shared/data-manage-messages';
 import { LINK_URL_ERROR, LINK_URL_MAX_LENGTH, linkUrlValidator } from '../../../shared/link-url';
 import { injectCurrentPage } from '../../../shared/page-titles';
@@ -73,6 +75,7 @@ function endNotBeforeStart(control: AbstractControl): ValidationErrors | null {
   selector: 'app-documents-manage',
   standalone: true,
   imports: [
+    PopupMessageComponent,
     CommonModule,
     ReactiveFormsModule,
     PlaceholderBannerDataManagementComponent,
@@ -90,6 +93,7 @@ export class DocumentsManageComponent implements OnInit {
   private readonly authService = inject(AdminAuthService);
   private readonly fb = inject(FormBuilder);
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
+  private readonly popups = inject(PopupService);
 
   readonly VALIDATION_MESSAGES = VALIDATION_MESSAGES;
   readonly messages = DATA_MANAGE_MESSAGES;
@@ -127,6 +131,8 @@ export class DocumentsManageComponent implements OnInit {
   isSaving = false;
   errorMessage = '';
   successMessage = '';
+  /** The list could not be loaded, so there is no table to show. */
+  loadFailed = false;
   columnFilters: Record<DocumentColumnKey, string> = { ...EMPTY_FILTERS };
 
   sortColumn: DocumentColumnKey | null = 'name';
@@ -271,6 +277,7 @@ export class DocumentsManageComponent implements OnInit {
   loadDocuments(): void {
     this.isLoading = true;
     this.errorMessage = '';
+    this.loadFailed = false;
     this.http.get<DocumentRow[]>(DOCUMENTS_API, { headers: this.authService.getAdminApiHeaders() }).subscribe({
       next: (rows) => {
         this.documents = Array.isArray(rows) ? rows : [];
@@ -279,6 +286,7 @@ export class DocumentsManageComponent implements OnInit {
       },
       error: (error: HttpErrorResponse) => {
         this.isLoading = false;
+        this.loadFailed = true;
         this.errorMessage = this.buildErrorMessage(error, DATA_MANAGE_MESSAGES.unableToLoad('documents'));
         this.changeDetectorRef.detectChanges();
       },
@@ -400,18 +408,25 @@ export class DocumentsManageComponent implements OnInit {
     });
   }
 
-  deleteDocument(): void {
+  async deleteDocument(): Promise<void> {
     if (this.editingId === null) {
       return;
     }
 
-    if (!window.confirm(DATA_MANAGE_MESSAGES.confirmDelete(this.editingDocument?.name ?? ''))) {
+    const shouldDelete = await this.popups.ask({
+      title: 'Delete Document',
+      message: DATA_MANAGE_MESSAGES.confirmDelete(this.editingDocument?.name ?? ''),
+      confirmLabel: 'Delete',
+      danger: true,
+    });
+    if (!shouldDelete) {
       return;
     }
 
     this.errorMessage = '';
     this.successMessage = '';
     this.isSaving = true;
+    this.changeDetectorRef.detectChanges();
     this.http
       .delete(`${DOCUMENTS_API}/${this.editingId}`, { headers: this.authService.getAdminApiHeaders() })
       .subscribe({

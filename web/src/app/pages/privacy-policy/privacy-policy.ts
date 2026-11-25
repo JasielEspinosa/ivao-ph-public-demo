@@ -31,6 +31,15 @@ import { PlaceholderBannerComponent } from '../../placeholders/banner/placeholde
             manage this website.
           </li>
           <li>
+            <strong>Profile photos:</strong> the pictures a signed-in user uploads in Profile Settings. The head to
+            chest picture of a listed staff member is shown on the Members and Contacts pages. The photo can be removed
+            in Profile Settings at any time.
+          </li>
+          <li>
+            <strong>Event history:</strong> the name of the staff user who added each event and of the one who last
+            changed it, shown to the signed-in staff who manage or approve events.
+          </li>
+          <li>
             <strong>Your browser:</strong> your sign-in session and your Light / Dark / System theme choice are kept in
             your browser's local storage. We do not use advertising cookies.
           </li>
@@ -44,6 +53,13 @@ import { PlaceholderBannerComponent } from '../../placeholders/banner/placeholde
 
         <h2>Sharing</h2>
         <p>We do not sell personal information. The Members page is public, so anyone can see what it lists.</p>
+        <p>
+          The Airport Parking map on the Pilot's Lounge and ATC Lounge pages loads its images from OpenStreetMap, so
+          OpenStreetMap receives your IP address and browser details when the map is shown (see the
+          <a href="https://osmfoundation.org/wiki/Privacy_Policy" target="_blank" rel="noopener noreferrer"
+            >OpenStreetMap Foundation Privacy Policy</a
+          >).
+        </p>
 
         <h2>Your choices</h2>
         <p>

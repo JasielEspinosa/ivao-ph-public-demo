@@ -1,0 +1,438 @@
+<section class="page-shell data-manage-page data-manage-page--full">
+  <div class="form-shell">
+    <app-placeholder-banner-data-management> </app-placeholder-banner-data-management>
+
+    <div class="dashboard-header manage-toolbar">
+      <p>{{ page?.entry?.description }}</p>
+
+      <div class="manage-toolbar-actions">
+        <button type="button" class="universal-button universal-button--primary" (click)="openAddModal()">
+          Add Scenery
+        </button>
+      </div>
+    </div>
+
+    <div
+      class="route-loading-overlay route-loading-overlay--inline"
+      *ngIf="isLoading"
+      role="status"
+      aria-live="polite"
+      [attr.aria-label]="messages.loading('Sceneries')"
+    >
+      <div class="route-loading-spinner"></div>
+    </div>
+
+    <app-popup-message type="error" [message]="errorMessage" (closed)="errorMessage = ''" />
+    <app-popup-message type="success" [message]="successMessage" (closed)="successMessage = ''" />
+
+    <div class="table-wrap table-wrap--admin table-wrap--compact" *ngIf="!isLoading && !loadFailed">
+      <app-table-pagination [pager]="pager"></app-table-pagination>
+      <table>
+        <thead>
+          <tr>
+            <th data-disable-resize data-fit-content>
+              <button type="button" class="sort-header-button" (click)="toggleSort('id')">
+                ID
+                {{ getSortIndicator('id') }}
+              </button>
+            </th>
+
+            <th>
+              <button type="button" class="sort-header-button" (click)="toggleSort('airport_icao')">
+                ICAO
+                {{ getSortIndicator('airport_icao') }}
+              </button>
+            </th>
+
+            <th>
+              <button type="button" class="sort-header-button" (click)="toggleSort('airport_name')">
+                Airport Name
+                {{ getSortIndicator('airport_name') }}
+              </button>
+            </th>
+
+            <th>
+              <button type="button" class="sort-header-button" (click)="toggleSort('links')">
+                Download Links
+                {{ getSortIndicator('links') }}
+              </button>
+            </th>
+
+            <th>
+              <button type="button" class="sort-header-button" (click)="toggleSort('note')">
+                Note
+                {{ getSortIndicator('note') }}
+              </button>
+            </th>
+
+            <th>
+              <button type="button" class="sort-header-button" (click)="toggleSort('has_image')">
+                Image
+                {{ getSortIndicator('has_image') }}
+              </button>
+            </th>
+
+            <th>
+              <button type="button" class="sort-header-button" (click)="toggleSort('is_active')">
+                Enabled
+                {{ getSortIndicator('is_active') }}
+              </button>
+            </th>
+
+            <th data-disable-resize></th>
+          </tr>
+
+          <tr class="column-filter-row">
+            <th>
+              <input
+                type="text"
+                class="column-filter-input"
+                aria-label="Filter by ID"
+                [value]="columnFilters.id"
+                (input)="setColumnFilter('id', $any($event.target).value || '')"
+                placeholder="Filter"
+              />
+            </th>
+
+            <th>
+              <input
+                type="text"
+                class="column-filter-input"
+                aria-label="Filter by ICAO code"
+                [value]="columnFilters.airport_icao"
+                (input)="setColumnFilter('airport_icao', $any($event.target).value || '')"
+                placeholder="Filter"
+              />
+            </th>
+
+            <th>
+              <input
+                type="text"
+                class="column-filter-input"
+                aria-label="Filter by airport name"
+                [value]="columnFilters.airport_name"
+                (input)="setColumnFilter('airport_name', $any($event.target).value || '')"
+                placeholder="Filter"
+              />
+            </th>
+
+            <th>
+              <input
+                type="text"
+                class="column-filter-input"
+                aria-label="Filter by download link"
+                [value]="columnFilters.links"
+                (input)="setColumnFilter('links', $any($event.target).value || '')"
+                placeholder="Filter"
+              />
+            </th>
+
+            <th>
+              <input
+                type="text"
+                class="column-filter-input"
+                aria-label="Filter by note"
+                [value]="columnFilters.note"
+                (input)="setColumnFilter('note', $any($event.target).value || '')"
+                placeholder="Filter"
+              />
+            </th>
+
+            <th>
+              <input
+                type="text"
+                class="column-filter-input"
+                aria-label="Filter by image"
+                [value]="columnFilters.has_image"
+                (input)="setColumnFilter('has_image', $any($event.target).value || '')"
+                placeholder="Filter"
+              />
+            </th>
+
+            <th>
+              <input
+                type="text"
+                class="column-filter-input"
+                aria-label="Filter by enabled"
+                [value]="columnFilters.is_active"
+                (input)="setColumnFilter('is_active', $any($event.target).value || '')"
+                placeholder="Filter"
+              />
+            </th>
+
+            <th>
+              <button
+                *ngIf="hasActiveFilters"
+                type="button"
+                class="universal-button universal-button--clear"
+                (click)="clearFilters()"
+              >
+                Clear
+              </button>
+            </th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let item of pager.slice(filteredSceneries)">
+            <td>{{ item.id }}</td>
+
+            <td>{{ item.airport_icao }}</td>
+
+            <td class="resizable-wrap-column">{{ item.airport_name }}</td>
+
+            <td class="resizable-wrap-column">
+              <ul class="sceneries-table-links">
+                @for (download of downloads(item); track download.label) {
+                  <li>
+                    <a [href]="download.url" target="_blank" rel="noopener noreferrer" [title]="download.url">{{
+                      download.label
+                    }}</a>
+                  </li>
+                }
+              </ul>
+            </td>
+
+            <td class="resizable-wrap-column">{{ item.note }}</td>
+
+            <td>{{ item.has_image ? 'Yes' : 'No' }}</td>
+
+            <td>{{ item.is_active ? 'Yes' : 'No' }}</td>
+
+            <td>
+              <button type="button" class="universal-button universal-button--edit" (click)="edit(item)">Edit</button>
+            </td>
+          </tr>
+
+          <tr *ngIf="filteredSceneries.length === 0">
+            <td colspan="8">{{ messages.noRecords('Sceneries') }}</td>
+          </tr>
+        </tbody>
+      </table>
+      <app-table-pagination [pager]="pager"></app-table-pagination>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================
+     ADD / EDIT MODAL
+     ========================================================= -->
+
+<div *ngIf="isModalOpen" class="manage-modal-backdrop">
+  <div class="manage-modal-card" role="dialog" aria-modal="true" aria-label="Sceneries Management">
+    <button type="button" class="universal-modal-close" aria-label="Close" [disabled]="isSaving" (click)="closeModal()">
+      &times;
+    </button>
+
+    <h3>
+      {{ isEditMode ? 'Edit Scenery' : 'Add Scenery' }}
+    </h3>
+
+    <form class="manage-form universal-form" [formGroup]="form" (ngSubmit)="save()">
+      <div class="manage-modal-field">
+        <label class="uf-field" for="airport_icao" [class.uf-invalid]="showInvalid('airport_icao')">
+          <span>
+            Airport ICAO Code
+            <span class="required-mark">*</span>
+          </span>
+
+          <input
+            id="airport_icao"
+            type="text"
+            list="scenery-airports"
+            maxlength="4"
+            autocomplete="off"
+            autocapitalize="characters"
+            autocorrect="off"
+            spellcheck="false"
+            formControlName="airport_icao"
+            placeholder=" "
+            (input)="onIcaoInput($any($event.target))"
+          />
+        </label>
+
+        <small class="uf-error" *ngIf="showInvalid('airport_icao')">
+          {{ form.controls.airport_icao.errors?.['required'] ? VALIDATION_MESSAGES.required : invalidIcaoMessage }}
+        </small>
+        <small class="universal-helper-text-gray" role="status">
+          @switch (airportLookup) {
+            @case ('loading') {
+              Looking up the airport...
+            }
+            @case ('found') {
+              Airport found{{ airportPlace ? ': ' + airportPlace : '' }}. The name is filled in below.
+            }
+            @case ('unknown') {
+              No airport is known by this code. Check the code, or enter the airport name yourself.
+            }
+            @case ('failed') {
+              The airport could not be looked up. Enter the airport name yourself.
+            }
+            @default {
+              The Airport Name is filled in from a known ICAO code.
+            }
+          }
+        </small>
+
+        <datalist id="scenery-airports">
+          @for (airport of airports; track airport.icao) {
+            <option [value]="airport.icao">{{ airport.name }}</option>
+          }
+        </datalist>
+      </div>
+
+      <div class="manage-modal-field">
+        <label class="uf-field" for="airport_name" [class.uf-invalid]="showInvalid('airport_name')">
+          <span>
+            Airport Name
+            <span class="required-mark">*</span>
+          </span>
+
+          <input id="airport_name" type="text" maxlength="255" formControlName="airport_name" placeholder=" " />
+        </label>
+
+        <small class="uf-error" *ngIf="showInvalid('airport_name')">
+          {{ VALIDATION_MESSAGES.required }}
+        </small>
+      </div>
+
+      <div class="manage-modal-field">
+        <span class="manage-field-title">
+          Download Links
+          <span class="required-mark">*</span>
+        </span>
+        <small class="universal-helper-text-gray">
+          Enter the link of at least one flight simulator: the web page the scenery is downloaded from, starting with
+          http:// or https://. Only the simulators with a link are shown on the Sceneries page.
+        </small>
+
+        <div class="manage-toggle-row">
+          <label class="manage-active">
+            <span>Same link for MSFS 2024 and MSFS 2020</span>
+
+            <input type="checkbox" class="switch-input" role="switch" formControlName="msfs_shared_link" />
+          </label>
+        </div>
+
+        <div class="manage-toggle-row">
+          <label class="manage-active">
+            <span>Same link for P3D versions</span>
+
+            <input type="checkbox" class="switch-input" role="switch" formControlName="p3d_shared_link" />
+          </label>
+        </div>
+
+        <div class="sceneries-link-list">
+          @for (link of linkFields; track link.field) {
+            <div class="manage-modal-field">
+              <label class="uf-field" [for]="link.field" [class.uf-invalid]="showInvalid(link.field) || noLinkError">
+                <span>
+                  {{ link.label }} Link (URL)
+                  <span class="required-mark" *ngIf="isRequiredLink(link.field)">*</span>
+                </span>
+
+                <input
+                  [id]="link.field"
+                  type="url"
+                  [attr.maxlength]="linkUrlMaxLength"
+                  autocomplete="off"
+                  spellcheck="false"
+                  [formControlName]="link.field"
+                  placeholder=" "
+                />
+              </label>
+
+              <small class="uf-error" *ngIf="showInvalid(link.field)">
+                {{
+                  form.controls[link.field].errors?.['required'] ? VALIDATION_MESSAGES.required : linkUrlErrorMessage
+                }}
+              </small>
+            </div>
+          }
+        </div>
+
+        <small class="uf-error" *ngIf="noLinkError">{{ noLinkMessage }}</small>
+      </div>
+
+      <div class="manage-modal-field">
+        <span class="manage-field-title">Image</span>
+
+        <app-qr-upload
+          purpose="SCENERIES"
+          inputId="scenery_image"
+          [accept]="imageAccept"
+          [file]="selectedFile"
+          [invalid]="!!imageError"
+          (fileChange)="onFileChange($event)"
+        ></app-qr-upload>
+
+        <small class="universal-helper-text-gray">{{ imageHelperText }}</small>
+        <small class="uf-error" *ngIf="imageError">{{ imageError }}</small>
+
+        @if (selectedPreviewUrl) {
+          <img class="sceneries-image-preview" [src]="selectedPreviewUrl" alt="Preview of the chosen scenery image" />
+        } @else if (showSavedImage && editingScenery) {
+          <img
+            class="sceneries-image-preview"
+            [appAuthSrc]="imageUrl(editingScenery)"
+            [appAuthAdmin]="true"
+            alt="The saved scenery image"
+          />
+          <small class="universal-helper-text-gray">
+            Current image. Choose a new file only to replace it.
+            <button type="button" class="sceneries-link-button" (click)="setRemoveImage(true)">Remove image</button>
+          </small>
+        } @else if (removeImage) {
+          <small class="universal-helper-text-gray">
+            The image is removed when you save.
+            <button type="button" class="sceneries-link-button" (click)="setRemoveImage(false)">Undo</button>
+          </small>
+        }
+      </div>
+
+      <div class="manage-modal-field">
+        <label class="uf-field" for="note" [class.uf-invalid]="showInvalid('note')">
+          <span>Note</span>
+
+          <textarea id="note" maxlength="1000" formControlName="note" placeholder=" "></textarea>
+        </label>
+        <small class="universal-helper-text-gray">Optional. Shown under the airport on the Sceneries page.</small>
+      </div>
+
+      <div class="manage-toggle-row">
+        <label class="manage-active">
+          <span>Enable this Scenery</span>
+
+          <input type="checkbox" class="switch-input" role="switch" formControlName="is_active" />
+        </label>
+      </div>
+
+      <div class="manage-modal-actions">
+        <button
+          type="button"
+          class="universal-button universal-button--cancel"
+          [disabled]="isSaving"
+          (click)="closeModal()"
+        >
+          Cancel
+        </button>
+
+        <div class="manage-modal-actions-right">
+          <button
+            type="button"
+            class="universal-button universal-button--danger"
+            *ngIf="isEditMode"
+            [disabled]="isSaving"
+            (click)="deleteScenery()"
+          >
+            Delete
+          </button>
+
+          <button type="submit" class="universal-button universal-button--save" [disabled]="isSaving">
+            {{ isSaving ? 'Saving...' : isEditMode ? 'Update' : 'Add' }}
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>

@@ -23,7 +23,7 @@
     >
       <div class="route-loading-spinner"></div>
     </div>
-    <div *ngIf="errorMessage" class="status-box error">{{ errorMessage }}</div>
+    <app-popup-message type="error" [message]="errorMessage" />
 
     <div class="table-wrap table-wrap--admin table-wrap--compact" *ngIf="!isLoading && !errorMessage">
       <app-table-pagination [pager]="pager"></app-table-pagination>

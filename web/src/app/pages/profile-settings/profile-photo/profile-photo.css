@@ -1,0 +1,102 @@
+/* The circle and the buttons take their places in the profile header around the name. */
+:host {
+  display: contents;
+}
+
+.profile-avatar {
+  position: relative;
+  flex: 0 0 96px;
+  width: 96px;
+  height: 96px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--c-brand-2);
+  color: #ffffff;
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  box-shadow:
+    0 0 0 4px var(--c-surface),
+    0 0 0 5px var(--c-line);
+}
+
+/* Covers the initials once the photo has loaded. */
+.profile-avatar img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+/* After the name, at the right edge. */
+.profile-photo-actions {
+  order: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.4rem;
+}
+
+.profile-photo-actions__buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.profile-photo-actions__hint {
+  max-width: 15rem;
+  margin: 0;
+  color: var(--c-slate-500);
+  font-size: 0.8rem;
+  text-align: right;
+}
+
+.photo-window {
+  box-sizing: border-box;
+  width: min(100%, 42rem);
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
+}
+
+/* Focused only so Escape works; it is not a control. */
+.photo-window:focus {
+  outline: none;
+}
+
+.photo-window h3 {
+  padding-right: 2rem;
+  color: var(--c-ink);
+  font-size: 1.5rem;
+}
+
+.photo-window p {
+  color: var(--c-slate-600);
+}
+
+.photo-window__croppers {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (max-width: 760px) {
+  .profile-photo-actions {
+    flex-basis: 100%;
+    align-items: center;
+  }
+
+  .profile-photo-actions__hint {
+    text-align: center;
+  }
+}
+
+@media (max-width: 600px) {
+  .photo-window__croppers {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

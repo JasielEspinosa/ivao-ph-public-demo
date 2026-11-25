@@ -1,0 +1,30 @@
+.integration-setting {
+  display: grid;
+  gap: 0;
+  margin-top: 1rem;
+}
+
+.integration-setting__heading {
+  margin: 0 0 0.6rem;
+  font-size: 1.1rem;
+}
+
+.integration-setting__heading--spaced {
+  margin-top: var(--form-gap-section, 2rem);
+}
+
+.integration-setting__field {
+  margin-top: 1rem;
+}
+
+.integration-setting__hint {
+  margin: 0.5rem 0 0;
+}
+
+.integration-setting__actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
+  margin-top: var(--form-gap-section, 2rem);
+}

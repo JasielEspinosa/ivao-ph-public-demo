@@ -30,7 +30,7 @@
       <div class="route-loading-spinner"></div>
     </div>
 
-    <div *ngIf="errorMessage()" class="status-box error">{{ errorMessage() }}</div>
+    <app-popup-message type="error" [message]="errorMessage()" />
 
     <ng-container *ngIf="!isLoading() && !errorMessage()">
       <p *ngIf="!hasAnyMembers()" class="members-empty">{{ messages.noRecords('Members') }}</p>
@@ -50,6 +50,8 @@
                   <th data-disable-resize>Name</th>
                   <th data-disable-resize>Country</th>
                   <th data-disable-resize>Division</th>
+                  <th data-disable-resize>Real-World Pilot</th>
+                  <th data-disable-resize>Real-World ATC</th>
                 </tr>
               </thead>
               <tbody>
@@ -58,9 +60,11 @@
                   <td>{{ member.name }}</td>
                   <td>{{ member.country || '-' }}</td>
                   <td>{{ member.division || '-' }}</td>
+                  <td>{{ member.is_real_world_pilot ? 'Yes' : '-' }}</td>
+                  <td>{{ member.is_real_world_atc ? 'Yes' : '-' }}</td>
                 </tr>
                 <tr *ngIf="pilots().length === 0">
-                  <td colspan="4">{{ messages.noRecords('Pilots') }}</td>
+                  <td colspan="6">{{ messages.noRecords('Pilots') }}</td>
                 </tr>
               </tbody>
             </table>
@@ -81,6 +85,8 @@
                   <th data-disable-resize>Name</th>
                   <th data-disable-resize>Country</th>
                   <th data-disable-resize>Division</th>
+                  <th data-disable-resize>Real-World Pilot</th>
+                  <th data-disable-resize>Real-World ATC</th>
                 </tr>
               </thead>
               <tbody>
@@ -89,9 +95,11 @@
                   <td>{{ member.name }}</td>
                   <td>{{ member.country || '-' }}</td>
                   <td>{{ member.division || '-' }}</td>
+                  <td>{{ member.is_real_world_pilot ? 'Yes' : '-' }}</td>
+                  <td>{{ member.is_real_world_atc ? 'Yes' : '-' }}</td>
                 </tr>
                 <tr *ngIf="controllers().length === 0">
-                  <td colspan="4">{{ messages.noRecords('Air Traffic Controllers') }}</td>
+                  <td colspan="6">{{ messages.noRecords('Air Traffic Controllers') }}</td>
                 </tr>
               </tbody>
             </table>

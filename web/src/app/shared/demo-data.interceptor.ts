@@ -12,6 +12,10 @@ import { AirportPosition, PHILIPPINE_AIRPORTS } from './demo-airport-positions';
  *  - `DEMO_FILE_ROUTES`: the dummy files behind those records (event pictures, document and chart PDFs).
  *  - `/events`: `public/demo/events.json` holds day offsets, not dates; `buildEvents` turns them into real
  *    dates so Events Today, Upcoming Events and Past Events are never empty, whatever day it is.
+ *  - `/event-approvals`: the demo user is shown as an event approver, with dummy notifications from
+ *    `public/demo/event-approvals.json`. Approve and Dismiss only remove the notification until the page
+ *    is reloaded.
+ *  - `/manage-integrations`: empty settings (an admin page, which the demo user cannot open).
  *  - `/pilots/online` and `/atc/online`: the live IVAO feed, read straight from the browser (the
  *    feed allows cross-origin requests) and reshaped the way the real backend does.
  *  - `/weather/:icao/metar`: the live METAR from VATSIM's public METAR service (it allows
@@ -32,6 +36,9 @@ const DEMO_RESPONSES: Record<string, string> = {
   '/members/contacts': 'demo/contacts.json',
   '/documents': 'demo/documents.json',
   '/charts': 'demo/charts.json',
+  '/sceneries': 'demo/sceneries.json',
+  '/airport-parking': 'demo/airport-parking.json',
+  '/airport-parking/terminals': 'demo/airport-terminals.json',
 };
 
 /** API file routes -> the dummy file in `public/demo/` ($1 is the record id). */
@@ -39,8 +46,12 @@ const DEMO_FILE_ROUTES: readonly { pattern: RegExp; file: string }[] = [
   { pattern: /^\/events\/(\d+)\/image$/, file: 'demo/events/event-$1.svg' },
   { pattern: /^\/documents\/(\d+)\/file$/, file: 'demo/documents/document-$1.pdf' },
   { pattern: /^\/charts\/(\d+)\/file$/, file: 'demo/charts/chart-$1.pdf' },
+  { pattern: /^\/sceneries\/(\d+)\/image$/, file: 'demo/sceneries/scenery-$1.svg' },
+  { pattern: /^\/event-approvals\/(\d+)\/image$/, file: 'demo/event-approvals/event-approval-$1.svg' },
 ];
 const EVENTS_FILE = 'demo/events.json';
+const APPROVALS_FILE = 'demo/event-approvals.json';
+const EMPTY_INTEGRATIONS = { discord_webhook_url: '', facebook_page_id: '', facebook_page_access_token: '' };
 const DAY_MS = 24 * 60 * 60 * 1000;
 const PHILIPPINE_OFFSET_MS = 8 * 60 * 60 * 1000;
 
@@ -382,6 +393,32 @@ function atGmtTime(dayStart: number, time: string): number {
   return dayStart + (hours * 60 + minutes) * 60 * 1000;
 }
 
+/** Turns the day offset and GMT clock times of a dummy event into real dates, counted from `philippineDate`. */
+function toDatedEvent({ day_offset, start_gmt, end_gmt, ...rest }: DemoEvent, philippineDate: number) {
+  const dayStart = philippineDate + day_offset * DAY_MS;
+  return {
+    ...rest,
+    start_at: new Date(atGmtTime(dayStart, start_gmt)).toISOString(),
+    end_at: new Date(atGmtTime(dayStart, end_gmt)).toISOString(),
+  };
+}
+
+/** Events the demo user approved or dismissed; forgotten when the page is reloaded. */
+const handledApprovals = new Set<number>();
+
+/** The notifications of the demo user, without those already approved or dismissed. */
+function buildApprovals(snapshot: unknown) {
+  if (!Array.isArray(snapshot)) {
+    throw new Error('Unexpected event approvals file');
+  }
+
+  const philippineDate = Math.floor((Date.now() + PHILIPPINE_OFFSET_MS) / DAY_MS) * DAY_MS;
+  const items = (snapshot as DemoEvent[])
+    .filter((row) => !handledApprovals.has(row.id))
+    .map((row) => toDatedEvent(row, philippineDate));
+  return { approver_type: 'REQUIRED', items };
+}
+
 /**
  * Same sections as the backend's EventsService.findPublic: "today" is the Philippine calendar day, an event that
  * starts after today is upcoming, one that ended before today is past (most recently ended first).
@@ -397,14 +434,7 @@ function buildEvents(snapshot: unknown) {
   // The GMT clock times of an event are on the same calendar date as its Philippine day (UTC midnight of that date).
   const philippineDate = todayStart + PHILIPPINE_OFFSET_MS;
 
-  const rows = (snapshot as DemoEvent[]).map(({ day_offset, start_gmt, end_gmt, ...rest }) => {
-    const dayStart = philippineDate + day_offset * DAY_MS;
-    return {
-      ...rest,
-      start_at: new Date(atGmtTime(dayStart, start_gmt)).toISOString(),
-      end_at: new Date(atGmtTime(dayStart, end_gmt)).toISOString(),
-    };
-  });
+  const rows = (snapshot as DemoEvent[]).map((row) => toDatedEvent(row, philippineDate));
 
   const startOf = (row: { start_at: string }) => Date.parse(row.start_at);
   const endOf = (row: { end_at: string }) => Date.parse(row.end_at);
@@ -537,8 +567,25 @@ export const demoDataInterceptor: HttpInterceptorFn = (req, next) => {
     return account;
   }
 
+  const approvalAction = path === null ? null : /^\/event-approvals\/(\d+)\/(approve|dismiss)$/.exec(path);
+  if (req.method === 'POST' && approvalAction !== null) {
+    handledApprovals.add(Number(approvalAction[1]));
+    return of(new HttpResponse({ status: 200, body: null }));
+  }
+
   if (req.method !== 'GET') {
     return next(req);
+  }
+
+  if (path === '/event-approvals') {
+    return next(req.clone({ url: APPROVALS_FILE, headers: new HttpHeaders() })).pipe(
+      filter((event): event is HttpResponse<unknown> => event instanceof HttpResponse),
+      map((event) => new HttpResponse({ status: 200, body: buildApprovals(event.body) })),
+    );
+  }
+
+  if (path === '/manage-integrations') {
+    return of(new HttpResponse({ status: 200, body: EMPTY_INTEGRATIONS }));
   }
 
   if (path === '/pilots/online' || path === '/atc/online') {

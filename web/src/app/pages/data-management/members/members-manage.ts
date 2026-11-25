@@ -6,6 +6,10 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { AdminAuthService } from '../../../services/admin-auth.service';
 import { PlaceholderBannerDataManagementComponent } from '../../../placeholders/banner/placeholder-banner-data-management';
+import { PopupMessageComponent } from '../../../shared/popup/popup-message';
+import { PopupService } from '../../../shared/popup/popup.service';
+import { eitherContactRequired } from '../../../shared/either-contact-required';
+import { ApproverType, toApproverType } from '../../../shared/event-approver';
 import { sanitizePhilippineContactNumber } from '../../../shared/philippine-contact-number';
 import { VALIDATION_MESSAGES } from '../../../shared/validation-messages';
 import { VALIDATION_PATTERNS } from '../../../shared/validation-patterns';
@@ -31,6 +35,10 @@ const TEMPLATE_HEADERS = [
   'is_pilot',
   'is_atc',
   'is_staff',
+  'is_real_world_pilot',
+  'is_real_world_atc',
+  'approver_type',
+  'can_edit_on_approval',
   'show_in_contacts',
   'role_title',
   'role_description',
@@ -38,6 +46,8 @@ const TEMPLATE_HEADERS = [
   'contact_number',
   'is_active',
 ] as const;
+
+const APPROVER_LABELS: Record<ApproverType, string> = { NONE: '', REQUIRED: 'Required', OPTIONAL: 'Optional' };
 
 interface MemberRow {
   id: number;
@@ -54,6 +64,13 @@ interface MemberRow {
   is_pilot: boolean;
   is_atc: boolean;
   is_staff: boolean;
+  is_real_world_pilot: boolean;
+  is_real_world_atc: boolean;
+  approver_type: ApproverType;
+  /** Approvers only: they may change an event's details while approving it. */
+  can_edit_on_approval: boolean;
+  /** Linked to an enabled user account: an approver without one cannot approve events. */
+  has_active_user: boolean;
   show_in_contacts: boolean;
   role_title: string | null;
   role_description: string | null;
@@ -80,6 +97,9 @@ type MemberColumnKey =
   | 'is_pilot'
   | 'is_atc'
   | 'is_staff'
+  | 'is_real_world_pilot'
+  | 'is_real_world_atc'
+  | 'approver_type'
   | 'show_in_contacts'
   | 'role_title'
   | 'role_description'
@@ -98,7 +118,13 @@ type SortDirection = 'asc' | 'desc';
 @Component({
   selector: 'app-members-manage',
   standalone: true,
-  imports: [TablePaginationComponent, CommonModule, ReactiveFormsModule, PlaceholderBannerDataManagementComponent],
+  imports: [
+    PopupMessageComponent,
+    TablePaginationComponent,
+    CommonModule,
+    ReactiveFormsModule,
+    PlaceholderBannerDataManagementComponent,
+  ],
   templateUrl: './members-manage.html',
   styleUrl: './members-manage.css',
 })
@@ -110,6 +136,7 @@ export class MembersManageComponent implements OnInit {
   private readonly authService = inject(AdminAuthService);
   private readonly fb = inject(FormBuilder);
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
+  private readonly popups = inject(PopupService);
   private readonly templateService = inject(TemplateImportExportService);
   readonly VALIDATION_MESSAGES = VALIDATION_MESSAGES;
   readonly messages = DATA_MANAGE_MESSAGES;
@@ -127,6 +154,9 @@ export class MembersManageComponent implements OnInit {
     { key: 'is_pilot', label: 'Is Pilot', isBoolean: true },
     { key: 'is_atc', label: 'Is ATC', isBoolean: true },
     { key: 'is_staff', label: 'Is Staff', isBoolean: true },
+    { key: 'is_real_world_pilot', label: 'Real-World Pilot', isBoolean: true },
+    { key: 'is_real_world_atc', label: 'Real-World ATC', isBoolean: true },
+    { key: 'approver_type', label: 'Event Approver', isBoolean: false },
     { key: 'role_title', label: 'Role Title', isBoolean: false },
     { key: 'is_active', label: 'Active', isBoolean: true },
   ];
@@ -143,7 +173,15 @@ export class MembersManageComponent implements OnInit {
     is_pilot: [false],
     is_atc: [false],
     is_staff: [false],
-    // Staff only: the four fields below apply (and Role Title is required) while "Show in Contacts List" is on.
+    // In real life, whatever the IVAO roles above are.
+    is_real_world_pilot: [false],
+    is_real_world_atc: [false],
+    // Staff only: whether the member approves new events. At most one of the two is on.
+    is_required_approver: [false],
+    is_optional_approver: [false],
+    // Approvers only: may change an event's details while approving it.
+    can_edit_on_approval: [false],
+    // Staff only: Role Title is required for staff. While "Show in Contacts List" is on, an email or a number is too.
     show_in_contacts: [false],
     role_title: ['', [Validators.maxLength(255)]],
     role_description: ['', [Validators.maxLength(255)]],
@@ -161,6 +199,8 @@ export class MembersManageComponent implements OnInit {
   isSaving = false;
   errorMessage = '';
   successMessage = '';
+  /** The list could not be loaded, so there is no table to show. */
+  loadFailed = false;
   isExportOptionsModalOpen = false;
   isTemplateUploading = false;
   isTemplateUpdatedModalOpen = false;
@@ -171,23 +211,56 @@ export class MembersManageComponent implements OnInit {
   sortDirection: SortDirection = 'asc';
 
   constructor() {
-    // Is Pilot / Is ATC / Is Staff only apply to an enabled member.
+    // The role and real-world toggles only apply to an enabled member.
     this.syncRoleToggles(this.form.controls.is_active.value);
     this.form.controls.is_active.valueChanges.pipe(takeUntilDestroyed()).subscribe((isActive) => {
       this.syncRoleToggles(isActive);
     });
+
+    // Required and Optional exclude each other: switching one on switches the other off.
+    const { is_required_approver, is_optional_approver } = this.form.controls;
+    for (const [toggle, other] of [
+      [is_required_approver, is_optional_approver],
+      [is_optional_approver, is_required_approver],
+    ]) {
+      toggle.valueChanges.pipe(takeUntilDestroyed()).subscribe((isOn) => {
+        if (isOn) {
+          other.setValue(false);
+        }
+      });
+    }
 
     // The contact fields are validated only while they are shown.
     this.form.controls.is_staff.valueChanges.pipe(takeUntilDestroyed()).subscribe(() => this.syncContactValidators());
     this.form.controls.show_in_contacts.valueChanges
       .pipe(takeUntilDestroyed())
       .subscribe(() => this.syncContactValidators());
+
+    // Email or Number: filling in one clears the "required" error of the other.
+    const { contact_email, contact_number } = this.form.controls;
+    contact_email.valueChanges
+      .pipe(takeUntilDestroyed())
+      .subscribe(() => contact_number.updateValueAndValidity({ emitEvent: false }));
+    contact_number.valueChanges
+      .pipe(takeUntilDestroyed())
+      .subscribe(() => contact_email.updateValueAndValidity({ emitEvent: false }));
   }
 
   /** Staff who are shown in the Contacts list: the Email and Number fields show. */
   get showContactFields(): boolean {
     const value = this.form.getRawValue();
     return value.is_staff && value.show_in_contacts;
+  }
+
+  /** One of the two approver toggles is on: "Edit Events Before Approving" shows. */
+  get isEventApproverChosen(): boolean {
+    const value = this.form.getRawValue();
+    return value.is_staff && (value.is_required_approver || value.is_optional_approver);
+  }
+
+  /** An approver who cannot sign in cannot approve: the form says so. */
+  get showNoAccountNote(): boolean {
+    return this.isEventApproverChosen && !this.members.find((item) => item.id === this.editingId)?.has_active_user;
   }
 
   ngOnInit(): void {
@@ -205,6 +278,10 @@ export class MembersManageComponent implements OnInit {
 
   /** The text a cell shows (booleans as Yes / No); also what the column filter matches. */
   cellText(row: MemberRow, key: MemberColumnKey): string {
+    if (key === 'approver_type') {
+      return APPROVER_LABELS[row.approver_type] ?? '';
+    }
+
     const value = row[key];
     if (typeof value === 'boolean') {
       return value ? 'Yes' : 'No';
@@ -247,6 +324,7 @@ export class MembersManageComponent implements OnInit {
   loadMembers(): void {
     this.isLoading = true;
     this.errorMessage = '';
+    this.loadFailed = false;
     this.http.get<MemberRow[]>(MEMBERS_API, { headers: this.authService.getAdminApiHeaders() }).subscribe({
       next: (rows) => {
         this.members = Array.isArray(rows) ? rows : [];
@@ -255,6 +333,7 @@ export class MembersManageComponent implements OnInit {
       },
       error: (error: HttpErrorResponse) => {
         this.isLoading = false;
+        this.loadFailed = true;
         this.errorMessage = this.buildErrorMessage(error, DATA_MANAGE_MESSAGES.unableToLoad('members'));
         this.changeDetectorRef.detectChanges();
       },
@@ -305,6 +384,11 @@ export class MembersManageComponent implements OnInit {
       is_pilot: item.is_pilot,
       is_atc: item.is_atc,
       is_staff: item.is_staff,
+      is_real_world_pilot: item.is_real_world_pilot,
+      is_real_world_atc: item.is_real_world_atc,
+      is_required_approver: item.approver_type === 'REQUIRED',
+      is_optional_approver: item.approver_type === 'OPTIONAL',
+      can_edit_on_approval: item.can_edit_on_approval,
       show_in_contacts: item.show_in_contacts,
       role_title: item.role_title ?? '',
       role_description: item.role_description ?? '',
@@ -337,6 +421,7 @@ export class MembersManageComponent implements OnInit {
 
     const value = this.form.getRawValue();
     const showContact = value.is_staff && value.show_in_contacts;
+    const approverType = toApproverType(value.is_staff, value.is_required_approver, value.is_optional_approver);
     const payload = {
       vid: value.vid.trim(),
       last_name: value.last_name.trim(),
@@ -349,6 +434,10 @@ export class MembersManageComponent implements OnInit {
       is_pilot: value.is_pilot,
       is_atc: value.is_atc,
       is_staff: value.is_staff,
+      is_real_world_pilot: value.is_real_world_pilot,
+      is_real_world_atc: value.is_real_world_atc,
+      approver_type: approverType,
+      can_edit_on_approval: approverType !== 'NONE' && value.can_edit_on_approval,
       // The role only applies to staff, the email and number to staff shown in the Contacts list: hidden fields are
       // not saved.
       show_in_contacts: showContact,
@@ -397,15 +486,18 @@ export class MembersManageComponent implements OnInit {
     });
   }
 
-  deleteMember(): void {
+  async deleteMember(): Promise<void> {
     if (this.editingId === null) {
       return;
     }
 
     const member = this.members.find((item) => item.id === this.editingId);
-    const shouldDelete = window.confirm(
-      DATA_MANAGE_MESSAGES.confirmDelete(member ? `${member.name} (${member.vid})` : ''),
-    );
+    const shouldDelete = await this.popups.ask({
+      title: 'Delete Member',
+      message: DATA_MANAGE_MESSAGES.confirmDelete(member ? `${member.name} (${member.vid})` : ''),
+      confirmLabel: 'Delete',
+      danger: true,
+    });
     if (!shouldDelete) {
       return;
     }
@@ -413,6 +505,7 @@ export class MembersManageComponent implements OnInit {
     this.errorMessage = '';
     this.successMessage = '';
     this.isSaving = true;
+    this.changeDetectorRef.detectChanges();
     this.http.delete(`${MEMBERS_API}/${this.editingId}`, { headers: this.authService.getAdminApiHeaders() }).subscribe({
       next: () => {
         this.isSaving = false;
@@ -462,6 +555,7 @@ export class MembersManageComponent implements OnInit {
         },
         error: (error: HttpErrorResponse) => {
           this.errorMessage = this.buildErrorMessage(error, 'Unable to export template from server.');
+          this.changeDetectorRef.detectChanges();
         },
       });
   }
@@ -483,6 +577,10 @@ export class MembersManageComponent implements OnInit {
         row.is_pilot ? 'true' : 'false',
         row.is_atc ? 'true' : 'false',
         row.is_staff ? 'true' : 'false',
+        row.is_real_world_pilot ? 'true' : 'false',
+        row.is_real_world_atc ? 'true' : 'false',
+        row.approver_type,
+        row.can_edit_on_approval ? 'true' : 'false',
         row.show_in_contacts ? 'true' : 'false',
         row.role_title ?? '',
         row.role_description ?? '',
@@ -579,6 +677,17 @@ export class MembersManageComponent implements OnInit {
     return control.invalid && control.touched;
   }
 
+  /** Asked for after both fields were visited (or on save), not while moving from Email to Number. */
+  get showContactRequiredError(): boolean {
+    const { contact_email, contact_number } = this.form.controls;
+    return Boolean(contact_email.errors?.['contactRequired']) && contact_email.touched && contact_number.touched;
+  }
+
+  showContactPatternError(controlName: 'contact_email' | 'contact_number'): boolean {
+    const control = this.form.controls[controlName];
+    return Boolean(control.errors?.['pattern']) && control.touched;
+  }
+
   /** Keeps the digits (and a leading "+") of the number only, as it is typed. */
   onContactNumberInput(event: Event): void {
     const input = event.target as HTMLInputElement;
@@ -589,7 +698,10 @@ export class MembersManageComponent implements OnInit {
     this.form.controls.contact_number.setValue(sanitized);
   }
 
-  /** Role Title is required for staff, and the email and number are checked while they are shown. */
+  /**
+   * Role Title is required for staff. While the email and number are shown, one of them is required and both are
+   * checked.
+   */
   private syncContactValidators(): void {
     const { role_title, role_description, contact_email, contact_number } = this.form.controls;
     const isShown = this.showContactFields;
@@ -600,18 +712,32 @@ export class MembersManageComponent implements OnInit {
         : [Validators.maxLength(255)],
     );
     contact_email.setValidators(
-      isShown ? [Validators.maxLength(255), Validators.pattern(this.emailPattern)] : [Validators.maxLength(255)],
+      isShown
+        ? [eitherContactRequired('contact_number'), Validators.maxLength(255), Validators.pattern(this.emailPattern)]
+        : [Validators.maxLength(255)],
     );
-    contact_number.setValidators(isShown ? [Validators.pattern(this.contactNumberPattern)] : []);
+    contact_number.setValidators(
+      isShown ? [eitherContactRequired('contact_email'), Validators.pattern(this.contactNumberPattern)] : [],
+    );
 
     for (const control of [role_title, role_description, contact_email, contact_number]) {
       control.updateValueAndValidity({ emitEvent: false });
     }
   }
 
-  /** Is Pilot / Is ATC / Is Staff can be switched only while the member is enabled. */
+  /** The role, real-world and approver toggles can be switched only while the member is enabled. */
   private syncRoleToggles(isActive: boolean): void {
-    const toggles = [this.form.controls.is_pilot, this.form.controls.is_atc, this.form.controls.is_staff];
+    const controls = this.form.controls;
+    const toggles = [
+      controls.is_pilot,
+      controls.is_atc,
+      controls.is_staff,
+      controls.is_real_world_pilot,
+      controls.is_real_world_atc,
+      controls.is_required_approver,
+      controls.is_optional_approver,
+      controls.can_edit_on_approval,
+    ];
     for (const toggle of toggles) {
       if (isActive) {
         toggle.enable({ emitEvent: false });
@@ -635,6 +761,9 @@ export class MembersManageComponent implements OnInit {
       is_pilot: '',
       is_atc: '',
       is_staff: '',
+      is_real_world_pilot: '',
+      is_real_world_atc: '',
+      approver_type: '',
       show_in_contacts: '',
       role_title: '',
       role_description: '',
@@ -658,6 +787,11 @@ export class MembersManageComponent implements OnInit {
       is_pilot: false,
       is_atc: false,
       is_staff: false,
+      is_real_world_pilot: false,
+      is_real_world_atc: false,
+      is_required_approver: false,
+      is_optional_approver: false,
+      can_edit_on_approval: false,
       show_in_contacts: false,
       role_title: '',
       role_description: '',

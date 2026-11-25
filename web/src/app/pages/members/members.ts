@@ -10,6 +10,7 @@ import { DATA_MANAGE_MESSAGES } from '../../shared/data-manage-messages';
 import { StaffCardsComponent, StaffContact } from '../../shared/staff-cards/staff-cards';
 import { NETWORK_UNAVAILABLE_MESSAGE } from '../../shared/submit-error-utils';
 import { TablePagination, TablePaginationComponent } from '../../shared/table-pagination/table-pagination';
+import { PopupMessageComponent } from '../../shared/popup/popup-message';
 
 /** A member as the public API returns it: display fields of enabled members only. */
 interface PublicMember extends StaffContact {
@@ -18,6 +19,8 @@ interface PublicMember extends StaffContact {
   is_pilot: boolean;
   is_atc: boolean;
   is_staff: boolean;
+  is_real_world_pilot: boolean;
+  is_real_world_atc: boolean;
 }
 
 const MEMBERS_API = `${environment.apiUrl.replace(/\/$/, '')}/members`;
@@ -26,7 +29,13 @@ const MEMBERS_API = `${environment.apiUrl.replace(/\/$/, '')}/members`;
 @Component({
   selector: 'app-members',
   standalone: true,
-  imports: [CommonModule, PlaceholderBannerComponent, TablePaginationComponent, StaffCardsComponent],
+  imports: [
+    PopupMessageComponent,
+    CommonModule,
+    PlaceholderBannerComponent,
+    TablePaginationComponent,
+    StaffCardsComponent,
+  ],
   templateUrl: './members.html',
   styleUrl: './members.css',
 })

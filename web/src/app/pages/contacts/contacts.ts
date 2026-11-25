@@ -8,17 +8,19 @@ import { PlaceholderBannerComponent } from '../../placeholders/banner/placeholde
 import { DATA_MANAGE_MESSAGES } from '../../shared/data-manage-messages';
 import { StaffCardsComponent, StaffContact } from '../../shared/staff-cards/staff-cards';
 import { NETWORK_UNAVAILABLE_MESSAGE } from '../../shared/submit-error-utils';
+import { PopupMessageComponent } from '../../shared/popup/popup-message';
 
 const CONTACTS_API = `${environment.apiUrl.replace(/\/$/, '')}/members/contacts`;
 
 /**
  * Public Contacts page: the staff who are shown in the Contacts list. Set on Data Management > Members or on Manage
- * User ("Is Staff" > "Show in Contacts List"). The cards are the same component the Members page uses.
+ * User ("Is Staff" > "Show in Contacts List"). The cards are the same component the Members page uses, with the round
+ * profile picture.
  */
 @Component({
   selector: 'app-contacts',
   standalone: true,
-  imports: [PlaceholderBannerComponent, StaffCardsComponent],
+  imports: [PopupMessageComponent, PlaceholderBannerComponent, StaffCardsComponent],
   template: `
     <section class="page-shell">
       <div class="form-shell">
@@ -39,12 +41,10 @@ const CONTACTS_API = `${environment.apiUrl.replace(/\/$/, '')}/members/contacts`
           </div>
         }
 
-        @if (errorMessage()) {
-          <div class="status-box error">{{ errorMessage() }}</div>
-        }
+        <app-popup-message type="error" [message]="errorMessage()" />
 
         @if (!isLoading() && !errorMessage()) {
-          <app-staff-cards [staff]="staff()"></app-staff-cards>
+          <app-staff-cards [staff]="staff()" photoStyle="circle"></app-staff-cards>
         }
       </div>
     </section>

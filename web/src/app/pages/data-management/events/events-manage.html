@@ -5,12 +5,23 @@
     <div class="dashboard-header manage-toolbar">
       <p>{{ page?.entry?.description }}</p>
 
-      <div class="manage-toolbar-actions">
-        <button type="button" class="universal-button universal-button--primary" (click)="openAddModal()">
-          Add Event
-        </button>
-      </div>
+      @if (canManage) {
+        <div class="manage-toolbar-actions">
+          <button type="button" class="universal-button universal-button--primary" (click)="openAddModal()">
+            Add Event
+          </button>
+        </div>
+      }
     </div>
+
+    @if (!canManage) {
+      <div class="events-notice events-approver-notice" role="note">
+        You are an event approver: you can view the events and approve the ones waiting for you.
+        @if (canEditOnApproval) {
+          Use Edit &amp; Approve to change an event's details as you approve it.
+        }
+      </div>
+    }
 
     @if (isLoading) {
       <div
@@ -23,52 +34,148 @@
       </div>
     }
 
-    @if (errorMessage && !isModalOpen) {
-      <div class="status-box error" role="alert">{{ errorMessage }}</div>
-    }
+    <app-popup-message type="error" [message]="errorMessage" (closed)="errorMessage = ''" />
+    <app-popup-message type="success" [message]="successMessage" (closed)="successMessage = ''" />
+    <app-popup-message type="error" [message]="discordError" (closed)="discordError = ''" />
+    <app-popup-message type="success" [message]="discordSuccess" (closed)="discordSuccess = ''" />
 
-    @if (successMessage && !isModalOpen) {
-      <div class="status-box success" role="status">{{ successMessage }}</div>
-    }
-
-    @if (!isLoading && !(errorMessage && events.length === 0)) {
+    @if (!isLoading && !(loadFailed && events.length === 0)) {
       <!-- =========================================================
-           UPCOMING AND CURRENT EVENTS (soonest start first)
+           LIVE NOW, LATER TODAY, UPCOMING EVENTS (soonest start first)
            ========================================================= -->
-      <h2 class="events-heading">Upcoming and Current Events</h2>
+      <ng-template #upcomingRow let-item>
+        <li class="event-row">
+          <img
+            class="event-row__image"
+            [appAuthSrc]="imageUrl(item)"
+            [appAuthFallback]="fallbackImage"
+            [appAuthAdmin]="true"
+            [alt]="'Picture of ' + item.title"
+            loading="lazy"
+          />
+
+          <div class="event-row__text">
+            <h3>
+              {{ item.title }}
+              @if (item.approval_pending) {
+                <span class="event-row__tag event-row__tag--pending">Pending approval</span>
+              }
+            </h3>
+            <ng-container [ngTemplateOutlet]="approvalLines" [ngTemplateOutletContext]="{ $implicit: item }" />
+            <p class="event-row__when">
+              @for (line of formatWhen(item.start_at, item.end_at); track $index) {
+                {{ line }}<br />
+              }
+            </p>
+            <p><span class="event-row__label">Airports:</span> {{ formatAirports(item) }}</p>
+            <app-event-airport-list [airports]="item.airport_details"></app-event-airport-list>
+            @if (item.description) {
+              <p class="event-row__description">{{ item.description }}</p>
+            }
+            <ng-container [ngTemplateOutlet]="historyLines" [ngTemplateOutletContext]="{ $implicit: item }" />
+          </div>
+
+          <div class="event-row__actions">
+            <ng-container [ngTemplateOutlet]="approveButton" [ngTemplateOutletContext]="{ $implicit: item }" />
+            @if (canManage) {
+              <button type="button" class="universal-button universal-button--edit" (click)="edit(item)">Edit</button>
+              <button type="button" class="universal-button universal-button--primary" (click)="openDiscord(item)">
+                Notifications
+                <!-- A live event no longer has reminders to come: it shows whether a message was posted. -->
+                @if (isLive(item)) {
+                  @if (item.discord_last_sent_at || item.facebook_last_sent_at) {
+                    <span class="event-row__discord-on">Sent &#10003;</span>
+                  }
+                } @else if (item.discord_notify_enabled) {
+                  <span class="event-row__discord-on">On</span>
+                }
+              </button>
+            }
+          </div>
+        </li>
+      </ng-template>
+
+      <!-- Who added the event and who last changed its details. -->
+      <ng-template #historyLines let-item>
+        @if (item.created_by) {
+          <p class="event-row__history">
+            <span class="event-row__label">Created by:</span> {{ item.created_by }}, {{ formatMoment(item.created_at) }}
+          </p>
+        }
+        @if (item.updated_by) {
+          <p class="event-row__history">
+            <span class="event-row__label">Modified by:</span> {{ item.updated_by }},
+            {{ formatMoment(item.updated_at) }}
+          </p>
+        }
+      </ng-template>
+
+      <!-- Who a pending event waits for, and who approved it. -->
+      <ng-template #approvalLines let-item>
+        @if (item.approval_pending && item.approval_waiting_for.length > 0) {
+          <p>
+            <span class="event-row__label">{{
+              item.approval_waiting_for.length > 1 ? 'Waiting for any one of:' : 'Waiting for:'
+            }}</span>
+            {{ item.approval_waiting_for.join(', ') }}
+          </p>
+        }
+        @if (item.approval_approved_by.length > 0) {
+          <p><span class="event-row__label">Approved by:</span> {{ item.approval_approved_by.join(', ') }}</p>
+        }
+      </ng-template>
+
+      <!-- Only for an approver who is still asked to approve the event. -->
+      <ng-template #approveButton let-item>
+        @if (canApprove(item)) {
+          <button
+            type="button"
+            class="universal-button universal-button--template"
+            [disabled]="approvingId !== null"
+            (click)="approve(item)"
+          >
+            {{ approvingId === item.id ? 'Approving...' : 'Approve' }}
+          </button>
+          @if (canEditOnApproval) {
+            <button
+              type="button"
+              class="universal-button universal-button--edit"
+              [disabled]="approvingId !== null"
+              (click)="editAndApprove(item)"
+            >
+              Edit &amp; Approve
+            </button>
+          }
+        }
+      </ng-template>
+
+      <h2 class="events-heading">Live Now</h2>
+
+      <ul class="event-list">
+        @for (item of liveEvents; track item.id) {
+          <ng-container [ngTemplateOutlet]="upcomingRow" [ngTemplateOutletContext]="{ $implicit: item }" />
+        } @empty {
+          <li class="universal-helper-text-gray">{{ messages.noRecords('live events') }}</li>
+        }
+      </ul>
+
+      <h2 class="events-heading">Later Today</h2>
+
+      <ul class="event-list">
+        @for (item of laterTodayEvents; track item.id) {
+          <ng-container [ngTemplateOutlet]="upcomingRow" [ngTemplateOutletContext]="{ $implicit: item }" />
+        } @empty {
+          <li class="universal-helper-text-gray">{{ messages.noRecords('events later today') }}</li>
+        }
+      </ul>
+
+      <h2 class="events-heading">Upcoming Events</h2>
 
       <ul class="event-list">
         @for (item of upcomingEvents; track item.id) {
-          <li class="event-row">
-            <img
-              class="event-row__image"
-              [appAuthSrc]="imageUrl(item)"
-              [appAuthFallback]="fallbackImage"
-              [appAuthAdmin]="true"
-              [alt]="'Picture of ' + item.title"
-              loading="lazy"
-            />
-
-            <div class="event-row__text">
-              <h3>{{ item.title }}</h3>
-              <p class="event-row__when">
-                @for (line of formatWhen(item.start_at, item.end_at); track $index) {
-                  {{ line }}<br />
-                }
-              </p>
-              <p><span class="event-row__label">Airports:</span> {{ formatAirports(item) }}</p>
-              <app-event-airport-list [airports]="item.airport_details"></app-event-airport-list>
-              @if (item.description) {
-                <p class="event-row__description">{{ item.description }}</p>
-              }
-            </div>
-
-            <div class="event-row__actions">
-              <button type="button" class="universal-button universal-button--edit" (click)="edit(item)">Edit</button>
-            </div>
-          </li>
+          <ng-container [ngTemplateOutlet]="upcomingRow" [ngTemplateOutletContext]="{ $implicit: item }" />
         } @empty {
-          <li class="universal-helper-text-gray">{{ messages.noRecords('upcoming or current events') }}</li>
+          <li class="universal-helper-text-gray">{{ messages.noRecords('upcoming events') }}</li>
         }
       </ul>
 
@@ -104,7 +211,11 @@
                 @if (!item.is_active) {
                   <span class="event-row__tag">Archived</span>
                 }
+                @if (item.approval_pending) {
+                  <span class="event-row__tag event-row__tag--pending">Pending approval</span>
+                }
               </h3>
+              <ng-container [ngTemplateOutlet]="approvalLines" [ngTemplateOutletContext]="{ $implicit: item }" />
               <p class="event-row__when">
                 @for (line of formatWhen(item.start_at, item.end_at); track $index) {
                   {{ line }}<br />
@@ -115,27 +226,33 @@
               @if (item.description) {
                 <p class="event-row__description">{{ item.description }}</p>
               }
+              <ng-container [ngTemplateOutlet]="historyLines" [ngTemplateOutletContext]="{ $implicit: item }" />
             </div>
 
             <div class="event-row__actions">
-              <button type="button" class="universal-button universal-button--edit" (click)="edit(item)">Edit</button>
-              <button type="button" class="universal-button universal-button--edit" (click)="clone(item)">Clone</button>
-              @if (item.is_active) {
-                <button
-                  type="button"
-                  class="universal-button universal-button--warning"
-                  (click)="setArchived(item, true)"
-                >
-                  Archive
+              <ng-container [ngTemplateOutlet]="approveButton" [ngTemplateOutletContext]="{ $implicit: item }" />
+              @if (canManage) {
+                <button type="button" class="universal-button universal-button--edit" (click)="edit(item)">Edit</button>
+                <button type="button" class="universal-button universal-button--edit" (click)="clone(item)">
+                  Clone
                 </button>
-              } @else {
-                <button
-                  type="button"
-                  class="universal-button universal-button--edit"
-                  (click)="setArchived(item, false)"
-                >
-                  Unarchive
-                </button>
+                @if (item.is_active) {
+                  <button
+                    type="button"
+                    class="universal-button universal-button--warning"
+                    (click)="setArchived(item, true)"
+                  >
+                    Archive
+                  </button>
+                } @else {
+                  <button
+                    type="button"
+                    class="universal-button universal-button--edit"
+                    (click)="setArchived(item, false)"
+                  >
+                    Unarchive
+                  </button>
+                }
               }
             </div>
           </li>
@@ -157,6 +274,274 @@
      ADD / EDIT / CLONE MODAL
      ========================================================= -->
 
+@if (discordEvent; as discordItem) {
+  <div class="manage-modal-backdrop">
+    <div class="manage-modal-card" role="dialog" aria-modal="true" aria-label="Discord notifications">
+      <button
+        type="button"
+        class="universal-modal-close"
+        aria-label="Close"
+        [disabled]="isDiscordSaving"
+        (click)="closeDiscord()"
+      >
+        &times;
+      </button>
+
+      <h3>Discord &amp; Facebook Notifications</h3>
+      <p class="discord-event-title">{{ discordItem.title }}</p>
+
+      <div class="manage-form universal-form discord-form">
+        @if (discordItem.approval_pending) {
+          <div class="events-notice discord-running-notice" role="note">
+            This event is waiting for approval. You can save the settings, but nothing is posted to Discord or Facebook
+            until it is approved.
+          </div>
+        }
+
+        @if (integrationProblems.length > 0) {
+          <div class="events-notice discord-running-notice" role="alert">
+            @for (problem of integrationProblems; track problem) {
+              <div>{{ problem }}</div>
+            }
+            <div>Please contact the administrator to manage it in Admin Settings &gt; Manage Integrations.</div>
+          </div>
+        }
+
+        <div class="manage-modal-field">
+          <span class="manage-field-title">Send notifications to</span>
+
+          <div class="manage-source-row">
+            <label class="manage-active">
+              <input
+                type="checkbox"
+                [disabled]="!discordReady"
+                [checked]="discordEnabled"
+                (change)="discordEnabled = $any($event.target).checked"
+              />
+              <span>Discord</span>
+            </label>
+
+            <label class="manage-active">
+              <input
+                type="checkbox"
+                [disabled]="!facebookReady"
+                [checked]="facebookEnabled"
+                (change)="facebookEnabled = $any($event.target).checked"
+              />
+              <span>Facebook Page</span>
+            </label>
+          </div>
+
+          <small class="universal-helper-text-gray">
+            @if (discordEventStarted) {
+              Off by default. Send now always posts to Discord, and also to the Facebook Page when it is ticked.
+            } @else {
+              Off by default. A reminder is posted to each ticked channel at every time chosen below; the times turn on
+              when at least one channel is ticked.
+            }
+          </small>
+        </div>
+
+        @if (!discordEventStarted) {
+          <div class="manage-modal-field" [class.discord-off]="!remindersEnabled">
+            <span class="manage-field-title">Send a reminder</span>
+
+            <div class="discord-presets">
+              @for (preset of discordPresets; track preset.minutes) {
+                <label class="manage-active">
+                  <input
+                    type="checkbox"
+                    [disabled]="!remindersEnabled"
+                    [checked]="isDiscordOffsetChosen(preset.minutes)"
+                    (change)="toggleDiscordOffset(preset.minutes, $any($event.target).checked)"
+                  />
+                  <span>{{ preset.label }}</span>
+                </label>
+              }
+            </div>
+          </div>
+
+          <div class="manage-modal-field" [class.discord-off]="!remindersEnabled">
+            <div class="events-airport-add">
+              <label class="uf-field" for="discord_custom_minutes">
+                <span>Custom time (minutes before the start)</span>
+
+                <input
+                  id="discord_custom_minutes"
+                  [disabled]="!remindersEnabled"
+                  type="number"
+                  min="1"
+                  max="20160"
+                  step="1"
+                  inputmode="numeric"
+                  placeholder=" "
+                  [value]="discordCustomMinutes"
+                  (input)="discordCustomMinutes = $any($event.target).value"
+                  (keydown.enter)="addDiscordCustomOffset($event)"
+                />
+              </label>
+
+              <button
+                type="button"
+                class="universal-button universal-button--edit"
+                [disabled]="!remindersEnabled"
+                (click)="addDiscordCustomOffset()"
+              >
+                Add Time
+              </button>
+            </div>
+
+            @if (discordCustomOffsets.length > 0) {
+              <ul class="events-chips" aria-label="Custom reminder times">
+                @for (minutes of discordCustomOffsets; track minutes) {
+                  <li class="events-chip">
+                    {{ offsetLabel(minutes) }}
+                    <button
+                      type="button"
+                      class="events-chip__remove"
+                      [disabled]="!remindersEnabled"
+                      [attr.aria-label]="'Remove ' + offsetLabel(minutes)"
+                      (click)="toggleDiscordOffset(minutes, false)"
+                    >
+                      &times;
+                    </button>
+                  </li>
+                }
+              </ul>
+            }
+          </div>
+        }
+
+        <div class="manage-modal-field" [class.discord-off]="!facebookEnabled">
+          <span class="manage-field-title" id="facebook_post_type_title">Facebook post type</span>
+
+          <div class="manage-source-row" role="radiogroup" aria-labelledby="facebook_post_type_title">
+            <label class="manage-active">
+              <input
+                type="radio"
+                name="facebook_post_type"
+                [disabled]="!facebookEnabled"
+                [checked]="!facebookPublic"
+                (change)="facebookPublic = false"
+              />
+              <span>Draft</span>
+            </label>
+
+            <label class="manage-active">
+              <input
+                type="radio"
+                name="facebook_post_type"
+                [disabled]="!facebookEnabled"
+                [checked]="facebookPublic"
+                (change)="facebookPublic = true"
+              />
+              <span>Public</span>
+            </label>
+          </div>
+
+          <small class="universal-helper-text-gray">
+            @if (facebookPublic) {
+              Public posts are published on the Page at once, so your followers see them.
+            } @else {
+              Draft (default): followers do not see it. Find it in the Page's Content Library &gt; Drafts (Meta Business
+              Suite) and publish or delete it there.
+            }
+          </small>
+
+          @if (facebookDraftReminders && !discordEventStarted) {
+            <div class="events-notice discord-running-notice" role="note">
+              The Facebook post type is Draft, so the Facebook reminders are only saved as drafts that your followers do
+              not see.
+              @if (discordEnabled && discordReady) {
+                Only the Discord reminders reach people.
+              }
+              Choose Public under Facebook post type for the reminders to be published on the Page.
+            </div>
+          }
+        </div>
+
+        <div class="manage-modal-field">
+          <label class="uf-field" for="discord_message">
+            <span>Additional message</span>
+
+            <textarea
+              id="discord_message"
+              maxlength="1000"
+              placeholder=" "
+              [value]="discordMessage"
+              (input)="discordMessage = $any($event.target).value"
+            ></textarea>
+          </label>
+          <small class="universal-helper-text-gray">
+            Optional. Part of the event card in every Discord message (and Facebook post) of this event, above the event
+            description.
+            {{ discordMessage.length }}/1000
+          </small>
+        </div>
+
+        @if (!discordEventStarted && remindersEnabled && discordSchedulePreview.length > 0) {
+          <div class="manage-modal-field">
+            <span class="manage-field-title">Will be posted at</span>
+            <ul class="discord-schedule">
+              @for (entry of discordSchedulePreview; track entry.text) {
+                <li [class.discord-schedule__passed]="entry.passed">
+                  {{ entry.text }}
+                  @if (entry.passed) {
+                    <span> - already passed, skipped</span>
+                  }
+                </li>
+              }
+            </ul>
+          </div>
+        }
+
+        <div class="manage-modal-field discord-send-now">
+          <span class="manage-field-title">Send now</span>
+          <small class="universal-helper-text-gray">
+            Posts this event to Discord{{
+              facebookReady && facebookEnabled
+                ? ' and the Facebook Page (as a ' + (facebookPublic ? 'public post' : 'draft') + ')'
+                : ''
+            }}
+            right away, including the Additional message above. It does not save the settings: press Save Settings for
+            that. The button works again after 30 seconds.
+          </small>
+          <button
+            type="button"
+            class="universal-button universal-button--warning"
+            [disabled]="discordItem.approval_pending || isDiscordSending || sendNowSecondsLeft(discordItem.id) > 0"
+            (click)="sendNow()"
+          >
+            {{ sendNowLabel(discordItem.id) }}
+          </button>
+        </div>
+
+        <div class="manage-modal-actions">
+          <button
+            type="button"
+            class="universal-button universal-button--cancel"
+            [disabled]="isDiscordSaving"
+            (click)="closeDiscord()"
+          >
+            Close
+          </button>
+
+          <div class="manage-modal-actions-right">
+            <button
+              type="button"
+              class="universal-button universal-button--save"
+              [disabled]="isDiscordSaving"
+              (click)="saveDiscordSettings()"
+            >
+              {{ isDiscordSaving ? 'Saving...' : 'Save Settings' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
 @if (isModalOpen) {
   <div class="manage-modal-backdrop">
     <div class="manage-modal-card" role="dialog" aria-modal="true" aria-label="Events Management">
@@ -170,13 +555,40 @@
         &times;
       </button>
 
-      <h3>{{ isEditMode ? 'Edit Event' : cloneSource ? 'Clone Event' : 'Add Event' }}</h3>
+      <h3>
+        {{ isReview ? 'Edit & Approve Event' : isEditMode ? 'Edit Event' : cloneSource ? 'Clone Event' : 'Add Event' }}
+      </h3>
 
-      <form class="manage-form universal-form" [formGroup]="form" (ngSubmit)="save()">
+      <form
+        class="manage-form universal-form"
+        [class.events-form--locked]="detailsLocked"
+        [formGroup]="form"
+        (ngSubmit)="save()"
+      >
+        @if (isReview) {
+          <div class="events-notice" role="note">
+            Change any details you need, then approve. Your changes are saved only when you approve: closing this window
+            discards them.
+          </div>
+        }
+
         @if (isEditingPastEvent) {
           <div class="events-notice" role="note">
-            This event has already been completed. If you change any detail except the description, you are asked to
-            confirm before saving.
+            This event has already been completed. Only the Event Title, Start Time, End Time and Event Image can be
+            changed, and you are asked to confirm before saving a change.
+          </div>
+        } @else if (detailsLocked) {
+          <div class="events-notice" role="note">
+            This event has already started. Only the Event Title, Start Time, End Time and Event Image can be changed.
+            @if (editingEvent?.approval_required) {
+              Changing the title or a time sends it for approval again, and it is hidden from the Home page until
+              approved.
+            }
+          </div>
+        } @else if (isEditMode && editingEvent?.approval_required) {
+          <div class="events-notice" role="note">
+            Changing the Event Title, the start or end date and time, or the airports sends this event for approval
+            again. It is hidden from the Home page until approved.
           </div>
         }
 
@@ -221,9 +633,11 @@
             </label>
           </div>
 
-          <small class="universal-helper-text-gray">
-            Changing this converts the date and time already typed. The Home page shows both GMT and PHT.
-          </small>
+          @if (!detailsLocked) {
+            <small class="universal-helper-text-gray">
+              Changing this converts the date and time already typed. The Home page shows both GMT and PHT.
+            </small>
+          }
         </div>
 
         <div class="events-datetime-row">
@@ -259,7 +673,7 @@
           <button
             type="button"
             class="events-link-button"
-            [disabled]="!form.controls.start_date.value"
+            [disabled]="detailsLocked || !form.controls.start_date.value"
             (click)="setEndDateToStartDate()"
           >
             End Date same as Start Date
@@ -486,7 +900,7 @@
                 <button
                   type="button"
                   class="universal-button universal-button--edit"
-                  [disabled]="airportList.length >= maxAirports"
+                  [disabled]="detailsLocked || airportList.length >= maxAirports"
                   (click)="addAirport()"
                 >
                   Add Airport
@@ -501,6 +915,7 @@
                       <button
                         type="button"
                         class="events-chip__remove"
+                        [disabled]="detailsLocked"
                         [attr.aria-label]="'Remove ' + icao"
                         (click)="removeAirport(icao)"
                       >
@@ -578,10 +993,6 @@
           <small class="universal-helper-text-gray">Optional. Shown on the event card of the Home page.</small>
         </div>
 
-        <div *ngIf="errorMessage" class="status-box error manage-modal-message" role="alert">
-          {{ errorMessage }}
-        </div>
-
         <div class="manage-modal-actions">
           <button
             type="button"
@@ -596,7 +1007,7 @@
             <button
               type="button"
               class="universal-button universal-button--danger"
-              *ngIf="isEditMode"
+              *ngIf="isEditMode && !isReview"
               [disabled]="isSaving"
               (click)="deleteEvent()"
             >
@@ -604,7 +1015,7 @@
             </button>
 
             <button type="submit" class="universal-button universal-button--save" [disabled]="isSaving">
-              {{ isSaving ? 'Saving...' : isEditMode ? 'Update' : 'Add' }}
+              {{ submitLabel }}
             </button>
           </div>
         </div>

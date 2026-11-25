@@ -1,0 +1,132 @@
+@if (approverType() !== 'NONE') {
+  <button
+    type="button"
+    class="approvals-button"
+    aria-haspopup="dialog"
+    [attr.aria-label]="'Notifications: ' + items().length"
+    title="Notifications"
+    (click)="open()"
+  >
+    <svg
+      viewBox="0 0 24 24"
+      width="18"
+      height="18"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+      <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+    </svg>
+    @if (items().length > 0) {
+      <span class="approvals-badge" aria-hidden="true">{{ items().length > 99 ? '99+' : items().length }}</span>
+    }
+  </button>
+}
+
+<app-popup-message type="error" [message]="errorMessage()" (closed)="errorMessage.set('')" />
+<app-popup-message type="success" [message]="successMessage()" (closed)="successMessage.set('')" />
+
+@if (isOpen()) {
+  <dialog
+    #dialog
+    class="approvals-window"
+    aria-labelledby="approvals-title"
+    (cancel)="$event.preventDefault(); close()"
+    (close)="close()"
+    (click)="onDialogClick($event)"
+  >
+    <div class="approvals-window__header">
+      <h3 id="approvals-title">Notifications</h3>
+      <p>
+        @if (approverType() === 'REQUIRED') {
+          Events that need approval, and events other approvers have approved. One approval is enough for an event to
+          show on the Home page.
+        } @else {
+          Events you can approve, and events other approvers have approved. One approval is enough.
+        }
+      </p>
+    </div>
+
+    <div class="approvals-window__body">
+      <ul class="approvals-list">
+        @for (item of items(); track item.id) {
+          <li class="approval">
+            <img
+              class="approval__image"
+              [appAuthSrc]="imageUrl(item)"
+              [appAuthFallback]="fallbackImage"
+              [appAuthAdmin]="true"
+              [alt]="'Picture of ' + item.title"
+            />
+
+            <div class="approval__text">
+              <span class="approval__tag" [class.approval__tag--approved]="!item.needs_approval">
+                @if (!item.needs_approval) {
+                  Approved
+                } @else {
+                  {{ item.is_reapproval ? 'Changed: approve again' : 'New event' }}
+                }
+              </span>
+              <h4>{{ item.title }}</h4>
+              @if (!item.needs_approval) {
+                <p class="approval__approved-by">
+                  This event has been approved by
+                  <strong>{{ item.approval_approved_by.join(', ') || 'another approver' }}</strong
+                  >. You do not need to approve it.
+                </p>
+              }
+              <p class="approval__when">
+                @for (line of formatWhen(item.start_at, item.end_at); track $index) {
+                  {{ line }}<br />
+                }
+              </p>
+              <p><strong>Airports:</strong> {{ formatAirports(item) }}</p>
+              <app-event-airport-list [airports]="item.airport_details"></app-event-airport-list>
+              @if (item.description) {
+                <p class="approval__description">{{ item.description }}</p>
+              }
+              @if (item.approval_pending && item.approval_waiting_for.length > 0) {
+                <p>
+                  <strong>{{
+                    item.approval_waiting_for.length > 1 ? 'Waiting for any one of:' : 'Waiting for:'
+                  }}</strong>
+                  {{ item.approval_waiting_for.join(', ') }}
+                </p>
+              }
+
+              @if (item.needs_approval) {
+                <button
+                  type="button"
+                  class="universal-button universal-button--template approval__approve"
+                  [disabled]="approvingId() !== null"
+                  (click)="approve(item)"
+                >
+                  {{ approvingId() === item.id ? 'Approving...' : 'Approve' }}
+                </button>
+              } @else {
+                <button
+                  type="button"
+                  class="universal-button universal-button--cancel approval__approve"
+                  [disabled]="dismissingId() !== null"
+                  (click)="dismiss(item)"
+                >
+                  {{ dismissingId() === item.id ? 'Dismissing...' : 'Dismiss' }}
+                </button>
+              }
+            </div>
+          </li>
+        } @empty {
+          <li class="approvals-empty">You have no notifications.</li>
+        }
+      </ul>
+    </div>
+
+    <div class="approvals-window__footer">
+      <button type="button" class="universal-button universal-button--cancel" autofocus (click)="close()">Close</button>
+    </div>
+  </dialog>
+}

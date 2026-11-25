@@ -88,7 +88,6 @@
         </button>
         <img
           class="event-modal__image"
-          [class.event-modal__image--past]="kind(event) === 'past'"
           [appAuthSrc]="imageUrl(event)"
           [appAuthFallback]="fallbackImage"
           [alt]="'Picture of ' + event.title"

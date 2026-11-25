@@ -4,7 +4,7 @@ import { adminRoleGuard } from './guards/admin-role.guard';
 import { authSessionGuard } from './guards/auth-session.guard';
 import { dataManagementAccessGuard } from './guards/data-management-access.guard';
 
-// Public pages (no sign-in): home, members, pilots-lounge, documents, charts, contacts, privacy-policy, upload-file (opened from a QR code), login, forgot-password, set-password.
+// Public pages (no sign-in): home, members, pilots-lounge, atc-lounge, documents, charts, sceneries, contacts, privacy-policy, upload-file (opened from a QR code), login, forgot-password, set-password.
 // Signed-in pages: profile-settings (any user), data-management (+ its pages, by access code) and the admin pages (admins).
 // Keep the public list in sync with AdminAuthService.isPublicRoute.
 export const routes: Routes = [
@@ -23,12 +23,20 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/pilots-lounge/pilots-lounge').then((m) => m.PilotsLoungeComponent),
   },
   {
+    path: 'atc-lounge',
+    loadComponent: () => import('./pages/atc-lounge/atc-lounge').then((m) => m.AtcLoungeComponent),
+  },
+  {
     path: 'documents',
     loadComponent: () => import('./pages/documents/documents').then((m) => m.DocumentsComponent),
   },
   {
     path: 'charts',
     loadComponent: () => import('./pages/charts/charts').then((m) => m.ChartsComponent),
+  },
+  {
+    path: 'sceneries',
+    loadComponent: () => import('./pages/sceneries/sceneries').then((m) => m.SceneriesComponent),
   },
   {
     path: 'contacts',
@@ -67,6 +75,12 @@ export const routes: Routes = [
     canActivate: [adminRoleGuard],
   },
   {
+    path: 'admin/manage_integrations',
+    loadComponent: () =>
+      import('./pages/admin/manage_integrations/manage_integrations').then((m) => m.ManageIntegrationsComponent),
+    canActivate: [adminRoleGuard],
+  },
+  {
     path: 'admin/manage_user',
     loadComponent: () => import('./pages/admin/manage_user/manage_user').then((m) => m.ManageUserComponent),
     canActivate: [adminRoleGuard],
@@ -86,6 +100,24 @@ export const routes: Routes = [
     path: 'data-management',
     loadComponent: () => import('./pages/menu/data-management/data-management').then((m) => m.DataManagementComponent),
     canActivate: [dataManagementAccessGuard],
+  },
+  {
+    path: 'airport-parking-manage',
+    loadComponent: () =>
+      import('./pages/data-management/airport-parking/airport-parking-manage').then(
+        (m) => m.AirportParkingManageComponent,
+      ),
+    canActivate: [dataManagementAccessGuard],
+    data: { manageCode: 'AIRPORT_PARKING' },
+  },
+  {
+    path: 'airport-terminals-manage',
+    loadComponent: () =>
+      import('./pages/data-management/airport-terminals/airport-terminals-manage').then(
+        (m) => m.AirportTerminalsManageComponent,
+      ),
+    canActivate: [dataManagementAccessGuard],
+    data: { manageCode: 'AIRPORT_TERMINALS' },
   },
   {
     path: 'charts-manage',
@@ -118,6 +150,13 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/data-management/members/members-manage').then((m) => m.MembersManageComponent),
     canActivate: [dataManagementAccessGuard],
     data: { manageCode: 'MEMBERS' },
+  },
+  {
+    path: 'sceneries-manage',
+    loadComponent: () =>
+      import('./pages/data-management/sceneries/sceneries-manage').then((m) => m.SceneriesManageComponent),
+    canActivate: [dataManagementAccessGuard],
+    data: { manageCode: 'SCENERIES' },
   },
 
   { path: '**', redirectTo: 'home' },

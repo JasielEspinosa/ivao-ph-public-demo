@@ -29,7 +29,10 @@ export class SimbriefService {
 
   readonly lookup = signal('');
   readonly loading = signal(false);
+  /** The look-up could not be done (shown in a popup). */
   readonly error = signal('');
+  /** What was typed cannot be looked up (shown under the field). */
+  readonly lookupError = signal('');
   readonly flightPlan = signal<SimbriefFlightPlan | null>(null);
 
   /** Keeps the field to what a Pilot ID or username can contain. */
@@ -42,13 +45,16 @@ export class SimbriefService {
   fetch(): void {
     const lookup = this.lookup();
     this.flightPlan.set(null);
+    this.error.set('');
 
     if (!LOOKUP_PATTERN.test(lookup)) {
-      this.error.set('Enter your SimBrief Pilot ID or username. A callsign cannot be used to find a flight plan.');
+      this.lookupError.set(
+        'Enter your SimBrief Pilot ID or username. A callsign cannot be used to find a flight plan.',
+      );
       return;
     }
 
-    this.error.set('');
+    this.lookupError.set('');
     this.loading.set(true);
     this.http
       .get<SimbriefFlightPlan>(`${SIMBRIEF_API}/${encodeURIComponent(lookup)}`, {

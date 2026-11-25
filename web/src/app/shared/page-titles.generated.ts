@@ -11,6 +11,20 @@ export interface PageTitleEntry {
 }
 
 export const DATA_MANAGE_PAGE_TITLES: Readonly<Record<string, PageTitleEntry>> = {
+  AIRPORT_PARKING: {
+    title: 'Airport Parking',
+    subtitle: '',
+    description:
+      "Manage the aircraft parking stands, hangars and terminal gates shown in Airport Parking on the Pilot's Lounge and ATC Lounge pages, and choose which are shown.",
+    tabTitle: 'IVAO Philippines - Manage Airport Parking',
+  },
+  AIRPORT_TERMINALS: {
+    title: 'Airport Terminals',
+    subtitle: '',
+    description:
+      "Manage the airport terminals and their airlines, shown in Airport Parking on the Pilot's Lounge and ATC Lounge pages, and choose which are shown.",
+    tabTitle: 'IVAO Philippines - Manage Airport Terminals',
+  },
   CHARTS: {
     title: 'Charts',
     subtitle: '',
@@ -42,5 +56,12 @@ export const DATA_MANAGE_PAGE_TITLES: Readonly<Record<string, PageTitleEntry>> =
     subtitle: '',
     description: 'Manage the pilots, air traffic controllers and staff shown on the public Members page.',
     tabTitle: 'IVAO Philippines - Manage Members',
+  },
+  SCENERIES: {
+    title: 'Sceneries',
+    subtitle: '',
+    description:
+      'Add the airport sceneries recommended on the public Sceneries page, with the download link of each flight simulator, and choose which are shown.',
+    tabTitle: 'IVAO Philippines - Manage Sceneries',
   },
 };

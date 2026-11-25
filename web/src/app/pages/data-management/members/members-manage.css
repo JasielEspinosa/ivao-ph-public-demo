@@ -25,7 +25,25 @@
   gap: 1.5rem;
 }
 
+.members-row--real-world,
+.members-row--approver {
+  grid-template-columns: repeat(2, max-content);
+  gap: 1.5rem;
+}
+
+/* The two approver toggles with their explanation under them. */
+.members-approver {
+  display: grid;
+  gap: 0.4rem;
+}
+
 @media (max-width: 700px) {
+  .members-row--real-world,
+  .members-row--approver {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.25rem;
+  }
+
   .members-row--vid,
   .members-row--names,
   .members-row--place,

@@ -1,5 +1,5 @@
 import { CommonModule, DatePipe } from '@angular/common';
-import { Component, DestroyRef, inject } from '@angular/core';
+import { Component, DestroyRef, inject, input } from '@angular/core';
 
 import {
   ATC_COLUMNS,
@@ -16,8 +16,9 @@ import {
 const TRANSITION_ALTITUDE_FT = 18000;
 
 /**
- * The "Online Pilots" and "Online Air Traffic Controllers" sections. Home and Pilot's Lounge both show this
- * component; the data comes from the shared OnlineTrafficService, so both pages always show the same lists.
+ * The "Online Pilots" and "Online Air Traffic Controllers" sections. Home and Pilot's Lounge show both; ATC Lounge
+ * shows the controllers only. The data comes from the shared OnlineTrafficService, so the pages always show the same
+ * lists.
  */
 @Component({
   selector: 'app-online-traffic',
@@ -28,6 +29,9 @@ const TRANSITION_ALTITUDE_FT = 18000;
 })
 export class OnlineTrafficComponent {
   private readonly traffic = inject(OnlineTrafficService);
+
+  /** False leaves out the "Online Pilots" section. */
+  readonly showPilots = input(true);
 
   /** IVAO Webeye, the live map the "Track" icons open in a new tab. */
   readonly webeyeUrl = 'https://webeye.ivao.aero/';

@@ -5,6 +5,8 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { AdminAuthService } from '../../../services/admin-auth.service';
 import { PlaceholderBannerDataManagementComponent } from '../../../placeholders/banner/placeholder-banner-data-management';
+import { PopupMessageComponent } from '../../../shared/popup/popup-message';
+import { PopupService } from '../../../shared/popup/popup.service';
 import { VALIDATION_MESSAGES } from '../../../shared/validation-messages';
 import { injectCurrentPage } from '../../../shared/page-titles';
 import { DATA_MANAGE_MESSAGES } from '../../../shared/data-manage-messages';
@@ -29,7 +31,13 @@ type SortDirection = 'asc' | 'desc';
 @Component({
   selector: 'app-countries-manage',
   standalone: true,
-  imports: [TablePaginationComponent, CommonModule, ReactiveFormsModule, PlaceholderBannerDataManagementComponent],
+  imports: [
+    PopupMessageComponent,
+    TablePaginationComponent,
+    CommonModule,
+    ReactiveFormsModule,
+    PlaceholderBannerDataManagementComponent,
+  ],
   templateUrl: './countries-manage.html',
 })
 export class CountriesManageComponent implements OnInit {
@@ -42,6 +50,7 @@ export class CountriesManageComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
 
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
+  private readonly popups = inject(PopupService);
   private readonly templateService = inject(TemplateImportExportService);
   readonly VALIDATION_MESSAGES = VALIDATION_MESSAGES;
   readonly messages = DATA_MANAGE_MESSAGES;
@@ -57,6 +66,8 @@ export class CountriesManageComponent implements OnInit {
   isSaving = false;
   errorMessage = '';
   successMessage = '';
+  /** The list could not be loaded, so there is no table to show. */
+  loadFailed = false;
   isExportOptionsModalOpen = false;
   isTemplateUploading = false;
   isTemplateUpdatedModalOpen = false;
@@ -140,6 +151,7 @@ export class CountriesManageComponent implements OnInit {
   loadCountries(): void {
     this.isLoading = true;
     this.errorMessage = '';
+    this.loadFailed = false;
     this.http
       .get<CountryRow[]>(COUNTRIES_API, {
         headers: this.authService.getAdminApiHeaders(),
@@ -153,6 +165,7 @@ export class CountriesManageComponent implements OnInit {
 
         error: (error: HttpErrorResponse) => {
           this.isLoading = false;
+          this.loadFailed = true;
           this.errorMessage = this.buildErrorMessage(error, DATA_MANAGE_MESSAGES.unableToLoad('countries'));
           this.changeDetectorRef.detectChanges();
         },
@@ -275,14 +288,19 @@ export class CountriesManageComponent implements OnInit {
   /* =========================================================
        DELETE
        ========================================================= */
-  deleteCountry(): void {
+  async deleteCountry(): Promise<void> {
     if (this.editingId === null) {
       return;
     }
 
-    const shouldDelete = window.confirm(
-      DATA_MANAGE_MESSAGES.confirmDelete(this.countries.find((item) => item.id === this.editingId)?.country_name ?? ''),
-    );
+    const shouldDelete = await this.popups.ask({
+      title: 'Delete Country',
+      message: DATA_MANAGE_MESSAGES.confirmDelete(
+        this.countries.find((item) => item.id === this.editingId)?.country_name ?? '',
+      ),
+      confirmLabel: 'Delete',
+      danger: true,
+    });
     if (!shouldDelete) {
       return;
     }
@@ -290,6 +308,7 @@ export class CountriesManageComponent implements OnInit {
     this.errorMessage = '';
     this.successMessage = '';
     this.isSaving = true;
+    this.changeDetectorRef.detectChanges();
     this.http
       .delete(`${COUNTRIES_API}/${this.editingId}`, {
         headers: this.authService.getAdminApiHeaders(),
@@ -340,6 +359,7 @@ export class CountriesManageComponent implements OnInit {
         },
         error: (error: HttpErrorResponse) => {
           this.errorMessage = this.buildErrorMessage(error, 'Unable to export template from server.');
+          this.changeDetectorRef.detectChanges();
         },
       });
   }
