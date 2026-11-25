@@ -1,5 +1,5 @@
 import { HttpErrorResponse, HttpEvent, HttpHeaders, HttpInterceptorFn, HttpResponse } from '@angular/common/http';
-import { Observable, catchError, filter, map, of, shareReplay, switchMap, throwError } from 'rxjs';
+import { Observable, catchError, filter, forkJoin, from, map, of, shareReplay, switchMap, throwError } from 'rxjs';
 
 import { environment } from '../../environments/environment';
 import { AirportPosition, PHILIPPINE_AIRPORTS } from './demo-airport-positions';
@@ -9,7 +9,12 @@ import { AirportPosition, PHILIPPINE_AIRPORTS } from './demo-airport-positions';
  * without one.
  *  - `DEMO_RESPONSES`: dummy JSON files in `public/demo/` (served next to the site, so the URL is
  *    relative to the page's base href). Every area has at least 5 dummy records.
- *  - `DEMO_FILE_ROUTES`: the dummy files behind those records (event pictures, document and chart PDFs).
+ *  - `DEMO_FILE_ROUTES`: the dummy files behind those records (event, scenery and staff pictures, document and
+ *    chart PDFs).
+ *  - `/members`: the dummy members plus the pilots online now on a flight plan to or from the Philippines, as the
+ *    real backend lists them (their VID only).
+ *  - `/simbrief/:id`: one of the dummy flight plans in `public/demo/simbrief.json`; any Pilot ID or username works,
+ *    and nothing is sent to SimBrief.
  *  - `/events`: `public/demo/events.json` holds day offsets, not dates; `buildEvents` turns them into real
  *    dates so Events Today, Upcoming Events and Past Events are never empty, whatever day it is.
  *  - `/event-approvals`: the demo user is shown as an event approver, with dummy notifications from
@@ -24,15 +29,14 @@ import { AirportPosition, PHILIPPINE_AIRPORTS } from './demo-airport-positions';
  *    real backend's source (aviationweather.gov) does not, so the card says so.
  *  - `/weather/:icao/model`: the live ECMWF model data from Open-Meteo (it allows cross-origin
  *    requests), as the real backend does.
- *  - `/admin-auth/login|session|profile`: a dummy account, so Profile Settings can be tried (see
- *    `demoAccountResponse`).
+ *  - `/admin-auth/login|session|profile|profile/photo`: a dummy account, so Profile Settings (and the profile photo)
+ *    can be tried (see `demoAccountResponse`).
  *  - `/weather/:icao/notam`: a snapshot of the CAAP AIS NOTAMs in `public/demo/notams.json` (the
  *    service does not allow requests from a browser). `web/scripts/fetch-demo-notams.mjs` refreshes
  *    it before each deploy; ended NOTAMs are dropped and active/upcoming is worked out here, in the
  *    browser, so an older snapshot still shows the right state.
  */
 const DEMO_RESPONSES: Record<string, string> = {
-  '/members': 'demo/members.json',
   '/members/contacts': 'demo/contacts.json',
   '/documents': 'demo/documents.json',
   '/charts': 'demo/charts.json',
@@ -44,12 +48,16 @@ const DEMO_RESPONSES: Record<string, string> = {
 /** API file routes -> the dummy file in `public/demo/` ($1 is the record id). */
 const DEMO_FILE_ROUTES: readonly { pattern: RegExp; file: string }[] = [
   { pattern: /^\/events\/(\d+)\/image$/, file: 'demo/events/event-$1.svg' },
+  { pattern: /^\/members\/(\d+)\/photo$/, file: 'demo/members/photo-$1.svg' },
+  { pattern: /^\/members\/(\d+)\/avatar$/, file: 'demo/members/avatar-$1.svg' },
   { pattern: /^\/documents\/(\d+)\/file$/, file: 'demo/documents/document-$1.pdf' },
   { pattern: /^\/charts\/(\d+)\/file$/, file: 'demo/charts/chart-$1.pdf' },
   { pattern: /^\/sceneries\/(\d+)\/image$/, file: 'demo/sceneries/scenery-$1.svg' },
   { pattern: /^\/event-approvals\/(\d+)\/image$/, file: 'demo/event-approvals/event-approval-$1.svg' },
 ];
 const EVENTS_FILE = 'demo/events.json';
+const MEMBERS_FILE = 'demo/members.json';
+const SIMBRIEF_FILE = 'demo/simbrief.json';
 const APPROVALS_FILE = 'demo/event-approvals.json';
 const EMPTY_INTEGRATIONS = { discord_webhook_url: '', facebook_page_id: '', facebook_page_access_token: '' };
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -113,6 +121,7 @@ const RATING_LABELS: Readonly<Record<number, string>> = {
 
 interface WhazzupAtc {
   id?: unknown;
+  userId?: unknown;
   callsign?: unknown;
   rating?: unknown;
   time?: unknown;
@@ -120,6 +129,7 @@ interface WhazzupAtc {
 }
 
 interface WhazzupPilot {
+  userId?: unknown;
   callsign?: unknown;
   lastTrack?: {
     altitude?: unknown;
@@ -137,6 +147,9 @@ interface Whazzup {
 }
 
 interface DemoAtc {
+  /** The IVAO VID, shown because the demo knows no names. */
+  vid: string;
+  name: string | null;
   /** IVAO session id, used to link to the controller on Webeye; null when the feed has none. */
   sessionId: number | null;
   callsign: string;
@@ -148,6 +161,10 @@ interface DemoAtc {
 
 function text(value: unknown): string {
   return typeof value === 'string' ? value.trim().toUpperCase() : '';
+}
+
+function vidOf(userId: unknown): string {
+  return typeof userId === 'number' || typeof userId === 'string' ? String(userId).trim() : '';
 }
 
 /** Same rules as the backend's PilotsService. */
@@ -169,6 +186,8 @@ function buildPilots(feed: Whazzup) {
     const standsAtAirport = fromDeparture !== fromArrival && Math.min(fromDeparture, fromArrival) <= AT_AIRPORT_MAX_KM;
 
     pilots.push({
+      vid: vidOf(pilot.userId),
+      name: null,
       callsign: text(pilot.callsign),
       aircraft: text(pilot.flightPlan?.aircraftId),
       departure,
@@ -181,6 +200,60 @@ function buildPilots(feed: Whazzup) {
 
   pilots.sort((a, b) => a.callsign.localeCompare(b.callsign));
   return { updatedAt: feed.updatedAt, pilots };
+}
+
+/** The ordering below copies the backend's atc-sorting.ts. Manila (RPLL) is where distances are measured from. */
+const MANILA = { lat: 14.5086, lon: 121.02 };
+/** The Manila FIR centre is not an airport; it covers the whole country and is listed first. */
+const PHILIPPINE_FIR = 'RPHI';
+/** Main airport of each international group; the group's distance from the Philippines is measured to it. */
+const GROUP_HUBS: Readonly<Record<string, { lat: number; lon: number }>> = {
+  China: { lat: 23.3924, lon: 113.2988 },
+  'Guam, Palau & Micronesia': { lat: 13.4834, lon: 144.796 },
+  'Hong Kong': { lat: 22.308, lon: 113.9185 },
+  Indonesia: { lat: -6.1256, lon: 106.6559 },
+  Japan: { lat: 35.5494, lon: 139.7798 },
+  'Malaysia & Brunei': { lat: 2.7456, lon: 101.7099 },
+  Taiwan: { lat: 25.0777, lon: 121.2328 },
+  Vietnam: { lat: 10.8188, lon: 106.652 },
+};
+/** Position within an airport: CTR, then DEP/APP, TWR, GND and DEL. Anything else goes last. */
+const ROLE_ORDER: Readonly<Record<string, number>> = { CTR: 0, DEP: 1, APP: 1, TWR: 2, GND: 3, DEL: 4 };
+const OTHER_ROLE = 5;
+
+function groupDistanceKm(country: string): number {
+  const hub = GROUP_HUBS[country];
+  return hub ? distanceBetween(MANILA.lat, MANILA.lon, hub.lat, hub.lon) : Number.POSITIVE_INFINITY;
+}
+
+/** Larger = further north: the FIR first, then the airports, then anything unknown. */
+function airportLatitude(icao: string): number {
+  if (icao === PHILIPPINE_FIR) {
+    return Number.POSITIVE_INFINITY;
+  }
+  return PHILIPPINE_AIRPORTS.find((airport) => airport.icao === icao)?.lat ?? Number.NEGATIVE_INFINITY;
+}
+
+function roleRank(callsign: string): number {
+  const parts = callsign.split('_');
+  return parts.length > 1 ? (ROLE_ORDER[parts[parts.length - 1]] ?? OTHER_ROLE) : OTHER_ROLE;
+}
+
+/** Airport by airport (north to south in the Philippines, alphabetical elsewhere), then by position. */
+function compareCallsigns(philippines: boolean, a: string, b: string): number {
+  const airportA = a.split('_')[0];
+  const airportB = b.split('_')[0];
+  if (airportA !== airportB) {
+    if (philippines) {
+      const latitudeA = airportLatitude(airportA);
+      const latitudeB = airportLatitude(airportB);
+      if (latitudeA !== latitudeB) {
+        return latitudeA > latitudeB ? -1 : 1;
+      }
+    }
+    return airportA.localeCompare(airportB);
+  }
+  return roleRank(a) - roleRank(b) || a.localeCompare(b);
 }
 
 /** Same rules as the backend's AtcService. */
@@ -199,6 +272,8 @@ function buildAtc(feed: Whazzup) {
     byCountry.set(country, [
       ...(byCountry.get(country) ?? []),
       {
+        vid: vidOf(atc.userId),
+        name: null,
         sessionId: typeof atc.id === 'number' ? atc.id : null,
         callsign,
         position: typeof position === 'string' ? position : '',
@@ -209,14 +284,20 @@ function buildAtc(feed: Whazzup) {
     ]);
   }
 
+  // The Philippines first (airports north to south), then the other countries from the nearest to the farthest.
   const groups = [...byCountry.entries()]
     .map(([country, controllers]) => ({
       country,
-      controllers: controllers.sort((a, b) => a.callsign.localeCompare(b.callsign)),
+      controllers: controllers.sort((a, b) => compareCallsigns(country === HOME_COUNTRY, a.callsign, b.callsign)),
     }))
-    .sort((a, b) =>
-      a.country === HOME_COUNTRY ? -1 : b.country === HOME_COUNTRY ? 1 : a.country.localeCompare(b.country),
-    );
+    .sort((a, b) => {
+      if (a.country === HOME_COUNTRY || b.country === HOME_COUNTRY) {
+        return a.country === HOME_COUNTRY ? -1 : 1;
+      }
+      const distanceA = groupDistanceKm(a.country);
+      const distanceB = groupDistanceKm(b.country);
+      return distanceA === distanceB ? a.country.localeCompare(b.country) : distanceA < distanceB ? -1 : 1;
+    });
   return { updatedAt: feed.updatedAt, groups };
 }
 
@@ -481,6 +562,73 @@ function loadFeed(download: () => Observable<HttpEvent<unknown>>): Observable<Wh
   return entry.feed$;
 }
 
+/** The members, then the online pilots who are not among them (the live feed has no country or division). */
+function addOnlinePilots(members: unknown, online: { vid: string }[]) {
+  if (!Array.isArray(members)) {
+    throw new Error('Unexpected members file');
+  }
+  const knownVids = new Set((members as { vid: string }[]).map((member) => member.vid));
+  const others = [...new Set(online.map((pilot) => pilot.vid))]
+    .filter((vid) => vid !== '' && !knownVids.has(vid))
+    .sort((a, b) => a.localeCompare(b))
+    .map((vid) => ({
+      vid,
+      name: vid,
+      first_name: null,
+      last_name: null,
+      suffix: null,
+      role_title: null,
+      role_description: null,
+      contact_email: null,
+      contact_number: null,
+      photo_version: null,
+      country: null,
+      division: null,
+      is_pilot: true,
+      is_atc: false,
+      is_staff: false,
+      is_real_world_pilot: false,
+      is_real_world_atc: false,
+    }));
+  return [...members, ...others];
+}
+
+/** The dummy flight plan shown for a Pilot ID or username: the same one every time it is typed. */
+function pickFlightPlan(plans: unknown, lookup: string): unknown {
+  if (!Array.isArray(plans) || plans.length === 0) {
+    throw new Error('Unexpected flight plans file');
+  }
+  const sum = [...lookup.toLowerCase()].reduce((total, character) => total + character.charCodeAt(0), 0);
+  return plans[sum % plans.length];
+}
+
+/** The profile photo uploaded in the demo, kept in this browser only (the round picture, as a data URL). */
+const DEMO_PHOTO_KEY = 'ivao_demo_profile_photo';
+
+function readDemoPhoto(): { version: string; dataUrl: string } | null {
+  try {
+    const stored = JSON.parse(localStorage.getItem(DEMO_PHOTO_KEY) || 'null');
+    return typeof stored?.version === 'string' && typeof stored?.dataUrl === 'string' ? stored : null;
+  } catch {
+    return null;
+  }
+}
+
+function readAsDataUrl(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(blob);
+  });
+}
+
+function dataUrlToBlob(dataUrl: string): Blob {
+  const [header, encoded] = dataUrl.split(',');
+  const bytes = Uint8Array.from(atob(encoded), (character) => character.charCodeAt(0));
+  return new Blob([bytes], { type: header.slice('data:'.length).split(';')[0] });
+}
+
 /**
  * Demo account (so Profile Settings can be opened): there is no backend, so any email and password
  * logs in as a dummy non-admin user, and the profile page saves into the session that is kept in this
@@ -501,7 +649,10 @@ function demoUser(loginEmail: string): Record<string, unknown> {
     is_admin: false,
     manage_all_data: false,
     manage_data_codes: [],
+    is_event_approver: false,
+    can_edit_events_on_approval: false,
     ui_theme: 'light',
+    photo_version: readDemoPhoto()?.version ?? null,
   };
 }
 
@@ -555,7 +706,53 @@ function demoAccountResponse(method: string, path: string, body: unknown): Obser
     return ok({ success: true, user: updated });
   }
 
+  if (path === '/admin-auth/profile/photo') {
+    return demoPhotoResponse(method, body);
+  }
+
   return null;
+}
+
+/** Shows, saves and removes the demo account's profile photo. */
+function demoPhotoResponse(method: string, body: unknown): Observable<HttpEvent<unknown>> {
+  const fail = (status: number, message: string) =>
+    throwError(() => new HttpErrorResponse({ status, error: { message } }));
+  const user = readDemoSessionUser();
+  if (!user) {
+    return fail(401, 'Please log in again.');
+  }
+  const answer = (photoVersion: string | null) =>
+    new HttpResponse({ status: 200, body: { success: true, user: { ...user, photo_version: photoVersion } } });
+
+  if (method === 'GET') {
+    const photo = readDemoPhoto();
+    return photo ? of(new HttpResponse({ status: 200, body: dataUrlToBlob(photo.dataUrl) })) : fail(404, 'Photo not found.');
+  }
+
+  if (method === 'DELETE') {
+    try {
+      localStorage.removeItem(DEMO_PHOTO_KEY);
+    } catch {
+      // Nothing was stored.
+    }
+    return of(answer(null));
+  }
+
+  const avatar = body instanceof FormData ? body.get('avatar') : null;
+  if (method !== 'PUT' || !(avatar instanceof Blob)) {
+    return fail(400, 'Choose a photo.');
+  }
+  return from(readAsDataUrl(avatar)).pipe(
+    switchMap((dataUrl) => {
+      const version = String(Date.now());
+      try {
+        localStorage.setItem(DEMO_PHOTO_KEY, JSON.stringify({ version, dataUrl }));
+      } catch {
+        return fail(400, 'The photo could not be saved in this browser.');
+      }
+      return of(answer(version));
+    }),
+  );
 }
 
 export const demoDataInterceptor: HttpInterceptorFn = (req, next) => {
@@ -588,9 +785,36 @@ export const demoDataInterceptor: HttpInterceptorFn = (req, next) => {
     return of(new HttpResponse({ status: 200, body: EMPTY_INTEGRATIONS }));
   }
 
+  // A request to another site must not carry the API credentials.
+  const download = () => next(req.clone({ url: IVAO_WHAZZUP_API, headers: new HttpHeaders() }));
+
+  if (path === '/members') {
+    const members$ = next(req.clone({ url: MEMBERS_FILE, headers: new HttpHeaders() })).pipe(
+      filter((event): event is HttpResponse<unknown> => event instanceof HttpResponse),
+      map((event) => event.body),
+    );
+    // Like the backend, only the members are listed when IVAO cannot be reached.
+    const online$ = loadFeed(download).pipe(
+      map((feed) => buildPilots(feed).pilots),
+      catchError(() => of([])),
+    );
+    return forkJoin([members$, online$]).pipe(
+      map(([members, online]) => new HttpResponse({ status: 200, body: addOnlinePilots(members, online) })),
+    );
+  }
+
+  const simbrief = path === null ? null : /^\/simbrief\/([^/]+)$/.exec(path);
+  if (simbrief !== null) {
+    return next(req.clone({ url: SIMBRIEF_FILE, headers: new HttpHeaders() })).pipe(
+      filter((event): event is HttpResponse<unknown> => event instanceof HttpResponse),
+      map(
+        (event) =>
+          new HttpResponse({ status: 200, body: pickFlightPlan(event.body, decodeURIComponent(simbrief[1])) }),
+      ),
+    );
+  }
+
   if (path === '/pilots/online' || path === '/atc/online') {
-    // A request to another site must not carry the API credentials.
-    const download = () => next(req.clone({ url: IVAO_WHAZZUP_API, headers: new HttpHeaders() }));
     return loadFeed(download).pipe(
       map(
         (feed) =>

@@ -1,0 +1,52 @@
+[
+  {
+    "callsign": "XDA101",
+    "origin": "RPLL",
+    "destination": "RPVM",
+    "alternate": "RPVI",
+    "aircraft": "A320",
+    "cruiseAltitude": "33000",
+    "route": "DCT DEMO1 DCT DEMO2 DCT",
+    "icaoFlightPlan": "(FPL-XDA101-IS\n-A320/M-SDFGRY/S\n-RPLL0200\n-N0447F330 DCT DEMO1 DCT DEMO2 DCT\n-RPVM0105 RPVI\n-PBN/B1D1S2 RMK/DEMO FLIGHT PLAN)"
+  },
+  {
+    "callsign": "XSP214",
+    "origin": "RPLL",
+    "destination": "RPMD",
+    "alternate": "RPMR",
+    "aircraft": "A321",
+    "cruiseAltitude": "35000",
+    "route": "DCT DEMO3 DCT DEMO4 DCT",
+    "icaoFlightPlan": "(FPL-XSP214-IS\n-A321/M-SDFGRY/S\n-RPLL0200\n-N0452F350 DCT DEMO3 DCT DEMO4 DCT\n-RPMD0140 RPMR\n-PBN/B1D1S2 RMK/DEMO FLIGHT PLAN)"
+  },
+  {
+    "callsign": "XIH308",
+    "origin": "RPVM",
+    "destination": "RPVP",
+    "alternate": "RPVI",
+    "aircraft": "AT76",
+    "cruiseAltitude": "18000",
+    "route": "DCT DEMO5 DCT",
+    "icaoFlightPlan": "(FPL-XIH308-IS\n-AT76/M-SDFGRY/S\n-RPVM0200\n-N0270F180 DCT DEMO5 DCT\n-RPVP0125 RPVI\n-PBN/B1D1S2 RMK/DEMO FLIGHT PLAN)"
+  },
+  {
+    "callsign": "XDA422",
+    "origin": "RPLC",
+    "destination": "VHHH",
+    "alternate": "VMMC",
+    "aircraft": "A320",
+    "cruiseAltitude": "34000",
+    "route": "DCT DEMO6 DCT DEMO7 DCT",
+    "icaoFlightPlan": "(FPL-XDA422-IS\n-A320/M-SDFGRY/S\n-RPLC0200\n-N0448F340 DCT DEMO6 DCT DEMO7 DCT\n-VHHH0150 VMMC\n-PBN/B1D1S2 RMK/DEMO FLIGHT PLAN)"
+  },
+  {
+    "callsign": "XSP537",
+    "origin": "RPMD",
+    "destination": "RPLL",
+    "alternate": "RPLC",
+    "aircraft": "B738",
+    "cruiseAltitude": "36000",
+    "route": "DCT DEMO8 DCT DEMO9 DCT",
+    "icaoFlightPlan": "(FPL-XSP537-IS\n-B738/M-SDFGRY/S\n-RPMD0200\n-N0455F360 DCT DEMO8 DCT DEMO9 DCT\n-RPLL0138 RPLC\n-PBN/B1D1S2 RMK/DEMO FLIGHT PLAN)"
+  }
+]

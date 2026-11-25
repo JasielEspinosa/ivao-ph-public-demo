@@ -44,8 +44,8 @@ export class MembersComponent implements OnInit {
   private readonly title = inject(Title);
 
   readonly messages = DATA_MANAGE_MESSAGES;
-  readonly pilotsPager = new TablePagination();
-  readonly atcPager = new TablePagination();
+  readonly pilotsPager = new TablePagination(10);
+  readonly atcPager = new TablePagination(10);
 
   readonly isLoading = signal(true);
   readonly errorMessage = signal('');
